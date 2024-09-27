@@ -23,11 +23,11 @@ check_schema <- function(website_url) {
   website_key <- tolower(gsub("https://|http://|www\\.|\\..*", "", website_url))
 
   # Check if key already exists
-  schema_exists <- any(tolower(website_schemas$website) == website_key)
+  schema_exists <- any(tolower(website_schemas$key) == website_key)
   return(schema_exists)
 }
 
-check_schema("aaa")
+check_schema("https://www.example.com	")
 
 
 #' Write a new schema to the local CSV file
