@@ -29,51 +29,6 @@ check_schema <- function(website_url) {
 #' Prompt the user to overwrite an existing schema
 #'
 #' This function prompts the user for permission to overwrite an existing schema in the local CSV file.
-#' It displays the existing schema to the user before prompting for confirmation.
-#' @param website_url A character string representing the URL of the website.
-#' @return TRUE if the user chooses to overwrite, FALSE otherwise.
-#' @export
-prompt_overwrite <- function(website_url) {
-  # Check if the schema exists
-  if (!check_schema(website_url)) {
-    return(FALSE)
-  }
-
-  dev_mode_path <- "inst/extdata/website_schemas.csv"
-  schema_file_path <- system.file("extdata",
-                                  "website_schemas.csv",
-                                  package = "articleharvestr")
-
-  if (file.exists(dev_mode_path)) {
-    schema_file_path <- dev_mode_path
-  } else if (schema_file_path == "") {
-    stop("Local schema file not found. Ensure 'website_schemas.csv' exists in the 'inst/extdata/' directory.")
-  }
-
-  website_schemas <- read.csv(schema_file_path, stringsAsFactors = FALSE)
-  website_key <- tolower(gsub("https://|http://|www\\.|\\..*", "", website_url))
-  schema_row <- website_schemas[tolower(website_schemas$key) == website_key, ]
-
-  # Display the existing schema to the user
-  message("Existing schema for this website:")
-  print(schema_row)
-
-  # Prompt the user for confirmation to overwrite
-  response <- readline(prompt = "Do you want to overwrite this schema? (y/n): ")
-
-  # Check user response
-  if (tolower(response) == "yes") {
-    return(TRUE)
-  } else {
-    message("Schema not overwritten.")
-    return(FALSE)
-  }
-}
-
-
-#' Prompt the user to overwrite an existing schema
-#'
-#' This function prompts the user for permission to overwrite an existing schema in the local CSV file.
 #' @param website_url A character string representing the URL of the website.
 #' @return TRUE if the user chooses to overwrite, FALSE otherwise.
 #' @export
@@ -84,9 +39,7 @@ prompt_overwrite <- function(website_url) {
   }
 
   dev_mode_path <- "inst/extdata/website_schemas.csv"
-  schema_file_path <- system.file("extdata",
-                                  "website_schemas.csv",
-                                  package = "articleharvestr")
+  schema_file_path <- system.file("extdata", "website_schemas.csv", package = "articleharvestr")
 
   if (file.exists(dev_mode_path)) {
     schema_file_path <- dev_mode_path
@@ -101,7 +54,7 @@ prompt_overwrite <- function(website_url) {
   message("Existing schema for this website:")
   print(schema_row)
 
-  response <- readline(prompt = "Do you want to overwrite this schema? (yes/no): ")
+  response <- readline(prompt = "Do you want to overwrite this schema? (y/n): ")
 
   if (tolower(response) %in% c("y", "yes")) {
     return(TRUE)
@@ -109,6 +62,66 @@ prompt_overwrite <- function(website_url) {
     message("Schema not overwritten.")
     return(FALSE)
   }
+}
+
+
+#' Write a new schema to the local CSV file
+#'
+#' This function writes a new schema to the local CSV file. If the schema already exists,
+#' it prompts the user for confirmation to overwrite.
+#' @param website_url A character string representing the URL of the website.
+#' @param author_element A character string representing the CSS selector or XPath for the author element.
+#' @param title_element A character string representing the CSS selector or XPath for the title element.
+#' @param date_element A character string representing the CSS selector or XPath for the published date element.
+#' @param text_element A character string representing the CSS selector or XPath for the article text element.
+#' @return TRUE if the schema is successfully written, FALSE otherwise.
+#' @export
+write_schema <- function(website_url, author_element, title_element, date_element, text_element) {
+  # Check if the schema already exists
+  if (check_schema(website_url)) {
+    if (!prompt_overwrite(website_url)) {
+      return(FALSE)
+    }
+  }
+
+  # Paths for development and installed package
+  dev_mode_path <- "inst/extdata/website_schemas.csv"
+  schema_file_path <- system.file("extdata", "website_schemas.csv", package = "articleharvestr")
+
+  # Use the development path if it exists; otherwise, use the system file path
+  if (file.exists(dev_mode_path)) {
+    schema_file_path <- dev_mode_path
+  } else if (schema_file_path == "") {
+    stop("Local schema file not found. Ensure 'website_schemas.csv' exists in the 'inst/extdata/' directory.")
+  }
+
+  # Read the current schema file
+  website_schemas <- read.csv(schema_file_path, stringsAsFactors = FALSE)
+
+  # Create website key
+  website_key <- tolower(gsub("https://|http://|www\\.|\\..*", "", website_url))
+
+  # Remove the old schema row if it exists
+  website_schemas <- website_schemas[tolower(website_schemas$key) != website_key, ]
+
+  # Create a new row for the schema
+  new_schema_row <- data.frame(
+    website_structure = website_url,
+    author_element = author_element,
+    title_element = title_element,
+    date_element = date_element,
+    text_element = text_element,
+    key = website_key,
+    stringsAsFactors = FALSE
+  )
+
+  # Append the new row to the schema data frame
+  updated_schemas <- rbind(website_schemas, new_schema_row)
+
+  # Write the updated data frame back to the CSV file
+  write.csv(updated_schemas, schema_file_path, row.names = FALSE)
+  message("New schema successfully written to the CSV file.")
+  return(TRUE)
 }
 
 
