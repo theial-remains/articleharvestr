@@ -6,11 +6,10 @@ devtools::load_all()
 #' title
 #'
 #' description
-#' @param param parameter desc
-#' @param param parameter desc
+#' @param params1 parameter desc
 #' @return what it returns
 #' @export
-ex_function <- function(param, param) {
+ex_function <- function(params1) {
   # code goes here
 }
 
@@ -27,6 +26,13 @@ gs_write_schema(
   xml_structure = "nested_ymdl"
 )
 
-schema <- pull_schema("https://www.example2.com")
+schema <- gs_pull_schema("https://www.nytimes.com/sitemap/")
 print(schema)
+
+exlinks <- gu_year_links("https://www.nytimes.com/sitemap/", 1990, 2000)
+
+exlinks2 <- gu_append_links("https://www.nytimes.com/sitemap/", exlinks)
+
+exlinks3 <- gu_month_links("https://www.nytimes.com/sitemap/2000/", ol_class = "css-5emfqe")
+
 

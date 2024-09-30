@@ -7,11 +7,11 @@
 #' title
 #'
 #' description
-#' @param param parameter desc
-#' @param param parameter desc
+#' @param param1 parameter desc
+#' @param param2 parameter desc
 #' @return what it returns
 #' @export
-su_check_csv <- function(param, param) {
+su_check_csv <- function(param1, param2) {
   # code goes here
 }
 
@@ -19,11 +19,10 @@ su_check_csv <- function(param, param) {
 #' title
 #'
 #' description
-#' @param param parameter desc
-#' @param param parameter desc
+#' @param param1 parameter desc
 #' @return what it returns
 #' @export
-su_create_csv <- function(param, param) {
+su_create_csv <- function(param1) {
   # code goes here
 }
 
@@ -31,11 +30,10 @@ su_create_csv <- function(param, param) {
 #' title
 #'
 #' description
-#' @param param parameter desc
-#' @param param parameter desc
+#' @param param1 parameter desc
 #' @return what it returns
 #' @export
-su_check_urls <- function(param, param) {
+su_check_urls <- function(param1) {
   # code goes here
 }
 
@@ -43,11 +41,10 @@ su_check_urls <- function(param, param) {
 #' title
 #'
 #' description
-#' @param param parameter desc
-#' @param param parameter desc
+#' @param param1 parameter desc
 #' @return what it returns
 #' @export
-su_create_url_key <- function(param, param) {
+su_create_url_key <- function(param1) {
   # code goes here
 }
 
@@ -55,11 +52,10 @@ su_create_url_key <- function(param, param) {
 #' title
 #'
 #' description
-#' @param param parameter desc
-#' @param param parameter desc
+#' @param param1 parameter desc
 #' @return what it returns
 #' @export
-su_push_urls <- function(param, param) {
+su_push_urls <- function(param1) {
   # code goes here
 }
 
@@ -67,10 +63,9 @@ su_push_urls <- function(param, param) {
 #' title
 #'
 #' description
-#' @param param parameter desc
-#' @param param parameter desc
+#' @param param1 parameter desc
 #' @return what it returns
 #' @export
-su_pull_urls <- function(param, param) {
+su_pull_urls <- function(param1) {
   # code goes here
 }

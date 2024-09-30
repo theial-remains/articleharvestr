@@ -1,3 +1,4 @@
-website_structure,author_element,title_element,date_element,text_element,key,xml_structure
-https://www.example2.com,.author,.title,.pubdate,.content,example2,
-https://www.example.com,.author,.title,.pubdate,.content,example,
+"website_structure","author_element","title_element","date_element","text_element","key","xml_structure"
+"https://www.example2.com",".author",".title",".pubdate",".content","example2",NA
+"https://www.example.com",".author",".title",".pubdate",".content","example",NA
+"https://www.nytimes.com",".author",".title",".pubdate",".content","nytimes","nested_ymdl"

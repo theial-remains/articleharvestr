@@ -27,6 +27,17 @@ gs_check_schema <- function(website_url) {
 }
 
 
+#' title
+#'
+#' description
+#' @param website_url A character string representing the URL of the website.
+#' @return what it returns
+#' @export
+gs_rm_schema <- function(website_url) {
+  # TODO use gs_check_schema, the find and remove
+}
+
+
 #' Prompt the user to overwrite an existing schema
 #'
 #' This function prompts the user for permission to overwrite an existing schema in the local CSV file.
@@ -70,11 +81,12 @@ gs_prompt_overwrite <- function(website_url) {
 #'
 #' This function writes a new schema to the local CSV file. If the schema already exists,
 #' it prompts the user for confirmation to overwrite.
-#' @param website_url A character string representing the URL of the website.
-#' @param author_element A character string representing the CSS selector or XPath for the author element.
-#' @param title_element A character string representing the CSS selector or XPath for the title element.
-#' @param date_element A character string representing the CSS selector or XPath for the published date element.
-#' @param text_element A character string representing the CSS selector or XPath for the article text element.
+#' @param website_url A character string for the URL of the website.
+#' @param author_element A character string for the CSS selector/XPath for the author element.
+#' @param title_element A character string for the CSS selector/XPath for the title element.
+#' @param date_element A character string for the CSS selector/XPath for the published date element.
+#' @param text_element A character string for the CSS selector/XPath for the article text element.
+#' @param xml_structure A character string for the website structure
 #' @return TRUE if the schema is successfully written, FALSE otherwise.
 #' @export
 gs_write_schema <- function(website_url,
@@ -120,7 +132,7 @@ gs_write_schema <- function(website_url,
     date_element = date_element,
     text_element = text_element,
     key = website_key, # Created earlier in function
-    structure = xml_structure,
+    xml_structure = xml_structure,
     stringsAsFactors = FALSE
   )
 
@@ -192,6 +204,6 @@ gs_find_article_elements <- function(website_url) {
 #' @param sitemap_url parameter desc
 #' @return what it returns
 #' @export
-gs_get_sitemap_info <- function(sitemap_url) {
-  # code goes here
+gs_get_sitemap_str <- function(sitemap_url) {
+  # TODO code goes here
 }
