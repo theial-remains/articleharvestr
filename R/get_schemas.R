@@ -1,4 +1,4 @@
-# find article schema div elements, push and pull to csv
+# push and pull from website_schemas.csv, find website elements to store
 # Helper Functions ----------------------------------------------------------
 
 #' Check if a schema already exists for a website
@@ -7,7 +7,7 @@
 #' @param website_url A character string representing the URL of the website.
 #' @return TRUE if the schema exists, FALSE otherwise.
 #' @export
-check_schema <- function(website_url) {
+gs_check_schema <- function(website_url) {
   dev_mode_path <- "inst/extdata/website_schemas.csv" # FIXME rm
   schema_file_path <- system.file("extdata", "website_schemas.csv", package = "articleharvestr")
 
@@ -33,8 +33,8 @@ check_schema <- function(website_url) {
 #' @param website_url A character string representing the URL of the website.
 #' @return TRUE if the user chooses to overwrite, FALSE otherwise.
 #' @export
-prompt_overwrite <- function(website_url) {
-  if (!check_schema(website_url)) {
+gs_prompt_overwrite <- function(website_url) {
+  if (!gs_check_schema(website_url)) {
     message("No existing schema found for this website.")
     return(FALSE)
   }
@@ -77,17 +77,24 @@ prompt_overwrite <- function(website_url) {
 #' @param text_element A character string representing the CSS selector or XPath for the article text element.
 #' @return TRUE if the schema is successfully written, FALSE otherwise.
 #' @export
-write_schema <- function(website_url, author_element, title_element, date_element, text_element) {
+gs_write_schema <- function(website_url,
+                            author_element,
+                            title_element,
+                            date_element,
+                            text_element,
+                            xml_structure) {
   # Check if the schema already exists
-  if (check_schema(website_url)) {
-    if (!prompt_overwrite(website_url)) {
+  if (gs_check_schema(website_url)) {
+    if (!gs_prompt_overwrite(website_url)) {
       return(FALSE)
     }
   }
 
   # Paths for development and installed package
   dev_mode_path <- "inst/extdata/website_schemas.csv"
-  schema_file_path <- system.file("extdata", "website_schemas.csv", package = "articleharvestr")
+  schema_file_path <- system.file("extdata",
+                                  "website_schemas.csv",
+                                  package = "articleharvestr")
 
   # Use the development path if it exists; otherwise, use the system file path
   if (file.exists(dev_mode_path)) {
@@ -112,7 +119,8 @@ write_schema <- function(website_url, author_element, title_element, date_elemen
     title_element = title_element,
     date_element = date_element,
     text_element = text_element,
-    key = website_key,
+    key = website_key, # Created earlier in function
+    structure = xml_structure,
     stringsAsFactors = FALSE
   )
 
@@ -132,8 +140,8 @@ write_schema <- function(website_url, author_element, title_element, date_elemen
 #' @param website_url A character string representing the URL of the website.
 #' @return A list of schema elements (author_element, title_element, date_element, text_element) if available, NULL otherwise.
 #' @export
-pull_schema <- function(website_url) {
-  if (!check_schema(website_url)) {
+gs_pull_schema <- function(website_url) {
+  if (!gs_check_schema(website_url)) {
     message("No schema found for the given website.")
     return(NULL)
   }
@@ -157,7 +165,9 @@ pull_schema <- function(website_url) {
     author_element = schema_row$author_element,
     title_element = schema_row$title_element,
     date_element = schema_row$date_element,
-    text_element = schema_row$text_element
+    text_element = schema_row$text_element,
+    key = schema_row$key,
+    xml_structure = schema_row$xml_structure
   )
   return(schema_elements)
 }
@@ -171,6 +181,17 @@ pull_schema <- function(website_url) {
 #' @param website_url A character string representing the URL of the website.
 #' @return A list containing the schema elements (author, title, published date, article text).
 #' @export
-write_schema_auto <- function(website_url) {
+gs_find_article_elements <- function(website_url) {
   # TODO finish
+}
+
+
+#' title
+#'
+#' description
+#' @param sitemap_url parameter desc
+#' @return what it returns
+#' @export
+gs_get_sitemap_info <- function(sitemap_url) {
+  # code goes here
 }

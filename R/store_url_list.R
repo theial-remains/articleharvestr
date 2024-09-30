@@ -2,12 +2,75 @@
 # push and pull scraped elements to correct article link
 # create and check article key
 
-#' Store URL list for a website
+
+
+#' title
 #'
-#' @param website The website to scrape URLs from
-#' @param url_list A list of URLs to store
-#' @return None
-store_url_list <- function(website, url_list) {
-  # Placeholder: Function to store URL list in CSV
-  # TODO: Implement URL storage logic
+#' description
+#' @param param parameter desc
+#' @param param parameter desc
+#' @return what it returns
+#' @export
+su_check_csv <- function(param, param) {
+  # code goes here
+}
+
+
+#' title
+#'
+#' description
+#' @param param parameter desc
+#' @param param parameter desc
+#' @return what it returns
+#' @export
+su_create_csv <- function(param, param) {
+  # code goes here
+}
+
+
+#' title
+#'
+#' description
+#' @param param parameter desc
+#' @param param parameter desc
+#' @return what it returns
+#' @export
+su_check_urls <- function(param, param) {
+  # code goes here
+}
+
+
+#' title
+#'
+#' description
+#' @param param parameter desc
+#' @param param parameter desc
+#' @return what it returns
+#' @export
+su_create_url_key <- function(param, param) {
+  # code goes here
+}
+
+
+#' title
+#'
+#' description
+#' @param param parameter desc
+#' @param param parameter desc
+#' @return what it returns
+#' @export
+su_push_urls <- function(param, param) {
+  # code goes here
+}
+
+
+#' title
+#'
+#' description
+#' @param param parameter desc
+#' @param param parameter desc
+#' @return what it returns
+#' @export
+su_pull_urls <- function(param, param) {
+  # code goes here
 }
