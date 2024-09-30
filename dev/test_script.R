@@ -29,10 +29,17 @@ gs_write_schema(
 schema <- gs_pull_schema("https://www.nytimes.com/sitemap/")
 print(schema)
 
-exlinks <- gu_year_links("https://www.nytimes.com/sitemap/", 1990, 2000)
+exlinks <- gu_year_links("https://www.nytimes.com/sitemap/", 1990, 1991, tag_class = ?)
 
 exlinks2 <- gu_append_links("https://www.nytimes.com/sitemap/", exlinks)
 
-exlinks3 <- gu_month_links("https://www.nytimes.com/sitemap/2000/", ol_class = "css-5emfqe")
+exlinks3 <- gu_apply_month_links(exlinks2, tag_type = "ol", tag_class = "css-5emfqe")
 
+exlinks4 <- gu_apply_day_links(exlinks3, tag_type = "ol", tag_class = "css-7ybqih")
 
+exlinks5 <- exlinks4[1:2]
+
+exlinks6 <- gu_apply_article_links(exlinks5, tag_type = "ul", tag_class = "css-d7lzgg")
+
+exlinks7 <- exlinks6[1:10]
+exlinks7
