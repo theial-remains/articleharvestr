@@ -1,3 +1,7 @@
+# run sentiment analysis on text
+# use pull article text function from store_url_list
+
+
 # TODO PLACEHOLDER
 #' Perform sentiment analysis on scraped articles
 #'

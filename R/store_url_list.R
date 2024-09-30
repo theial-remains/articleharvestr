@@ -1,4 +1,7 @@
-# TODO PLACEHOLDER
+# push and pull link list to csv
+# push and pull scraped elements to correct article link
+# create and check article key
+
 #' Store URL list for a website
 #'
 #' @param website The website to scrape URLs from

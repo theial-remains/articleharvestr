@@ -1,3 +1,4 @@
+# find article schema div elements, push and pull to csv
 # Helper Functions ----------------------------------------------------------
 
 #' Check if a schema already exists for a website
@@ -171,5 +172,5 @@ pull_schema <- function(website_url) {
 #' @return A list containing the schema elements (author, title, published date, article text).
 #' @export
 write_schema_auto <- function(website_url) {
-  # Function logic goes here
+  # TODO finish
 }
