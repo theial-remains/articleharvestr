@@ -43,3 +43,6 @@ exlinks6 <- gu_apply_article_links(exlinks5, tag_type = "ul", tag_class = "css-d
 
 exlinks7 <- exlinks6[1:10]
 exlinks7
+
+# TODO create full demo of package so far + explanations
+# start by creating 1 example demo (NOT FULL DEMO PAKCAGE)

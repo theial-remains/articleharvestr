@@ -44,7 +44,7 @@ gs_rm_schema <- function(website_url) {
 #' @param website_url A character string representing the URL of the website.
 #' @return TRUE if the user chooses to overwrite, FALSE otherwise.
 #' @export
-gs_prompt_overwrite <- function(website_url) {
+gs_prompt_overwrite <- function(website_url) { # TODO change this function to check if the files are the same, keep both if different, do not write if same
   if (!gs_check_schema(website_url)) {
     message("No existing schema found for this website.")
     return(FALSE)
