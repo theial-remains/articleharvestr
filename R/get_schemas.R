@@ -6,6 +6,7 @@
 #' This function checks if a schema CSV exists locally for the given website URL.
 #' @param website_url A character string representing the URL of the website.
 #' @return TRUE if the schema exists, FALSE otherwise.
+#' @importFrom utils read.csv
 #' @export
 gs_check_schema <- function(website_url) {
   dev_mode_path <- "inst/extdata/website_schemas.csv" # FIXME rm
@@ -43,6 +44,7 @@ gs_rm_schema <- function(website_url) {
 #' This function prompts the user for permission to overwrite an existing schema in the local CSV file.
 #' @param website_url A character string representing the URL of the website.
 #' @return TRUE if the user chooses to overwrite, FALSE otherwise.
+#' @importFrom utils read.csv
 #' @export
 gs_prompt_overwrite <- function(website_url) { # TODO change this function to check if the files are the same, keep both if different, do not write if same
   if (!gs_check_schema(website_url)) {
@@ -88,6 +90,7 @@ gs_prompt_overwrite <- function(website_url) { # TODO change this function to ch
 #' @param text_element A character string for the CSS selector/XPath for the article text element.
 #' @param xml_structure A character string for the website structure
 #' @return TRUE if the schema is successfully written, FALSE otherwise.
+#' @importFrom utils read.csv write.csv
 #' @export
 gs_write_schema <- function(website_url,
                             author_element,
@@ -151,6 +154,7 @@ gs_write_schema <- function(website_url,
 #' This function retrieves the schema elements for a given website from the local CSV file.
 #' @param website_url A character string representing the URL of the website.
 #' @return A list of schema elements (author_element, title_element, date_element, text_element) if available, NULL otherwise.
+#' @importFrom utils read.csv
 #' @export
 gs_pull_schema <- function(website_url) {
   if (!gs_check_schema(website_url)) {
@@ -191,7 +195,6 @@ gs_pull_schema <- function(website_url) {
 #'
 #' This function attempts to automatically find schema elements (author, title, published date, article text) for the given website.
 #' @param website_url A character string representing the URL of the website.
-#' @return A list containing the schema elements (author, title, published date, article text).
 #' @export
 gs_find_article_elements <- function(website_url) {
   # TODO finish
@@ -202,7 +205,6 @@ gs_find_article_elements <- function(website_url) {
 #'
 #' description
 #' @param sitemap_url parameter desc
-#' @return what it returns
 #' @export
 gs_get_sitemap_str <- function(sitemap_url) {
   # TODO code goes here
