@@ -9,9 +9,6 @@ gs_find_article_elements(website_url)
 \arguments{
 \item{website_url}{A character string representing the URL of the website.}
 }
-\value{
-A list containing the schema elements (author, title, published date, article text).
-}
 \description{
 This function attempts to automatically find schema elements (author, title, published date, article text) for the given website.
 }

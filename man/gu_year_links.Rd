@@ -4,7 +4,7 @@
 \alias{gu_year_links}
 \title{Get Year Links}
 \usage{
-gu_year_links(sitemap_url, year_min, year_max)
+gu_year_links(sitemap_url, year_min, year_max, tag_type, tag_class)
 }
 \arguments{
 \item{sitemap_url}{A character string representing the URL of a sitemap containing year links.}
@@ -12,6 +12,10 @@ gu_year_links(sitemap_url, year_min, year_max)
 \item{year_min}{Minimum year to include.}
 
 \item{year_max}{Maximum year to include.}
+
+\item{tag_type}{An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".}
+
+\item{tag_class}{An optional character string specifying the class of the tag containing links.}
 }
 \value{
 A list of URLs of the year links.

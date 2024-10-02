@@ -9,9 +9,6 @@ gs_get_sitemap_str(sitemap_url)
 \arguments{
 \item{sitemap_url}{parameter desc}
 }
-\value{
-what it returns
-}
 \description{
 description
 }

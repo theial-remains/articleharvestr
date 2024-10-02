@@ -4,19 +4,21 @@
 \alias{gu_parse_sitemap}
 \title{Parse Sitemap Content}
 \usage{
-gu_parse_sitemap(content_text, content_type, ol_class = NULL)
+gu_parse_sitemap(content_text, content_type, tag_type, tag_class)
 }
 \arguments{
 \item{content_text}{A character string representing the sitemap content.}
 
 \item{content_type}{The content type (e.g., "application/xml" or "text/html").}
 
-\item{ol_class}{An optional character string specifying the class of the \if{html}{\out{<ol>}} tag containing links.}
+\item{tag_type}{An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".}
+
+\item{tag_class}{An optional character string specifying the class of the tag containing links.}
 }
 \value{
 A list of URLs extracted from the sitemap, or NULL if an error occurs.
 }
 \description{
 This function parses the sitemap content based on its content type (XML or HTML).
-It extracts URLs from XML \if{html}{\out{<loc>}} elements or HTML \if{html}{\out{<a>}} tags within a specified parent class.
+It extracts URLs from XML \if{html}{\out{<loc>}} elements or HTML \if{html}{\out{<a>}} tags within a specified parent tag and class.
 }
