@@ -33,6 +33,9 @@ gu_append_links <- function(url_prefix, link_list) {
 #' @param tag_type An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".
 #' @param tag_class An optional character string specifying the class of the tag containing links.
 #' @return A list of URLs extracted from the sitemap, or NULL if an error occurs.
+#' @importFrom xml2 read_xml
+#' @importFrom rvest read_html html_nodes html_attr
+#' @importFrom stringr str_extract
 #' @export
 gu_parse_sitemap <- function(content_text, content_type, tag_type, tag_class) {
   if (grepl("xml", content_type, ignore.case = TRUE)) {
@@ -62,12 +65,12 @@ gu_parse_sitemap <- function(content_text, content_type, tag_type, tag_class) {
     if (!is.null(tag_class)) {
       # Use the tag_type and tag_class to form the CSS selector
       all_links <- sitemap_html %>%
-        html_nodes(paste0(tag_type, ".", tag_class, " a")) %>%  # Find <a> tags within the specified tag and class
-        html_attr("href")                                       # Extract href attributes
+        html_nodes(paste0(tag_type, ".", tag_class, " a")) %>%
+        html_attr("href")
     } else {
       all_links <- sitemap_html %>%
-        html_nodes("a") %>%                                     # Find all <a> tags
-        html_attr("href")                                       # Extract href attributes
+        html_nodes("a") %>%
+        html_attr("href")
     }
 
   } else {
@@ -78,7 +81,6 @@ gu_parse_sitemap <- function(content_text, content_type, tag_type, tag_class) {
   return(all_links)
 }
 
-
 #' Get Year Links
 #'
 #' Extracts a list of year links within a specified range from an XML or HTML sitemap.
@@ -88,23 +90,25 @@ gu_parse_sitemap <- function(content_text, content_type, tag_type, tag_class) {
 #' @param tag_type An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".
 #' @param tag_class An optional character string specifying the class of the tag containing links.
 #' @return A list of URLs of the year links.
+#' @import httr
+#' @importFrom purrr keep
 #' @export
 gu_year_links <- function(sitemap_url, year_min, year_max, tag_type, tag_class) {
   # Fetch URL content
-  response <- tryCatch(httr::GET(sitemap_url), error = function(e) {
+  response <- tryCatch(GET(sitemap_url), error = function(e) {
     message("Error fetching URL: ", e)
     return(NULL)
   })
 
   # Check if the request was successful
-  if (is.null(response) || httr::http_status(response)$category != "Success") {
+  if (is.null(response) || http_status(response)$category != "Success") {
     message("Failed to retrieve the URL content.")
     return(NULL)
   }
 
   # Determine the content type and get the content text
-  content_type <- httr::headers(response)$`content-type`
-  content_text <- httr::content(response, as = "text")
+  content_type <- headers(response)$`content-type`
+  content_text <- content(response, as = "text")
 
   # Use the helper function to parse the sitemap content
   all_links <- gu_parse_sitemap(content_text, content_type, tag_type = tag_type, tag_class = tag_class)
@@ -114,14 +118,13 @@ gu_year_links <- function(sitemap_url, year_min, year_max, tag_type, tag_class) 
 
   # Filter links to those that contain a year within the specified range
   year_links <- all_links %>%
-    purrr::keep(~ {
+    keep(~ {
       year <- str_extract(.x, "\\d{4}")
       !is.na(year) && as.numeric(year) >= year_min && as.numeric(year) <= year_max
     })
 
   return(year_links)
 }
-
 
 #' Get Month Links
 #'
@@ -133,20 +136,20 @@ gu_year_links <- function(sitemap_url, year_min, year_max, tag_type, tag_class) 
 #' @export
 gu_month_links <- function(month_link, tag_type, tag_class) {
   # Fetch the content of the URL
-  response <- tryCatch(httr::GET(month_link), error = function(e) {
+  response <- tryCatch(GET(month_link), error = function(e) {
     message("Error fetching URL: ", e)
     return(NULL)
   })
 
   # Check if the request was successful
-  if (is.null(response) || httr::http_status(response)$category != "Success") {
+  if (is.null(response) || http_status(response)$category != "Success") {
     message("Failed to retrieve the URL content.")
     return(NULL)
   }
 
   # Determine the content type and get the content text
-  content_type <- httr::headers(response)$`content-type`
-  content_text <- httr::content(response, as = "text")
+  content_type <- headers(response)$`content-type`
+  content_text <- content(response, as = "text")
 
   # Use the helper function to parse the sitemap content
   all_links <- gu_parse_sitemap(content_text = content_text, content_type = content_type, tag_type = tag_type, tag_class = tag_class)
@@ -156,7 +159,6 @@ gu_month_links <- function(month_link, tag_type, tag_class) {
 
   return(all_links)
 }
-
 
 #' Get Day Links
 #'
@@ -168,20 +170,20 @@ gu_month_links <- function(month_link, tag_type, tag_class) {
 #' @export
 gu_day_links <- function(day_link, tag_type, tag_class) {
   # Fetch the content of the URL
-  response <- tryCatch(httr::GET(day_link), error = function(e) {
+  response <- tryCatch(GET(day_link), error = function(e) {
     message("Error fetching URL: ", e)
     return(NULL)
   })
 
   # Check if the request was successful
-  if (is.null(response) || httr::http_status(response)$category != "Success") {
+  if (is.null(response) || http_status(response)$category != "Success") {
     message("Failed to retrieve the URL content.")
     return(NULL)
   }
 
   # Determine the content type and get the content text
-  content_type <- httr::headers(response)$`content-type`
-  content_text <- httr::content(response, as = "text")
+  content_type <- headers(response)$`content-type`
+  content_text <- content(response, as = "text")
 
   # Use the helper function to parse the sitemap content
   all_links <- gu_parse_sitemap(content_text = content_text, content_type = content_type, tag_type = tag_type, tag_class = tag_class)
@@ -191,7 +193,6 @@ gu_day_links <- function(day_link, tag_type, tag_class) {
 
   return(all_links)
 }
-
 
 #' Get Article Links
 #'
@@ -203,20 +204,20 @@ gu_day_links <- function(day_link, tag_type, tag_class) {
 #' @export
 gu_article_links <- function(day_link, tag_type, tag_class) {
   # Fetch the content of the URL
-  response <- tryCatch(httr::GET(day_link), error = function(e) {
+  response <- tryCatch(GET(day_link), error = function(e) {
     message("Error fetching URL: ", e)
     return(NULL)
   })
 
   # Check if the request was successful
-  if (is.null(response) || httr::http_status(response)$category != "Success") {
+  if (is.null(response) || http_status(response)$category != "Success") {
     message("Failed to retrieve the URL content.")
     return(NULL)
   }
 
   # Determine the content type and get the content text
-  content_type <- httr::headers(response)$`content-type`
-  content_text <- httr::content(response, as = "text")
+  content_type <- headers(response)$`content-type`
+  content_text <- content(response, as = "text")
 
   # Use the helper function to parse the sitemap content
   all_links <- gu_parse_sitemap(content_text = content_text,
@@ -238,6 +239,7 @@ gu_article_links <- function(day_link, tag_type, tag_class) {
 #' @param tag_type An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".
 #' @param tag_class An optional character string specifying the class of the tag containing links.
 #' @return A list of URLs of all the month links.
+#' @import purrr
 #' @export
 gu_apply_month_links <- function(year_links, tag_type, tag_class) {
   # Use purrr::map to call gu_month_links for each year link
@@ -259,7 +261,6 @@ gu_apply_month_links <- function(year_links, tag_type, tag_class) {
   return(all_month_links)
 }
 
-
 #' Get All Day Links from a List of Month Links
 #'
 #' This function calls `gu_day_links` for each link in a list of month URLs and returns all day links.
@@ -267,6 +268,7 @@ gu_apply_month_links <- function(year_links, tag_type, tag_class) {
 #' @param tag_type An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".
 #' @param tag_class An optional character string specifying the class of the tag containing links.
 #' @return A list of URLs of all the day links.
+#' @import purrr
 #' @export
 gu_apply_day_links <- function(month_links, tag_type, tag_class) {
   # Use purrr::map to call gu_day_links for each month link
@@ -288,7 +290,6 @@ gu_apply_day_links <- function(month_links, tag_type, tag_class) {
   return(all_day_links)
 }
 
-
 #' Get All Article Links from a List of Day Links
 #'
 #' This function calls `gu_article_links` for each link in a list of day URLs and returns all article links.
@@ -296,6 +297,7 @@ gu_apply_day_links <- function(month_links, tag_type, tag_class) {
 #' @param tag_type An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".
 #' @param tag_class An optional character string specifying the class of the tag containing links.
 #' @return A list of URLs of all the article links.
+#' @import purrr
 #' @export
 gu_apply_article_links <- function(day_links, tag_type = "ol", tag_class = NULL) {
   # Use purrr::map to call gu_article_links for each day link
