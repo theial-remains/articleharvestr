@@ -93,7 +93,11 @@ gu_parse_sitemap <- function(content_text, content_type, tag_type = NULL, tag_cl
 #' @import httr
 #' @importFrom purrr keep
 #' @export
-gu_year_links <- function(sitemap_url, year_min, year_max, tag_type, tag_class) {
+gu_year_links <- function(sitemap_url,
+                          year_min,
+                          year_max,
+                          tag_type = NULL,
+                          tag_class = NULL) {
   # Fetch URL content
   response <- tryCatch(GET(sitemap_url), error = function(e) {
     message("Error fetching URL: ", e)
@@ -111,7 +115,10 @@ gu_year_links <- function(sitemap_url, year_min, year_max, tag_type, tag_class) 
   content_text <- content(response, as = "text")
 
   # Use the helper function to parse the sitemap content
-  all_links <- gu_parse_sitemap(content_text, content_type, tag_type = tag_type, tag_class = tag_class)
+  all_links <- gu_parse_sitemap(content_text,
+                                content_type,
+                                tag_type = tag_type,
+                                tag_class = tag_class)
 
   # Return NULL if parsing failed
   if (is.null(all_links)) return(NULL)
@@ -135,7 +142,7 @@ gu_year_links <- function(sitemap_url, year_min, year_max, tag_type, tag_class) 
 #' @return A list of URLs of the month links.
 #' @import httr
 #' @export
-gu_month_links <- function(month_link, tag_type, tag_class) {
+gu_month_links <- function(month_link, tag_type = NULL, tag_class = NULL) {
   # Fetch the content of the URL
   response <- tryCatch(GET(month_link), error = function(e) {
     message("Error fetching URL: ", e)
@@ -153,7 +160,10 @@ gu_month_links <- function(month_link, tag_type, tag_class) {
   content_text <- content(response, as = "text")
 
   # Use the helper function to parse the sitemap content
-  all_links <- gu_parse_sitemap(content_text = content_text, content_type = content_type, tag_type = tag_type, tag_class = tag_class)
+  all_links <- gu_parse_sitemap(content_text = content_text,
+                                content_type = content_type,
+                                tag_type = tag_type,
+                                tag_class = tag_class)
 
   # Return NULL if parsing failed
   if (is.null(all_links)) return(NULL)
@@ -170,7 +180,7 @@ gu_month_links <- function(month_link, tag_type, tag_class) {
 #' @return A list of URLs of the day links.
 #' @import httr
 #' @export
-gu_day_links <- function(day_link, tag_type, tag_class) {
+gu_day_links <- function(day_link, tag_type = NULL, tag_class = NULL) {
   # Fetch the content of the URL
   response <- tryCatch(GET(day_link), error = function(e) {
     message("Error fetching URL: ", e)
@@ -188,7 +198,10 @@ gu_day_links <- function(day_link, tag_type, tag_class) {
   content_text <- content(response, as = "text")
 
   # Use the helper function to parse the sitemap content
-  all_links <- gu_parse_sitemap(content_text = content_text, content_type = content_type, tag_type = tag_type, tag_class = tag_class)
+  all_links <- gu_parse_sitemap(content_text = content_text,
+                                content_type = content_type,
+                                tag_type = tag_type,
+                                tag_class = tag_class)
 
   # Return NULL if parsing failed
   if (is.null(all_links)) return(NULL)
@@ -205,7 +218,7 @@ gu_day_links <- function(day_link, tag_type, tag_class) {
 #' @return A list of URLs of the article links.
 #' @import httr
 #' @export
-gu_article_links <- function(day_link, tag_type, tag_class) {
+gu_article_links <- function(day_link, tag_type = NULL, tag_class = NULL) {
   # Fetch the content of the URL
   response <- tryCatch(GET(day_link), error = function(e) {
     message("Error fetching URL: ", e)
@@ -244,10 +257,12 @@ gu_article_links <- function(day_link, tag_type, tag_class) {
 #' @return A list of URLs of all the month links.
 #' @import purrr
 #' @export
-gu_apply_month_links <- function(year_links, tag_type, tag_class) {
+gu_apply_month_links <- function(year_links, tag_type = NULL, tag_class = NULL) {
   # Use purrr::map to call gu_month_links for each year link
   all_month_links <- map(year_links, ~ {
-    month_links <- gu_month_links(.x, tag_type = tag_type, tag_class = tag_class)
+    month_links <- gu_month_links(.x,
+                                  tag_type = tag_type,
+                                  tag_class = tag_class)
 
     # Check if the first month link contains the year link text
     if (length(month_links) > 0 && !grepl(.x, month_links[1])) {
@@ -273,7 +288,7 @@ gu_apply_month_links <- function(year_links, tag_type, tag_class) {
 #' @return A list of URLs of all the day links.
 #' @import purrr
 #' @export
-gu_apply_day_links <- function(month_links, tag_type, tag_class) {
+gu_apply_day_links <- function(month_links, tag_type = NULL, tag_class = NULL) {
   # Use purrr::map to call gu_day_links for each month link
   all_day_links <- map(month_links, ~ {
     day_links <- gu_day_links(.x, tag_type = tag_type, tag_class = tag_class)
@@ -302,7 +317,7 @@ gu_apply_day_links <- function(month_links, tag_type, tag_class) {
 #' @return A list of URLs of all the article links.
 #' @import purrr
 #' @export
-gu_apply_article_links <- function(day_links, tag_type = "ol", tag_class = NULL) {
+gu_apply_article_links <- function(day_links, tag_type = NULL, tag_class = NULL) {
   # Use purrr::map to call gu_article_links for each day link
   all_article_links <- map(day_links, ~ {
     gu_article_links(.x, tag_type = tag_type, tag_class = tag_class)
