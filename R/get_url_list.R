@@ -37,7 +37,7 @@ gu_append_links <- function(url_prefix, link_list) {
 #' @importFrom rvest read_html html_nodes html_attr
 #' @importFrom stringr str_extract
 #' @export
-gu_parse_sitemap <- function(content_text, content_type, tag_type, tag_class) {
+gu_parse_sitemap <- function(content_text, content_type, tag_type = NULL, tag_class = NULL) {
   if (grepl("xml", content_type, ignore.case = TRUE)) {
     # XML Parsing
     sitemap_xml <- tryCatch(read_xml(content_text), error = function(e) {
@@ -45,12 +45,12 @@ gu_parse_sitemap <- function(content_text, content_type, tag_type, tag_class) {
       return(NULL)
     })
 
-    if (is.null(sitemap_xml)) return(NULL)
-
     # Extract all <loc> elements (URL links) from the XML
-    all_links <- sitemap_xml %>%
-      xml_find_all(".//loc") %>%
-      xml_text()
+    ns <- xml_ns(sitemap_xml)
+    ns_prefix <- names(ns)[1]  # This will get the prefix 'd1'
+
+    loc_nodes <- xml_find_all(sitemap_xml, paste0(".//", ns_prefix, ":loc"), ns)
+    all_links <- xml_text(loc_nodes)
 
   } else if (grepl("html", content_type, ignore.case = TRUE)) {
     # HTML Parsing
