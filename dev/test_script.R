@@ -27,7 +27,11 @@ gs_write_schema(
 )
 
 schema <- gs_pull_schema("https://www.nytimes.com/sitemap/")
-print(schema)
+View(schema)
+
+gs_remove_schema("https://www.nytimes.com/sitemap/", every = TRUE)
+
+
 
 exlinks <- gu_year_links("https://www.nytimes.com/sitemap/", 1990, 1991, tag_class = ?)
 
