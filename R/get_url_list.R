@@ -133,6 +133,7 @@ gu_year_links <- function(sitemap_url, year_min, year_max, tag_type, tag_class) 
 #' @param tag_type An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".
 #' @param tag_class An optional character string specifying the class of the tag containing links.
 #' @return A list of URLs of the month links.
+#' @import httr
 #' @export
 gu_month_links <- function(month_link, tag_type, tag_class) {
   # Fetch the content of the URL
@@ -167,6 +168,7 @@ gu_month_links <- function(month_link, tag_type, tag_class) {
 #' @param tag_type An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".
 #' @param tag_class An optional character string specifying the class of the tag containing links.
 #' @return A list of URLs of the day links.
+#' @import httr
 #' @export
 gu_day_links <- function(day_link, tag_type, tag_class) {
   # Fetch the content of the URL
@@ -201,6 +203,7 @@ gu_day_links <- function(day_link, tag_type, tag_class) {
 #' @param tag_type An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".
 #' @param tag_class An optional character string specifying the class of the tag containing links.
 #' @return A list of URLs of the article links.
+#' @import httr
 #' @export
 gu_article_links <- function(day_link, tag_type, tag_class) {
   # Fetch the content of the URL
