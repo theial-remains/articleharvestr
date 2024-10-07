@@ -18,12 +18,20 @@ ex_function <- function(params1) {
 gs_check_schema("https://www.nytimes.com/sitemap/")
 
 gs_write_schema(
-  website_url = "https://www.nytimes.com",
+  website_url = "https://www.example.com",
   author_element = ".author",
   title_element = ".title",
-  date_element = ".pubdate",
+  date_element = ".date",
   text_element = ".content",
-  xml_structure = "nested_ymdl"
+  xml_structure = "nested",
+  year_type = "ol",
+  year_class = "year-list",
+  month_type = "ul",
+  month_class = "month-list",
+  day_type = "div",
+  day_class = "day-list",
+  article_type = "a",
+  article_class = "article-link"
 )
 
 schema <- gs_pull_schema("https://www.nytimes.com/sitemap/")
