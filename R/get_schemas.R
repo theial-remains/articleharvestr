@@ -1,6 +1,8 @@
 # push and pull from website_schemas.csv, find website elements to store
+
+
 # Helper Functions ----------------------------------------------------------
-# TODO add charater string to end of webstite key to make it unique to each entry
+
 
 #' Check if a schema already exists for a website
 #'
@@ -39,6 +41,14 @@ gs_check_schema <- function(website_url) {
 #' @param date_element A character string for the CSS selector/XPath for the published date element.
 #' @param text_element A character string for the CSS selector/XPath for the article text element.
 #' @param xml_structure A character string for the website structure.
+#' @param year_type A character string specifying the type of year links (default: NULL).
+#' @param year_class A character string specifying the class for year links (default: NULL).
+#' @param month_type A character string specifying the type of month links (default: NULL).
+#' @param month_class A character string specifying the class for month links (default: NULL).
+#' @param day_type A character string specifying the type of day links (default: NULL).
+#' @param day_class A character string specifying the class for day links (default: NULL).
+#' @param article_type A character string specifying the type of article links (default: NULL).
+#' @param article_class A character string specifying the class for article links (default: NULL).
 #' @return TRUE if the schema is successfully written, FALSE otherwise.
 #' @importFrom utils read.csv write.csv
 #' @export
@@ -47,7 +57,15 @@ gs_write_schema <- function(website_url,
                             title_element,
                             date_element,
                             text_element,
-                            xml_structure) {
+                            xml_structure,
+                            year_type = NULL,
+                            year_class = NULL,
+                            month_type = NULL,
+                            month_class = NULL,
+                            day_type = NULL,
+                            day_class = NULL,
+                            article_type = NULL,
+                            article_class = NULL) {
   # Check if the schema already exists
   if (gs_check_schema(website_url)) {
     message("Writing duplicate schema. The schema for this website already exists.")
@@ -81,6 +99,14 @@ gs_write_schema <- function(website_url,
     key = website_key,
     id = website_id,  # Add unique ID
     xml_structure = xml_structure,
+    year_type = year_type,
+    year_class = year_class,
+    month_type = month_type,
+    month_class = month_class,
+    day_type = day_type,
+    day_class = day_class,
+    article_type = article_type,
+    article_class = article_class,
     stringsAsFactors = FALSE
   )
 
@@ -190,7 +216,6 @@ gs_remove_schema <- function(website_url, id = NULL, every = FALSE) {
   # Write the updated data frame back to the CSV file
   write.csv(updated_schemas, schema_file_path, row.names = FALSE)
   message("Schema row(s) successfully removed from the CSV file:")
-  print(schema_rows_to_delete)
   return(TRUE)
 }
 
