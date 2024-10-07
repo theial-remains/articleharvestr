@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_schemas.R
 \name{gs_write_schema}
 \alias{gs_write_schema}
-\title{Write a new schema to the local CSV file}
+\title{Write a New Schema to the Local CSV File}
 \usage{
 gs_write_schema(
   website_url,
@@ -10,7 +10,15 @@ gs_write_schema(
   title_element,
   date_element,
   text_element,
-  xml_structure
+  xml_structure,
+  year_type = NULL,
+  year_class = NULL,
+  month_type = NULL,
+  month_class = NULL,
+  day_type = NULL,
+  day_class = NULL,
+  article_type = NULL,
+  article_class = NULL
 )
 }
 \arguments{
@@ -24,12 +32,28 @@ gs_write_schema(
 
 \item{text_element}{A character string for the CSS selector/XPath for the article text element.}
 
-\item{xml_structure}{A character string for the website structure}
+\item{xml_structure}{A character string for the website structure.}
+
+\item{year_type}{A character string specifying the type of year links (default: NULL).}
+
+\item{year_class}{A character string specifying the class for year links (default: NULL).}
+
+\item{month_type}{A character string specifying the type of month links (default: NULL).}
+
+\item{month_class}{A character string specifying the class for month links (default: NULL).}
+
+\item{day_type}{A character string specifying the type of day links (default: NULL).}
+
+\item{day_class}{A character string specifying the class for day links (default: NULL).}
+
+\item{article_type}{A character string specifying the type of article links (default: NULL).}
+
+\item{article_class}{A character string specifying the class for article links (default: NULL).}
 }
 \value{
 TRUE if the schema is successfully written, FALSE otherwise.
 }
 \description{
 This function writes a new schema to the local CSV file. If the schema already exists,
-it prompts the user for confirmation to overwrite.
+it generates a warning but still writes the new schema with a unique ID.
 }
