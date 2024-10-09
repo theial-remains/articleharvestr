@@ -35,6 +35,7 @@ gu_append_links <- function(url_prefix, link_list) {
 #' @importFrom xml2 read_xml
 #' @importFrom rvest read_html html_nodes html_attr
 #' @importFrom stringr str_extract
+#' @import tidyr
 #' @export
 gu_parse_sitemap <- function(content_text,
                              content_type,
@@ -176,7 +177,8 @@ gu_month_links <- function(year_link, month_min = 1, month_max = 12, tag_type = 
 
   # Filter the links based on the specified month range
   filtered_links <- keep(all_links, ~ {
-    month <- as.numeric(str_extract(.x, "(?<=/)(\\d{2})(?=/)"))
+    month <- as.numeric(str_extract(.x, "^\\d{2}(?=/)"))
+    message("Checking month in link ", .x, ": extracted month = ", month)
     !is.na(month) && month >= month_min && month <= month_max
   })
 
@@ -390,6 +392,28 @@ gu_apply_day_links <- function(month_link, month, year, year_min, year_max, star
 }
 
 
+#' Get All Article Links from a List of Day Links
+#'
+#' This function calls `gu_article_links` for each link in a list of day URLs and returns all article links.
+#' @param day_links A character vector containing the list of day URLs.
+#' @param tag_type An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".
+#' @param tag_class An optional character string specifying the class of the tag containing links.
+#' @return A list of URLs of all the article links.
+#' @import purrr
+#' @export
+gu_apply_article_links <- function(day_links, tag_type = NULL, tag_class = NULL) {
+  # Use purrr::map to call gu_article_links for each day link
+  all_article_links <- purrr::map(day_links, ~ {
+    gu_article_links(day_link = .x, tag_type = tag_type, tag_class = tag_class)
+  })
+
+  # Flatten the list of lists into a single vector of article links
+  all_article_links <- purrr::flatten_chr(all_article_links)
+
+  return(all_article_links)
+}
+
+
 # Main Functions ----------------------------------------------------------
 
 
@@ -402,6 +426,7 @@ gu_apply_day_links <- function(month_link, month, year, year_min, year_max, star
 #' @param end_date The end date for retrieving article links (e.g., "2004-12-31").
 #' @param id A character string specifying the unique ID of the schema to pull (optional).
 #' @return A character vector of article links.
+#' @importFrom stringr str_extract
 #' @export
 gu_get_links <- function(website_url, start_date, end_date, id = NULL) {
   # Convert start and end dates to Date class
