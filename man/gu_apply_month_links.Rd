@@ -2,30 +2,42 @@
 % Please edit documentation in R/get_url_list.R
 \name{gu_apply_month_links}
 \alias{gu_apply_month_links}
-\title{Get All Month Links from a List of Year Links}
+\title{Get Month Links for a Specific Year}
 \usage{
 gu_apply_month_links(
-  year_links,
-  month_min = 1,
-  month_max = 12,
-  tag_type = NULL,
-  tag_class = NULL
+  year_link,
+  year,
+  year_min,
+  year_max,
+  start_date,
+  end_date,
+  month_tag_type,
+  month_tag_class,
+  website_structure
 )
 }
 \arguments{
-\item{year_links}{A character vector containing the list of year URLs.}
+\item{year_link}{A character string representing the URL of the year link.}
 
-\item{month_min}{The starting month of the range (e.g., 1 for January).}
+\item{year}{The year as a numeric value.}
 
-\item{month_max}{The ending month of the range (e.g., 12 for December).}
+\item{year_min}{The starting year of the range.}
 
-\item{tag_type}{An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".}
+\item{year_max}{The ending year of the range.}
 
-\item{tag_class}{An optional character string specifying the class of the tag containing links.}
+\item{start_date}{The start date of the entire range.}
+
+\item{end_date}{The end date of the entire range.}
+
+\item{month_tag_type}{A character string for the month tag type (e.g., "ol").}
+
+\item{month_tag_class}{A character string for the month tag class.}
+
+\item{website_structure}{The base structure of the website for appending links.}
 }
 \value{
-A list of URLs of all the month links.
+A character vector of filtered month links.
 }
 \description{
-This function calls \code{gu_month_links} for each link in a list of year URLs and returns all month links within a specified range.
+Retrieves and filters month links for a given year based on a specified range.
 }

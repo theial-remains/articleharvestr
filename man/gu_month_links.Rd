@@ -4,10 +4,20 @@
 \alias{gu_month_links}
 \title{Get Month Links}
 \usage{
-gu_month_links(month_link, tag_type = NULL, tag_class = NULL)
+gu_month_links(
+  year_link,
+  month_min = 1,
+  month_max = 12,
+  tag_type = NULL,
+  tag_class = NULL
+)
 }
 \arguments{
-\item{month_link}{A character string representing the URL of a link containing month links.}
+\item{year_link}{A character string representing the URL of a year link containing month links.}
+
+\item{month_min}{The starting month of the range (e.g., 1 for January).}
+
+\item{month_max}{The ending month of the range (e.g., 12 for December).}
 
 \item{tag_type}{An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".}
 

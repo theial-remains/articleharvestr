@@ -2,30 +2,45 @@
 % Please edit documentation in R/get_url_list.R
 \name{gu_apply_day_links}
 \alias{gu_apply_day_links}
-\title{Get All Day Links from a List of Month Links}
+\title{Get Day Links for a Specific Month}
 \usage{
 gu_apply_day_links(
-  month_links,
-  day_min = 1,
-  day_max = 31,
-  tag_type = NULL,
-  tag_class = NULL
+  month_link,
+  month,
+  year,
+  year_min,
+  year_max,
+  start_date,
+  end_date,
+  day_tag_type,
+  day_tag_class,
+  website_structure
 )
 }
 \arguments{
-\item{month_links}{A character vector containing the list of month URLs.}
+\item{month_link}{A character string representing the URL of the month link.}
 
-\item{day_min}{The starting day of the range (e.g., 1 for the 1st).}
+\item{month}{The month as a numeric value.}
 
-\item{day_max}{The ending day of the range (e.g., 31 for the 31st).}
+\item{year}{The year as a numeric value.}
 
-\item{tag_type}{An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".}
+\item{year_min}{The starting year of the range.}
 
-\item{tag_class}{An optional character string specifying the class of the tag containing links.}
+\item{year_max}{The ending year of the range.}
+
+\item{start_date}{The start date of the entire range.}
+
+\item{end_date}{The end date of the entire range.}
+
+\item{day_tag_type}{A character string for the day tag type (e.g., "ol").}
+
+\item{day_tag_class}{A character string for the day tag class.}
+
+\item{website_structure}{The base structure of the website for appending links.}
 }
 \value{
-A list of URLs of all the day links.
+A character vector of filtered day links.
 }
 \description{
-This function calls \code{gu_day_links} for each link in a list of month URLs and returns all day links within a specified range.
+Retrieves and filters day links for a given month based on a specified range.
 }

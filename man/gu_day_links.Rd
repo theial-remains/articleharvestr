@@ -4,10 +4,20 @@
 \alias{gu_day_links}
 \title{Get Day Links}
 \usage{
-gu_day_links(day_link, tag_type = NULL, tag_class = NULL)
+gu_day_links(
+  month_link,
+  day_min = 1,
+  day_max = 31,
+  tag_type = NULL,
+  tag_class = NULL
+)
 }
 \arguments{
-\item{day_link}{A character string representing the URL of a link containing day links.}
+\item{month_link}{A character string representing the URL of a month link containing day links.}
+
+\item{day_min}{The starting day of the range (e.g., 1 for the 1st).}
+
+\item{day_max}{The ending day of the range (e.g., 31 for the 31st).}
 
 \item{tag_type}{An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".}
 
@@ -17,5 +27,5 @@ gu_day_links(day_link, tag_type = NULL, tag_class = NULL)
 A list of URLs of the day links.
 }
 \description{
-Extracts a list of day links from an XML or HTML sitemap.
+Extracts a list of day links within a specified range from an XML or HTML sitemap.
 }
