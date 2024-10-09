@@ -39,12 +39,13 @@ View(schema)
 gs_remove_schema("https://www.nytimes.com/sitemap/", every = TRUE)
 
 # Example call to gu_get_article_links
-gu_get_links(
+long_list_yo <- gu_get_links(
   website_url = "https://www.nytimes.com/sitemap/",
   start_date = "2020-03-11",
-  end_date = "2020-04-15",
+  end_date = "2020-03-15",
   id = "nytimes_1728439811_4239"
-)
+) # FUTURE THEA: KEEP THE RANGE SMALL FOR THE LOVE OF GOD
+head(long_list_yo)
 
 # month links test
 year_link <- "https://www.nytimes.com/sitemap/2020/"

@@ -1,5 +1,5 @@
 # gets list of links from article sitemap.xml
-
+# TODO make main function work for xmls that contain multiple years, multiple months
 
 # Helper Functions ----------------------------------------------------------
 
@@ -537,8 +537,6 @@ gu_get_links <- function(website_url, start_date, end_date, id = NULL) {
     tag_type = article_tag_type,
     tag_class = article_tag_class
   )
-  message("Article links found:")
-  print(article_links)
 
   message("Article link extraction completed.")
   return(article_links)
