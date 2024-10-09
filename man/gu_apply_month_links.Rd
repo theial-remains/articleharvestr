@@ -4,10 +4,20 @@
 \alias{gu_apply_month_links}
 \title{Get All Month Links from a List of Year Links}
 \usage{
-gu_apply_month_links(year_links, tag_type, tag_class)
+gu_apply_month_links(
+  year_links,
+  month_min = 1,
+  month_max = 12,
+  tag_type = NULL,
+  tag_class = NULL
+)
 }
 \arguments{
 \item{year_links}{A character vector containing the list of year URLs.}
+
+\item{month_min}{The starting month of the range (e.g., 1 for January).}
+
+\item{month_max}{The ending month of the range (e.g., 12 for December).}
 
 \item{tag_type}{An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".}
 
@@ -17,5 +27,5 @@ gu_apply_month_links(year_links, tag_type, tag_class)
 A list of URLs of all the month links.
 }
 \description{
-This function calls \code{gu_month_links} for each link in a list of year URLs and returns all month links.
+This function calls \code{gu_month_links} for each link in a list of year URLs and returns all month links within a specified range.
 }

@@ -37,7 +37,10 @@ gu_append_links <- function(url_prefix, link_list) {
 #' @importFrom rvest read_html html_nodes html_attr
 #' @importFrom stringr str_extract
 #' @export
-gu_parse_sitemap <- function(content_text, content_type, tag_type = NULL, tag_class = NULL) {
+gu_parse_sitemap <- function(content_text,
+                             content_type,
+                             tag_type = NULL,
+                             tag_class = NULL) {
   if (grepl("xml", content_type, ignore.case = TRUE)) {
     # XML Parsing
     sitemap_xml <- tryCatch(read_xml(content_text), error = function(e) {
@@ -133,16 +136,66 @@ gu_year_links <- function(sitemap_url,
   return(year_links)
 }
 
+
 #' Get Month Links
 #'
 #' Extracts a list of month links within a specified range from an XML or HTML sitemap.
-#' @param month_link A character string representing the URL of a link containing month links.
+#' @param year_link A character string representing the URL of a year link containing month links.
+#' @param month_min The starting month of the range (e.g., 1 for January).
+#' @param month_max The ending month of the range (e.g., 12 for December).
 #' @param tag_type An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".
 #' @param tag_class An optional character string specifying the class of the tag containing links.
 #' @return A list of URLs of the month links.
 #' @import httr
 #' @export
-gu_month_links <- function(month_link, tag_type = NULL, tag_class = NULL) {
+gu_month_links <- function(year_link, month_min = 1, month_max = 12, tag_type = NULL, tag_class = NULL) {
+  # Fetch the content of the URL
+  response <- tryCatch(GET(year_link), error = function(e) {
+    message("Error fetching URL: ", e)
+    return(NULL)
+  })
+
+  # Check if the request was successful
+  if (is.null(response) || http_status(response)$category != "Success") {
+    message("Failed to retrieve the URL content.")
+    return(NULL)
+  }
+
+  # Determine the content type and get the content text
+  content_type <- headers(response)$`content-type`
+  content_text <- content(response, as = "text")
+
+  # Use the helper function to parse the sitemap content
+  all_links <- gu_parse_sitemap(content_text = content_text,
+                                content_type = content_type,
+                                tag_type = tag_type,
+                                tag_class = tag_class)
+
+  # Return NULL if parsing failed
+  if (is.null(all_links)) return(NULL)
+
+  # Filter the links based on the specified month range
+  filtered_links <- keep(all_links, ~ {
+    month <- as.numeric(str_extract(.x, "^\\d{2}"))
+    !is.na(month) && month >= month_min && month <= month_max
+  })
+
+  return(filtered_links)
+}
+
+
+#' Get Day Links
+#'
+#' Extracts a list of day links within a specified range from an XML or HTML sitemap.
+#' @param month_link A character string representing the URL of a month link containing day links.
+#' @param day_min The starting day of the range (e.g., 1 for the 1st).
+#' @param day_max The ending day of the range (e.g., 31 for the 31st).
+#' @param tag_type An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".
+#' @param tag_class An optional character string specifying the class of the tag containing links.
+#' @return A list of URLs of the day links.
+#' @import httr
+#' @export
+gu_day_links <- function(month_link, day_min = 1, day_max = 31, tag_type = NULL, tag_class = NULL) {
   # Fetch the content of the URL
   response <- tryCatch(GET(month_link), error = function(e) {
     message("Error fetching URL: ", e)
@@ -168,46 +221,15 @@ gu_month_links <- function(month_link, tag_type = NULL, tag_class = NULL) {
   # Return NULL if parsing failed
   if (is.null(all_links)) return(NULL)
 
-  return(all_links)
-}
-
-#' Get Day Links
-#'
-#' Extracts a list of day links from an XML or HTML sitemap.
-#' @param day_link A character string representing the URL of a link containing day links.
-#' @param tag_type An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".
-#' @param tag_class An optional character string specifying the class of the tag containing links.
-#' @return A list of URLs of the day links.
-#' @import httr
-#' @export
-gu_day_links <- function(day_link, tag_type = NULL, tag_class = NULL) {
-  # Fetch the content of the URL
-  response <- tryCatch(GET(day_link), error = function(e) {
-    message("Error fetching URL: ", e)
-    return(NULL)
+  # Filter the links based on the specified day range
+  filtered_links <- keep(all_links, ~ {
+    day <- as.numeric(str_extract(.x, "^\\d{2}")) # Extract day of link
+    !is.na(day) && day >= day_min && day <= day_max # Keep if day in range
   })
 
-  # Check if the request was successful
-  if (is.null(response) || http_status(response)$category != "Success") {
-    message("Failed to retrieve the URL content.")
-    return(NULL)
-  }
-
-  # Determine the content type and get the content text
-  content_type <- headers(response)$`content-type`
-  content_text <- content(response, as = "text")
-
-  # Use the helper function to parse the sitemap content
-  all_links <- gu_parse_sitemap(content_text = content_text,
-                                content_type = content_type,
-                                tag_type = tag_type,
-                                tag_class = tag_class)
-
-  # Return NULL if parsing failed
-  if (is.null(all_links)) return(NULL)
-
-  return(all_links)
+  return(filtered_links)
 }
+
 
 #' Get Article Links
 #'
@@ -248,98 +270,251 @@ gu_article_links <- function(day_link, tag_type = NULL, tag_class = NULL) {
 }
 
 
-#' Get All Month Links from a List of Year Links
+#' Get Month Links for a Specific Year
 #'
-#' This function calls `gu_month_links` for each link in a list of year URLs and returns all month links.
-#' @param year_links A character vector containing the list of year URLs.
-#' @param tag_type An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".
-#' @param tag_class An optional character string specifying the class of the tag containing links.
-#' @return A list of URLs of all the month links.
-#' @import purrr
+#' Retrieves and filters month links for a given year based on a specified range.
+#' @param year_link A character string representing the URL of the year link.
+#' @param year The year as a numeric value.
+#' @param year_min The starting year of the range.
+#' @param year_max The ending year of the range.
+#' @param start_date The start date of the entire range.
+#' @param end_date The end date of the entire range.
+#' @param month_tag_type A character string for the month tag type (e.g., "ol").
+#' @param month_tag_class A character string for the month tag class.
+#' @param website_structure The base structure of the website for appending links.
+#' @return A character vector of filtered month links.
 #' @export
-gu_apply_month_links <- function(year_links, tag_type = NULL, tag_class = NULL) {
-  # Use purrr::map to call gu_month_links for each year link
-  all_month_links <- map(year_links, ~ {
-    month_links <- gu_month_links(.x,
-                                  tag_type = tag_type,
-                                  tag_class = tag_class)
+gu_apply_month_links <- function(year_link, year, year_min, year_max, start_date, end_date,
+                               month_tag_type, month_tag_class, website_structure) {
+  # Set month range for the current year
+  if (year == year_min && year == year_max) {
+    month_min <- as.numeric(format(start_date, "%m"))
+    month_max <- as.numeric(format(end_date, "%m"))
+  } else if (year == year_min) {
+    month_min <- as.numeric(format(start_date, "%m"))
+    month_max <- 12
+  } else if (year == year_max) {
+    month_min <- 1
+    month_max <- as.numeric(format(end_date, "%m"))
+  } else {
+    month_min <- 1
+    month_max <- 12
+  }
 
-    # Check if the first month link contains the year link text
-    if (length(month_links) > 0 && !grepl(.x, month_links[1])) {
-      # If not, append the year_link text to the beginning of all month links
-      month_links <- gu_append_links(.x, month_links)
-    }
+  message("Getting month links for year ", year, " with the following parameters:")
+  message("Month range: ", month_min, " to ", month_max)
+  message("Year link: ", year_link)
+  message("Tag type: ", month_tag_type)
+  message("Tag class: ", month_tag_class)
 
-    return(month_links)
-  })
+  # Get month links using `gu_month_links`
+  month_links <- gu_month_links(
+    year_link,
+    month_min = month_min,
+    month_max = month_max,
+    tag_type = month_tag_type,
+    tag_class = month_tag_class
+  )
 
-  # Flatten the list of lists into a single vector of month links
-  all_month_links <- flatten_chr(all_month_links)
+  message("Filtered month links for year ", year, ":")
+  print(month_links)
 
-  return(all_month_links)
+  # Check if need to use gu_append_links for month links
+  if (any(!grepl(website_structure, month_links))) {
+    message("Appending base URL to month links...")
+    month_links <- gu_append_links(year_link, month_links)
+  }
+
+  return(month_links)
 }
 
-#' Get All Day Links from a List of Month Links
+
+#' Get Day Links for a Specific Month
 #'
-#' This function calls `gu_day_links` for each link in a list of month URLs and returns all day links.
-#' @param month_links A character vector containing the list of month URLs.
-#' @param tag_type An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".
-#' @param tag_class An optional character string specifying the class of the tag containing links.
-#' @return A list of URLs of all the day links.
-#' @import purrr
+#' Retrieves and filters day links for a given month based on a specified range.
+#' @param month_link A character string representing the URL of the month link.
+#' @param month The month as a numeric value.
+#' @param year The year as a numeric value.
+#' @param year_min The starting year of the range.
+#' @param year_max The ending year of the range.
+#' @param start_date The start date of the entire range.
+#' @param end_date The end date of the entire range.
+#' @param day_tag_type A character string for the day tag type (e.g., "ol").
+#' @param day_tag_class A character string for the day tag class.
+#' @param website_structure The base structure of the website for appending links.
+#' @return A character vector of filtered day links.
 #' @export
-gu_apply_day_links <- function(month_links, tag_type = NULL, tag_class = NULL) {
-  # Use purrr::map to call gu_day_links for each month link
-  all_day_links <- map(month_links, ~ {
-    day_links <- gu_day_links(.x, tag_type = tag_type, tag_class = tag_class)
+gu_apply_day_links <- function(month_link, month, year, year_min, year_max, start_date, end_date,
+                               day_tag_type, day_tag_class, website_structure) {
+  # Set day range for the current month
+  if (year == year_min && month == as.numeric(format(start_date, "%m")) &&
+      year == year_max && month == as.numeric(format(end_date, "%m"))) {
+    day_min <- as.numeric(format(start_date, "%d"))
+    day_max <- as.numeric(format(end_date, "%d"))
+  } else if (year == year_min && month == as.numeric(format(start_date, "%m"))) {
+    day_min <- as.numeric(format(start_date, "%d"))
+    day_max <- 31
+  } else if (year == year_max && month == as.numeric(format(end_date, "%m"))) {
+    day_min <- 1
+    day_max <- as.numeric(format(end_date, "%d"))
+  } else {
+    day_min <- 1
+    day_max <- 31
+  }
 
-    # Check if the first day link contains the month link text
-    if (length(day_links) > 0 && !grepl(.x, day_links[1])) {
-      # If not, append the month_link text to the beginning of all day links
-      day_links <- gu_append_links(.x, day_links)
-    }
+  message("Getting day links for month ", month, " with the following parameters:")
+  message("Day range: ", day_min, " to ", day_max)
+  message("Month link: ", month_link)
+  message("Tag type: ", day_tag_type)
+  message("Tag class: ", day_tag_class)
 
-    return(day_links)
-  })
+  # Get day links using `gu_day_links`
+  day_links <- gu_day_links(
+    month_link,
+    day_min = day_min,
+    day_max = day_max,
+    tag_type = day_tag_type,
+    tag_class = day_tag_class
+  )
 
-  # Flatten the list of lists into a single vector of day links
-  all_day_links <- flatten_chr(all_day_links)
+  message("Filtered day links for month ", month, ":")
+  print(day_links)
 
-  return(all_day_links)
-}
+  # Check if need to use gu_append_links for day links
+  if (any(!grepl(website_structure, day_links))) {
+    message("Appending base URL to day links...")
+    day_links <- gu_append_links(month_link, day_links)
+  }
 
-#' Get All Article Links from a List of Day Links
-#'
-#' This function calls `gu_article_links` for each link in a list of day URLs and returns all article links.
-#' @param day_links A character vector containing the list of day URLs.
-#' @param tag_type An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".
-#' @param tag_class An optional character string specifying the class of the tag containing links.
-#' @return A list of URLs of all the article links.
-#' @import purrr
-#' @export
-gu_apply_article_links <- function(day_links, tag_type = NULL, tag_class = NULL) {
-  # Use purrr::map to call gu_article_links for each day link
-  all_article_links <- map(day_links, ~ {
-    gu_article_links(.x, tag_type = tag_type, tag_class = tag_class)
-  })
-
-  # Flatten the list of lists into a single vector of article links
-  all_article_links <- flatten_chr(all_article_links)
-
-  return(all_article_links)
+  return(day_links)
 }
 
 
 # Main Functions ----------------------------------------------------------
 
 
-#' Scrape for links by date in a year-month-day-links website structure
+#' Get Links from a Website
 #'
-#' Use for websites with a year-month-day-links sitemap structure
-#' @param sitemap_url A character string representing the sitemap URL of the website.
-#' @param date_range Range of dates to return urls for
-#' @return List of links for the specified date range
+#' This function retrieves the list of article links from a given website and date range using schema details.
+#' If multiple schema rows are returned from `gs_pull_schema`, it issues a warning to specify the `id` parameter.
+#' @param website_url A character string representing the URL of the website (e.g., "https://www.nytimes.com").
+#' @param start_date The start date for retrieving article links (e.g., "2003-03-11").
+#' @param end_date The end date for retrieving article links (e.g., "2004-12-31").
+#' @param id A character string specifying the unique ID of the schema to pull (optional).
+#' @return A character vector of article links.
 #' @export
-gu_ymdl_str_links <- function(sitemap_url, date_range) {
-  # xml > year links > month links > day links
+gu_get_links <- function(website_url, start_date, end_date, id = NULL) {
+  # Convert start and end dates to Date class
+  start_date <- as.Date(start_date)
+  end_date <- as.Date(end_date)
+
+  # Extract the year ranges from the start and end dates
+  year_min <- as.numeric(format(start_date, "%Y"))
+  year_max <- as.numeric(format(end_date, "%Y"))
+
+  # Pull the schema for the website
+  message("Fetching schema for the website...")
+  schema <- gs_pull_schema(website_url, id)
+
+  # Check if multiple rows were returned
+  if (nrow(schema) > 1) {
+    warning("Multiple schema entries found. Please specify the `id` parameter.")
+    return(NULL)
+  }
+
+  # Extract necessary schema information
+  tag_type <- schema$year_type
+  tag_class <- schema$year_class
+  month_tag_type <- schema$month_type
+  month_tag_class <- schema$month_class
+  day_tag_type <- schema$day_type
+  day_tag_class <- schema$day_class
+  article_tag_type <- schema$article_type
+  article_tag_class <- schema$article_class
+  website_structure <- schema$website_structure
+
+  # Get year links
+  message("Getting year links...")
+  year_links <- gu_year_links(website_url, year_min, year_max, tag_type = tag_type, tag_class = tag_class)
+  message("Year links found:")
+  print(year_links)
+
+  # Check if need to use gu_append_links
+  if (any(!grepl(website_structure, year_links))) {
+    message("Appending base URL to year links...")
+    year_links <- gu_append_links(website_url, year_links)
+    message("Year links after appending:")
+    print(year_links)
+  }
+
+  # Initialize vectors to store month and day links
+  all_month_links <- character()
+  all_day_links <- character()
+
+  # Loop through each year link to get month and day links
+  for (year_link in year_links) {
+    # Extract the year from the year link
+    year <- as.numeric(str_extract(year_link, "\\d{4}"))
+    if (is.na(year)) {
+      message("Skipping year link due to invalid year extraction: ", year_link)
+      next
+    }
+
+    # Get month links using the helper function
+    month_links <- gu_apply_month_links(
+      year_link = year_link,
+      year = year,
+      year_min = year_min,
+      year_max = year_max,
+      start_date = start_date,
+      end_date = end_date,
+      month_tag_type = month_tag_type,
+      month_tag_class = month_tag_class,
+      website_structure = website_structure
+    )
+    all_month_links <- c(all_month_links, month_links)
+
+    # Loop through each month link to get day links using the helper function
+    for (month_link in month_links) {
+      # Corrected regex pattern for extracting the month
+      month <- as.numeric(str_extract(month_link, "(?<=/)(\\d{2})(?=/)"))
+      if (is.na(month)) {
+        message("Skipping month link due to invalid month extraction: ", month_link)
+        next
+      }
+
+      # Get day links using the helper function
+      day_links <- gu_apply_day_links(
+        month_link = month_link,
+        month = month,
+        year = year,
+        year_min = year_min,
+        year_max = year_max,
+        start_date = start_date,
+        end_date = end_date,
+        day_tag_type = day_tag_type,
+        day_tag_class = day_tag_class,
+        website_structure = website_structure
+      )
+      all_day_links <- c(all_day_links, day_links)
+    }
+  }
+
+  message("All filtered month links:")
+  print(all_month_links)
+  message("All filtered day links:")
+  print(all_day_links)
+
+  # Get article links from day links
+  message("Getting article links from day links...")
+  article_links <- gu_apply_article_links(
+    day_links = all_day_links,
+    tag_type = article_tag_type,
+    tag_class = article_tag_class
+  )
+  message("Article links found:")
+  print(article_links)
+
+  message("Article link extraction completed.")
+  return(article_links)
 }

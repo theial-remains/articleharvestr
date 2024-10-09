@@ -4,10 +4,20 @@
 \alias{gu_apply_day_links}
 \title{Get All Day Links from a List of Month Links}
 \usage{
-gu_apply_day_links(month_links, tag_type, tag_class)
+gu_apply_day_links(
+  month_links,
+  day_min = 1,
+  day_max = 31,
+  tag_type = NULL,
+  tag_class = NULL
+)
 }
 \arguments{
 \item{month_links}{A character vector containing the list of month URLs.}
+
+\item{day_min}{The starting day of the range (e.g., 1 for the 1st).}
+
+\item{day_max}{The ending day of the range (e.g., 31 for the 31st).}
 
 \item{tag_type}{An optional character string specifying the type of HTML tag (e.g., "ol", "ul", "div"). Defaults to "ol".}
 
@@ -17,5 +27,5 @@ gu_apply_day_links(month_links, tag_type, tag_class)
 A list of URLs of all the day links.
 }
 \description{
-This function calls \code{gu_day_links} for each link in a list of month URLs and returns all day links.
+This function calls \code{gu_day_links} for each link in a list of month URLs and returns all day links within a specified range.
 }

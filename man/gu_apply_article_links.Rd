@@ -4,7 +4,7 @@
 \alias{gu_apply_article_links}
 \title{Get All Article Links from a List of Day Links}
 \usage{
-gu_apply_article_links(day_links, tag_type = "ol", tag_class = NULL)
+gu_apply_article_links(day_links, tag_type = NULL, tag_class = NULL)
 }
 \arguments{
 \item{day_links}{A character vector containing the list of day URLs.}

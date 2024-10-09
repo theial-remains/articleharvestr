@@ -4,7 +4,13 @@
 \alias{gu_year_links}
 \title{Get Year Links}
 \usage{
-gu_year_links(sitemap_url, year_min, year_max, tag_type, tag_class)
+gu_year_links(
+  sitemap_url,
+  year_min,
+  year_max,
+  tag_type = NULL,
+  tag_class = NULL
+)
 }
 \arguments{
 \item{sitemap_url}{A character string representing the URL of a sitemap containing year links.}

@@ -4,7 +4,7 @@
 \alias{gu_parse_sitemap}
 \title{Parse Sitemap Content}
 \usage{
-gu_parse_sitemap(content_text, content_type, tag_type, tag_class)
+gu_parse_sitemap(content_text, content_type, tag_type = NULL, tag_class = NULL)
 }
 \arguments{
 \item{content_text}{A character string representing the sitemap content.}

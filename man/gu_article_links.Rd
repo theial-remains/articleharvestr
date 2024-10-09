@@ -4,7 +4,7 @@
 \alias{gu_article_links}
 \title{Get Article Links}
 \usage{
-gu_article_links(day_link, tag_type, tag_class)
+gu_article_links(day_link, tag_type = NULL, tag_class = NULL)
 }
 \arguments{
 \item{day_link}{A character string representing the URL of a link containing article links.}

@@ -4,7 +4,7 @@
 \alias{gu_day_links}
 \title{Get Day Links}
 \usage{
-gu_day_links(day_link, tag_type, tag_class)
+gu_day_links(day_link, tag_type = NULL, tag_class = NULL)
 }
 \arguments{
 \item{day_link}{A character string representing the URL of a link containing day links.}

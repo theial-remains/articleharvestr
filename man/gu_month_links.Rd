@@ -4,7 +4,7 @@
 \alias{gu_month_links}
 \title{Get Month Links}
 \usage{
-gu_month_links(month_link, tag_type, tag_class)
+gu_month_links(month_link, tag_type = NULL, tag_class = NULL)
 }
 \arguments{
 \item{month_link}{A character string representing the URL of a link containing month links.}
