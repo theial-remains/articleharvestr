@@ -23,7 +23,6 @@ gu_append_links <- function(url_prefix, link_list) {
   return(full_urls)
 }
 
-
 #' Parse Sitemap Content
 #'
 #' This function parses the sitemap content based on its content type (XML or HTML).
@@ -95,6 +94,7 @@ gu_parse_sitemap <- function(content_text,
 #' @return A list of URLs of the year links.
 #' @import httr
 #' @importFrom purrr keep
+#' @importFrom stringr str_extract
 #' @export
 gu_year_links <- function(sitemap_url,
                           year_min,
@@ -136,7 +136,6 @@ gu_year_links <- function(sitemap_url,
   return(year_links)
 }
 
-
 #' Get Month Links
 #'
 #' Extracts a list of month links within a specified range from an XML or HTML sitemap.
@@ -147,6 +146,7 @@ gu_year_links <- function(sitemap_url,
 #' @param tag_class An optional character string specifying the class of the tag containing links.
 #' @return A list of URLs of the month links.
 #' @import httr
+#' @importFrom stringr str_extract
 #' @export
 gu_month_links <- function(year_link, month_min = 1, month_max = 12, tag_type = NULL, tag_class = NULL) {
   # Fetch the content of the URL
@@ -176,7 +176,7 @@ gu_month_links <- function(year_link, month_min = 1, month_max = 12, tag_type = 
 
   # Filter the links based on the specified month range
   filtered_links <- keep(all_links, ~ {
-    month <- as.numeric(str_extract(.x, "^\\d{2}"))
+    month <- as.numeric(str_extract(.x, "(?<=/)(\\d{2})(?=/)"))
     !is.na(month) && month >= month_min && month <= month_max
   })
 
