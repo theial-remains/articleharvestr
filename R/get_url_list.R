@@ -1,6 +1,7 @@
 # gets list of links from article sitemap.xml
 # TODO make main function work for xmls that contain multiple years, multiple months
 
+
 # Helper Functions ----------------------------------------------------------
 
 
