@@ -58,6 +58,85 @@ su_remove_csv("https://www.nytimes.com/sitemap/")
 
 su_write_urls("https://www.nytimes.com/sitemap/", long_list_yo)
 
+#Test:
+su_create_csv("https://www.wsj.com/sitemap/", overwrite = TRUE)
+class(long_list_yo)
+long_list_yo[1:3]
+
+su_write_urls("https://www.wsj.com/sitemap/", c("https://www.wsj.com/finance/betting-election-pro-trump-ad74aa71?mod=", "https://www.wsj.com/business/energy-oil?mod=nav_top_subsection", "whatever"))
+
+# 3. url scraper, 4 browsers, 4s delay
+# helper function for scrape_links
+# extract data from a single link
+
+scrape_article_data("https://www.nytimes.com/2023/01/01/us/california-earthquake.html")
+# <div class="css-1vkm6nb ehdk2mb0"><h1 id="link-75c81eb1" class="css-88wicj e1h9rw200" data-testid="headline">California Town Rattled by Earthquake a Second Time</h1></div>
+scrape_article_data <- function(article_url) {
+  webpage <- read_html(article_url)
+  title <- webpage %>%
+    html_nodes(".css-88wicj.e1h9rw200") %>%
+    html_text(trim = TRUE)
+ # all_paragraphs <- webpage %>%
+ #   html_nodes('.primary-cli.cli.cli-text p') %>%
+  #  html_text(trim = TRUE)
+ # excluded_paragraphs <- webpage %>%
+   # html_nodes('#support-huffpost-entry p') %>%
+    #html_text(trim = TRUE)
+  #article_text <- setdiff(all_paragraphs, excluded_paragraphs) %>%
+   # paste(collapse = " ")
+  #published_date <- webpage %>%
+   # html_node("meta[property='article:published_time']") %>%
+    #html_attr("content")
+  #author <- webpage %>%
+    #html_node(".author-list a") %>%
+   # html_attr("aria-label") %>%
+    #str_replace("By ", "")
+  df <- data.frame(
+   Title = title
+    #Author = author,
+    #Published_Date = published_date,
+    #Article_Text = article_text,
+    #stringsAsFactors = FALSE
+  )
+  return(df)
+}
+
+article_url <- "https://www.nytimes.com/2023/01/01/us/california-earthquake.html"
+read_html(article_url)
+
+# template solution code
+# TODO update NAMESPACE
+library(httr)
+api_key <- "Qh78GcW8uJuG0zXNlQb9hr33KdGdM4kF"
+api_secret <- "q06GzCQFuYIdAKsu"
+base_url <- "https://api.nytimes.com/svc/search/v2/articlesearch.json"
+
+res <- GET(base_url, query = list(
+  q = "California earthquake", # Query for 'California earthquake'
+  `api-key` = api_key # Correct query parameter for API key (use `api-key`)
+))
+
+# Check the structure of the response
+content_raw <- content(res, as = "parsed", type = "application/json")
+str(content_raw)
+
+
+gs_write_schema(
+  website_url = "https://www.wsj.com",
+  author_element = ".author",
+  title_element = ".title",
+  date_element = ".date",
+  text_element = ".content",
+  xml_structure = "nested",
+  year_type = "ol",
+  year_class = "css-7ybqih",
+  month_type = "ol",
+  month_class = "css-5emfqe",
+  day_type = "ol",
+  day_class = "css-7ybqih",
+  article_type = "ul",
+  article_class = "css-d7lzgg"
+)
 
 # month links test
 year_link <- "https://www.nytimes.com/sitemap/2020/"
