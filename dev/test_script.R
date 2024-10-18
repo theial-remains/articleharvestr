@@ -47,6 +47,18 @@ long_list_yo <- gu_get_links(
 ) # FUTURE THEA: KEEP THE RANGE SMALL FOR THE LOVE OF GOD
 head(long_list_yo)
 
+# create file for nytimes
+su_create_csv("https://www.nytimes.com/sitemap/", overwrite = TRUE)
+
+# check if nytimes file exists
+su_check_csv("https://www.nytimes.com/sitemap/")
+
+# remove file test
+su_remove_csv("https://www.nytimes.com/sitemap/")
+
+su_write_urls("https://www.nytimes.com/sitemap/", long_list_yo)
+
+
 # month links test
 year_link <- "https://www.nytimes.com/sitemap/2020/"
 year <- 2020
