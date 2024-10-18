@@ -2,18 +2,29 @@
 % Please edit documentation in R/store_url_list.R
 \name{su_check_csv}
 \alias{su_check_csv}
-\title{title}
+\title{Check if File Exists for a Specific News Website}
 \usage{
-su_check_csv(param1, param2)
+su_check_csv(
+  website_url,
+  id = NULL,
+  folder_path = "inst/extdata/scraped_data/",
+  return_path = FALSE
+)
 }
 \arguments{
-\item{param1}{parameter desc}
+\item{website_url}{A character string representing the URL of the website.}
 
-\item{param2}{parameter desc}
+\item{id}{A character string specifying the unique ID of the schema to pull (optional).}
+
+\item{folder_path}{A character string specifying the folder where the file should be located.}
+
+\item{return_path}{A logical value indicating whether to return the file path if the file exists. Defaults to FALSE.}
 }
 \value{
-what it returns
+TRUE if the file exists, or FALSE if it does not. If \code{return_path} is TRUE, returns a list with \code{exists = TRUE} and the \code{path} to the file.
 }
 \description{
-description
+This function checks if a file with a name based on the website key exists
+in the specified folder. The file should match the key element pulled from
+the schema by the \code{gs_pull_schema} function.
 }

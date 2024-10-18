@@ -2,16 +2,26 @@
 % Please edit documentation in R/store_url_list.R
 \name{su_create_csv}
 \alias{su_create_csv}
-\title{title}
+\title{Add CSV for a Specific News Website}
 \usage{
-su_create_csv(param1)
+su_create_csv(
+  website_url,
+  folder_path = "inst/extdata/scraped_data/",
+  overwrite = FALSE
+)
 }
 \arguments{
-\item{param1}{parameter desc}
+\item{website_url}{A character string representing the URL of the website.}
+
+\item{folder_path}{A character string specifying the folder where the file should be saved.}
+
+\item{overwrite}{A logical value indicating whether to overwrite an existing file. Defaults to FALSE.}
 }
 \value{
-what it returns
+The full path to the created CSV file, or a message if the file already exists and overwrite is FALSE.
 }
 \description{
-description
+This function creates a new CSV file for a website based on the website key.
+If a file with the same name already exists, the function will either overwrite
+it (if specified) or skip the creation.
 }
