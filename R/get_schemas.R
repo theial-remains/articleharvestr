@@ -58,14 +58,14 @@ gs_write_schema <- function(website_url,
                             title_element,
                             date_element,
                             text_element,
-                            year_type = NULL,
-                            year_class = NULL,
-                            month_type = NULL,
-                            month_class = NULL,
-                            day_type = NULL,
-                            day_class = NULL,
-                            article_type = NULL,
-                            article_class = NULL) {
+                            year_type = NA,
+                            year_class = NA,
+                            month_type = NA,
+                            month_class = NA,
+                            day_type = NA,
+                            day_class = NA,
+                            article_type = NA,
+                            article_class = NA) {
   # Check if the schema already exists
   if (gs_check_schema(website_url)) {
     message("Writing duplicate schema. The schema for this website already exists.")
