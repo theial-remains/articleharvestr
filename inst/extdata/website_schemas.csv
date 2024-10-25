@@ -1,5 +1,5 @@
-"website_structure","sitemap_url","author_element","title_element","date_element","text_element","key","id","structure","year_type","year_class","month_type","month_class","day_type","day_class","article_type","article_class"
-"https://www.example.com",NA,".author",".title",".date",".content","example","example_1728263805_2872","nested","ol","year-list","ul","month-list","div","day-list","a","article-link"
-"https://www.nytimes.com",NA,".author",".title",".date",".content","nytimes","nytimes_1728439811_4239","nested","ol","css-7ybqih","ol","css-5emfqe","ol","css-7ybqih","ul","css-d7lzgg"
-"https://www.wsj.com",NA,".author",".title",".date",".content","wsj","wsj_1729253010_2826","nested","ol","css-7ybqih","ol","css-5emfqe","ol","css-7ybqih","ul","css-d7lzgg"
-"https://www.nytimes.com","https://www.nytimes.com/sitemap/",".author",".title",".date",".content","nytimes","nytimes_1729872765_8179","text/html; charset=utf-8","ol","css-7ybqih","ol","css-5emfqe","ol","css-7ybqih","ul","css-d7lzgg"
+website_structure,sitemap_url,author_element,title_element,date_element,text_element,key,id,structure,year_type,year_class,month_type,month_class,day_type,day_class,article_type,article_class
+https://www.example.com,NA,.author,.title,.date,.content,example,example_1728263805_2872,nested,ol,year-list,ul,month-list,div,day-list,a,article-link
+https://www.nytimes.com,NA,.author,.title,.date,.content,nytimes,nytimes_1728439811_4239,nested,ol,css-7ybqih,ol,css-5emfqe,ol,css-7ybqih,ul,css-d7lzgg
+https://www.wsj.com,NA,.author,.title,.date,.content,wsj,wsj_1729253010_2826,nested,ol,css-7ybqih,ol,css-5emfqe,ol,css-7ybqih,ul,css-d7lzgg
+https://www.nytimes.com,https://www.nytimes.com/sitemap/,.author,.title,.date,.content,nytimes,nytimes_1729872765_8179,text/html; charset=utf-8,ol,css-7ybqih,ol,css-5emfqe,ol,css-7ybqih,ul,css-d7lzgg
