@@ -18,11 +18,11 @@ gs_check_schema("https://www.nytimes.com/sitemap/")
 
 gs_write_schema(
   website_url = "https://www.nytimes.com",
+  sitemap_url = "https://www.nytimes.com/sitemap/",
   author_element = ".author",
   title_element = ".title",
   date_element = ".date",
   text_element = ".content",
-  xml_structure = "nested",
   year_type = "ol",
   year_class = "css-7ybqih",
   month_type = "ol",
