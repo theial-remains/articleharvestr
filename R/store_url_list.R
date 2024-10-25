@@ -14,7 +14,7 @@
 #' @param folder_path A character string specifying the folder where the file should be located.
 #' @param return_path A logical value indicating whether to return the file path if the file exists. Defaults to FALSE.
 #' @return TRUE if the file exists, or FALSE if it does not. If `return_path` is TRUE, returns a list with `exists = TRUE` and the `path` to the file.
-#' @importFrom utils file.exists
+#' @import utils
 #' @export
 su_check_csv <- function(website_url, id = NULL, folder_path = "inst/extdata/scraped_data/", return_path = FALSE) {
   schema <- gs_pull_schema(website_url, id)
@@ -55,7 +55,7 @@ su_check_csv <- function(website_url, id = NULL, folder_path = "inst/extdata/scr
 #' @param folder_path A character string specifying the folder where the file should be saved.
 #' @param overwrite A logical value indicating whether to overwrite an existing file. Defaults to FALSE.
 #' @return The full path to the created CSV file, or a message if the file already exists and overwrite is FALSE.
-#' @importFrom utils write.csv
+#' @import utils
 #' @export
 su_create_csv <- function(website_url, folder_path = "inst/extdata/scraped_data/", overwrite = FALSE) {
   file_info <- su_check_csv(website_url, folder_path = folder_path, return_path = TRUE)
@@ -85,7 +85,7 @@ su_create_csv <- function(website_url, folder_path = "inst/extdata/scraped_data/
 #' @param website_url A character string representing the URL of the website.
 #' @param folder_path A character string specifying the folder where the file is located.
 #' @return A message indicating whether the file was successfully removed or if it did not exist.
-#' @importFrom utils file.remove
+#' @import utils
 #' @export
 su_remove_csv <- function(website_url, folder_path = "inst/extdata/scraped_data/") {
   file_info <- su_check_csv(website_url, folder_path = folder_path, return_path = TRUE)
