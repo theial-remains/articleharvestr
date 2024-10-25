@@ -41,7 +41,7 @@ gs_check_schema <- function(website_url) {
 #' @param title_element A character string for the CSS selector/XPath for the title element.
 #' @param date_element A character string for the CSS selector/XPath for the published date element.
 #' @param text_element A character string for the CSS selector/XPath for the article text element.
-#' @param xml_structure A character string for the website structure.
+#' @param structure A character string for the website structure.
 #' @param year_type A character string specifying the type of year links (default: NULL).
 #' @param year_class A character string specifying the class for year links (default: NULL).
 #' @param month_type A character string specifying the type of month links (default: NULL).
@@ -59,7 +59,7 @@ gs_write_schema <- function(website_url,
                             title_element,
                             date_element,
                             text_element,
-                            xml_structure,
+                            structure,
                             year_type = NULL,
                             year_class = NULL,
                             month_type = NULL,
@@ -101,7 +101,7 @@ gs_write_schema <- function(website_url,
     text_element = text_element,
     key = website_key,
     id = website_id,  # Add unique ID
-    xml_structure = xml_structure,
+    structure = structure,
     year_type = year_type,
     year_class = year_class,
     month_type = month_type,
