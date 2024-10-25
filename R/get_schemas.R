@@ -51,7 +51,6 @@ gs_check_schema <- function(website_url) {
 #' @param article_class A character string specifying the class for article links (default: NULL).
 #' @return TRUE if the schema is successfully written, FALSE otherwise.
 #' @importFrom utils read.csv write.csv
-#' @import httr
 #' @export
 gs_write_schema <- function(website_url,
                             sitemap_url,
@@ -90,12 +89,6 @@ gs_write_schema <- function(website_url,
   website_key <- tolower(gsub("https://|http://|www\\.|\\..*", "", website_url))
   website_id <- paste0(website_key, "_", as.integer(Sys.time()), "_", sample(1:10000, 1))
 
-  response <- tryCatch(GET(sitemap_url), error = function(e) {
-    message("Error fetching URL: ", e)
-    return(NULL)
-  })
-  structure <- headers(response)$`content-type` # TODO require the default null classes to be filled in or NA if structure = html
-
   # Create a new row for the schema
   new_schema_row <- data.frame(
     website_structure = website_url,
@@ -106,7 +99,6 @@ gs_write_schema <- function(website_url,
     text_element = text_element,
     key = website_key,
     id = website_id,  # Add unique ID
-    structure = structure,
     year_type = year_type,
     year_class = year_class,
     month_type = month_type,
