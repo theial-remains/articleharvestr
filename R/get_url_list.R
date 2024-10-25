@@ -98,7 +98,7 @@ gu_parse_sitemap <- function(content_text,
 #' @return A character vector of article links from the sitemap.
 #' @import httr
 #' @import purrr
-#' @import xm12
+#' @import xml2
 #' @export
 gu_parse_sitemap_recursive <- function(base_url,
                                        levels,
