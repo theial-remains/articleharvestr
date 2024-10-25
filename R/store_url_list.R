@@ -153,28 +153,6 @@ su_check_urls <- function(param1) {
 #' @param param1 parameter desc
 #' @return what it returns
 #' @export
-su_create_url_key <- function(param1) {
-  # code goes here
-}
-
-
-#' title
-#'
-#' description
-#' @param param1 parameter desc
-#' @return what it returns
-#' @export
-su_push_urls <- function(param1) {
-  # code goes here
-}
-
-
-#' title
-#'
-#' description
-#' @param param1 parameter desc
-#' @return what it returns
-#' @export
 su_pull_urls <- function(param1) {
   # code goes here
 }
