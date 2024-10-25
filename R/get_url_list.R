@@ -163,22 +163,36 @@ gu_parse_sitemap_recursive <- function(base_url,
 }
 
 
-# Helper function to filter links based on date for each level
-filter_links_by_date <- function(links, level, start_date, end_date) {
-  # Define pattern based on the level
+#' Filter Links by Date
+#'
+#' This helper function filters a vector of URLs based on the specified date level (e.g., "year", "month", "day").
+#' It extracts dates from URLs in formats such as `YYYY`, `YYYY/MM`, or `YYYY/MM/DD`, allowing for
+#' both forward slashes and hyphens. For day-level links, it further filters URLs by a specified date range.
+#'
+#' @param links A character vector of URLs to be filtered.
+#' @param level A character string specifying the date level ("year", "month", or "day").
+#' @param start_date The start date for filtering (as `Date`).
+#' @param end_date The end date for filtering (as `Date`).
+#' @return A character vector of URLs that match the specified date level and date range.
+#' @importFrom stringr str_extract
+#' @export
+gu_filter_links_by_date <- function(links, level, start_date, end_date) {
+  # Define pattern based on level to match year, month, or full date
   pattern <- switch(level,
                     "year" = "\\d{4}",                       # Matches 4-digit year
                     "month" = "\\d{4}[-/]\\d{2}",            # Matches year and month with / or -
                     "day" = "\\d{4}[-/]\\d{2}[-/]\\d{2}")    # Matches full date with / or -
 
-  # Filter links based on matching pattern
+  # Find all links that match the pattern
   links <- links[grepl(pattern, links)]
 
-  # If level is "day", convert extracted dates to Date class for filtering
-  if (level == "day") {
-    # Extract date part and convert to Date format, supporting both / and -
+  # For full-date (day-level) links, apply date range filtering
+  if (level == "day" || level == 1) {  # level==1 allows filtering if levels vector is just [1]
+    # Extract date part (YYYY-MM-DD) and convert to Date format
     dates <- as.Date(str_extract(links, "\\d{4}[-/]\\d{2}[-/]\\d{2}"), format = "%Y-%m-%d")
-    links <- links[dates >= start_date & dates <= end_date]
+
+    # Filter links by date range
+    links <- links[!is.na(dates) & dates >= start_date & dates <= end_date]
   }
 
   return(links)
