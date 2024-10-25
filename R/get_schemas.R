@@ -66,16 +66,11 @@ gs_write_schema <- function(website_url,
                             day_class = NA,
                             article_type = NA,
                             article_class = NA) {
-  # Check if the schema already exists
-  if (gs_check_schema(website_url)) {
-    message("Writing duplicate schema. The schema for this website already exists.")
-  }
 
   # Paths for development and installed package
   dev_mode_path <- "inst/extdata/website_schemas.csv"
   schema_file_path <- system.file("extdata", "website_schemas.csv", package = "articleharvestr")
 
-  # Use the development path if it exists; otherwise, use the system file path
   if (file.exists(dev_mode_path)) {
     schema_file_path <- dev_mode_path
   } else if (schema_file_path == "") {
@@ -85,11 +80,7 @@ gs_write_schema <- function(website_url,
   # Read the current schema file
   website_schemas <- read.csv(schema_file_path, stringsAsFactors = FALSE)
 
-  # Create a unique ID for the new schema row
-  website_key <- tolower(gsub("https://|http://|www\\.|\\..*", "", website_url))
-  website_id <- paste0(website_key, "_", as.integer(Sys.time()), "_", sample(1:10000, 1))
-
-  # Create a new row for the schema
+  # Ensure column names match exactly by defining them explicitly
   new_schema_row <- data.frame(
     website_structure = website_url,
     sitemap_url = sitemap_url,
@@ -97,8 +88,9 @@ gs_write_schema <- function(website_url,
     title_element = title_element,
     date_element = date_element,
     text_element = text_element,
-    key = website_key,
-    id = website_id,  # Add unique ID
+    key = tolower(gsub("https://|http://|www\\.|\\..*", "", website_url)),
+    id = paste0(tolower(gsub("https://|http://|www\\.|\\..*", "", website_url)), "_", as.integer(Sys.time()), "_", sample(1:10000, 1)),
+    structure = "nested",  # Set default or conditional value if not provided
     year_type = year_type,
     year_class = year_class,
     month_type = month_type,
@@ -109,6 +101,11 @@ gs_write_schema <- function(website_url,
     article_class = article_class,
     stringsAsFactors = FALSE
   )
+
+  # Check if columns align before binding
+  if (!all(names(new_schema_row) == names(website_schemas))) {
+    stop("Column names in new row do not match the existing schema CSV file.")
+  }
 
   # Append the new row to the schema data frame
   updated_schemas <- rbind(website_schemas, new_schema_row)

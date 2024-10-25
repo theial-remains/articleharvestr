@@ -85,6 +85,106 @@ gu_parse_sitemap <- function(content_text,
   return(all_links)
 }
 
+
+# Recursive helper function to parse sitemaps based on a dynamic hierarchy
+#' Recursive Sitemap Parser
+#'
+#' This recursive function parses sitemaps based on a specified level hierarchy.
+#' @param base_url The URL for the sitemap.
+#' @param levels A character vector specifying the levels in the hierarchy (e.g., c("year", "month", "day")).
+#' @param start_date The start date for filtering (if applicable).
+#' @param end_date The end date for filtering (if applicable).
+#' @param accumulated_links A character vector of accumulated links from higher levels.
+#' @return A character vector of article links from the sitemap.
+#' @import httr
+#' @import purrr
+#' @import xm12
+#' @export
+gu_parse_sitemap_recursive <- function(base_url,
+                                       levels,
+                                       start_date,
+                                       end_date,
+                                       accumulated_links = character()) {
+  if (length(levels) == 0) {
+    # Base case: no more levels to process, return accumulated links as final articles
+    return(accumulated_links)
+  }
+
+  schema <- gs_pull_schema(base_url)
+
+  # Get the current level and corresponding tag/class from the schema
+  current_level <- levels[1]
+  tag_type <- schema[[paste0(current_level, "_type")]]
+  tag_class <- schema[[paste0(current_level, "_class")]]
+
+  # Make an HTTP request to fetch the sitemap content
+  response <- tryCatch(GET(base_url), error = function(e) {
+    message("Error fetching URL: ", e)
+    return(NULL)
+  })
+
+  # Check if the response is valid
+  if (is.null(response) || http_status(response)$category != "Success") {
+    message("Failed to retrieve the URL content at level ", current_level)
+    return(NULL)
+  }
+
+  # Fetch content and headers
+  content_text <- content(response, as = "text")
+  content_type <- headers(response)$`content-type`
+
+  # Parse the sitemap based on content type and tag info
+  current_links <- tryCatch({
+    gu_parse_sitemap(content_text = content_text,
+                     content_type = content_type,
+                     tag_type = tag_type,
+                     tag_class = tag_class)
+  }, error = function(e) {
+    message("Error parsing sitemap at level ", current_level, ": ", e)
+    return(NULL)
+  })
+
+  # Filter links by date if current level corresponds to a time period
+  if (current_level %in% c("year", "month", "day")) {
+    current_links <- filter_links_by_date(current_links, current_level, start_date, end_date)
+  }
+
+  # If no further levels, return the final article links
+  if (length(levels) == 1) {
+    return(current_links)
+  }
+
+  # Otherwise, recursively parse each link at the next level
+  all_article_links <- purrr::map_chr(current_links, ~ {
+    gu_parse_sitemap_recursive(.x, levels[-1], start_date, end_date, accumulated_links = c(accumulated_links, .x))
+  })
+
+  return(all_article_links)
+}
+
+
+# Helper function to filter links based on date for each level
+filter_links_by_date <- function(links, level, start_date, end_date) {
+  # Define pattern based on the level
+  pattern <- switch(level,
+                    "year" = "\\d{4}",                       # Matches 4-digit year
+                    "month" = "\\d{4}[-/]\\d{2}",            # Matches year and month with / or -
+                    "day" = "\\d{4}[-/]\\d{2}[-/]\\d{2}")    # Matches full date with / or -
+
+  # Filter links based on matching pattern
+  links <- links[grepl(pattern, links)]
+
+  # If level is "day", convert extracted dates to Date class for filtering
+  if (level == "day") {
+    # Extract date part and convert to Date format, supporting both / and -
+    dates <- as.Date(str_extract(links, "\\d{4}[-/]\\d{2}[-/]\\d{2}"), format = "%Y-%m-%d")
+    links <- links[dates >= start_date & dates <= end_date]
+  }
+
+  return(links)
+}
+
+
 #' Get Year Links
 #'
 #' Extracts a list of year links within a specified range from an XML or HTML sitemap.
