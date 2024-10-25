@@ -6,11 +6,11 @@
 \usage{
 gs_write_schema(
   website_url,
+  sitemap_url,
   author_element,
   title_element,
   date_element,
   text_element,
-  xml_structure,
   year_type = NULL,
   year_class = NULL,
   month_type = NULL,
@@ -24,6 +24,8 @@ gs_write_schema(
 \arguments{
 \item{website_url}{A character string for the URL of the website.}
 
+\item{sitemap_url}{A charachter string for the URL of the sitemap.}
+
 \item{author_element}{A character string for the CSS selector/XPath for the author element.}
 
 \item{title_element}{A character string for the CSS selector/XPath for the title element.}
@@ -31,8 +33,6 @@ gs_write_schema(
 \item{date_element}{A character string for the CSS selector/XPath for the published date element.}
 
 \item{text_element}{A character string for the CSS selector/XPath for the article text element.}
-
-\item{xml_structure}{A character string for the website structure.}
 
 \item{year_type}{A character string specifying the type of year links (default: NULL).}
 
