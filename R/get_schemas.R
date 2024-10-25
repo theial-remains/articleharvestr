@@ -36,6 +36,7 @@ gs_check_schema <- function(website_url) {
 #' This function writes a new schema to the local CSV file. If the schema already exists,
 #' it generates a warning but still writes the new schema with a unique ID.
 #' @param website_url A character string for the URL of the website.
+#' @param sitemap_url A charachter string for the URL of the sitemap.
 #' @param author_element A character string for the CSS selector/XPath for the author element.
 #' @param title_element A character string for the CSS selector/XPath for the title element.
 #' @param date_element A character string for the CSS selector/XPath for the published date element.
@@ -53,6 +54,7 @@ gs_check_schema <- function(website_url) {
 #' @importFrom utils read.csv write.csv
 #' @export
 gs_write_schema <- function(website_url,
+                            sitemap_url,
                             author_element,
                             title_element,
                             date_element,
@@ -92,6 +94,7 @@ gs_write_schema <- function(website_url,
   # Create a new row for the schema
   new_schema_row <- data.frame(
     website_structure = website_url,
+    sitemap_url = sitemap_url,
     author_element = author_element,
     title_element = title_element,
     date_element = date_element,
