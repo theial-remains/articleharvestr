@@ -41,7 +41,6 @@ gs_check_schema <- function(website_url) {
 #' @param title_element A character string for the CSS selector/XPath for the title element.
 #' @param date_element A character string for the CSS selector/XPath for the published date element.
 #' @param text_element A character string for the CSS selector/XPath for the article text element.
-#' @param structure A character string for the website structure.
 #' @param year_type A character string specifying the type of year links (default: NULL).
 #' @param year_class A character string specifying the class for year links (default: NULL).
 #' @param month_type A character string specifying the type of month links (default: NULL).
@@ -52,6 +51,7 @@ gs_check_schema <- function(website_url) {
 #' @param article_class A character string specifying the class for article links (default: NULL).
 #' @return TRUE if the schema is successfully written, FALSE otherwise.
 #' @importFrom utils read.csv write.csv
+#' @import httr
 #' @export
 gs_write_schema <- function(website_url,
                             sitemap_url,
@@ -59,7 +59,6 @@ gs_write_schema <- function(website_url,
                             title_element,
                             date_element,
                             text_element,
-                            structure,
                             year_type = NULL,
                             year_class = NULL,
                             month_type = NULL,
@@ -90,6 +89,12 @@ gs_write_schema <- function(website_url,
   # Create a unique ID for the new schema row
   website_key <- tolower(gsub("https://|http://|www\\.|\\..*", "", website_url))
   website_id <- paste0(website_key, "_", as.integer(Sys.time()), "_", sample(1:10000, 1))
+
+  response <- tryCatch(GET(sitemap_url), error = function(e) {
+    message("Error fetching URL: ", e)
+    return(NULL)
+  })
+  structure <- headers(response)$`content-type` # TODO require the default null classes to be filled in or NA if structure = html
 
   # Create a new row for the schema
   new_schema_row <- data.frame(
