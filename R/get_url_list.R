@@ -146,7 +146,7 @@ gu_parse_sitemap_recursive <- function(base_url,
 
   # Filter links by date if current level corresponds to a time period
   if (current_level %in% c("year", "month", "day")) {
-    current_links <- filter_links_by_date(current_links, current_level, start_date, end_date)
+    current_links <- gu_filter_links_by_date(current_links, current_level, start_date, end_date)
   }
 
   # If no further levels, return the final article links
