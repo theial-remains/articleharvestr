@@ -75,7 +75,6 @@ su_create_csv <- function(website_url, folder_path = "inst/extdata/scraped_data/
 }
 
 
-
 #' Remove CSV for a Specific News Website
 #'
 #' This function removes the CSV file for a website based on the website key.

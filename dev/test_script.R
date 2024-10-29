@@ -127,7 +127,6 @@ gs_write_schema(
   title_element = ".title",
   date_element = ".date",
   text_element = ".content",
-  xml_structure = "nested",
   year_type = "ol",
   year_class = "css-7ybqih",
   month_type = "ol",
