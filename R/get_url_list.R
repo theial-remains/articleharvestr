@@ -188,13 +188,76 @@ gu_get_layer_instructions <- function(layer_info) {
 # Main Functions ----------------------------------------------------------
 
 
-# FIXME: error when sitemap urls do not have full ymd info. cannot be fucked to fix it rn
+# TODO will not work with anything other than huffpost rn because I didnt add dynamic hanlding for the tag param
+# FIXME error when sitemap urls do not have full ymd info. cannot be fucked to fix it rn
 # easiest way to fix it would be to have the helper functions handle yyyy case ect.
 # or make another helper function to do it for them and integrate that
 
+#' Process Sitemap Layers
+#'
+#' This function processes up to four sitemap layers for a given website URL.
+#' It dynamically retrieves schema information and applies helper functions
+#' for processing links at each layer. The function supports error handling
+#' and outputs processed links for each layer.
+#'
+#' @param website_url A string. The base URL of the website to process.
+#' @param start_date A string. The start date for filtering sitemap links in "YYYY-MM-DD" format.
+#' @param end_date A string. The end date for filtering sitemap links in "YYYY-MM-DD" format.
+#'
+#' @return A list where each element corresponds to the processed links at each layer.
+#' @export
+#'
+#' @examples
+#' # Example usage:
+#' website_url <- "https://www.huffpost.com"
+#' start_date <- "2015-01-01"
+#' end_date <- "2015-01-04"
+#' result_links <- gu_parse_xml(website_url, start_date, end_date)
+#' print(result_links)
+gu_parse_xml <- function(website_url, start_date, end_date) {
+  # Fetch schema information and starting sitemap
+  schema_info <- gu_get_schema_info(website_url)
+  starting_sitemap <- gs_pull_schema(website_url)$starting_sitemap[1]
+
+  # Initialize link lists
+  link_lists <- list()
+
+  # Layer 1
+  link_lists[[1]] <- tryCatch({
+    gu_parse_xml_sitemap_date_in_url(starting_sitemap, start_date, end_date)
+  }, error = function(e) {
+    message("Error in Layer 1:", e)
+    return(character(0))
+  })
+
+  # Process subsequent layers dynamically
+  for (layer in 2:min(4, nrow(schema_info))) {
+    if (length(link_lists[[layer - 1]]) == 0) {
+      stop(paste("No links to process for Layer", layer))
+    }
+
+    # Determine tag and helper function for the current layer
+    tag <- paste0(".//", schema_info$class[layer])
+    helper_function <- gu_parse_xml_sitemap_date_in_tag
+
+    # Process links for the current layer
+    link_lists[[layer]] <- purrr::map(link_lists[[layer - 1]], function(link) {
+      tryCatch({
+        helper_function(link, start_date, end_date, tag)
+      }, error = function(e) {
+        message("Error processing link (Layer", layer, "): ", link, " - ", e)
+        return(character(0))
+      })
+    }) %>% unlist()
+  }
+
+  # Return the final set of links
+  return(link_lists)
+}
 
 
 # HTML Functions ----------------------------------------------------------
+# FIXME INCREDIBLY FUCKED UP html functions
 # Helper Functions ----------------------------------------------------------
 
 
@@ -647,6 +710,7 @@ gu_apply_article_links <- function(day_links, tag_type = NULL, tag_class = NULL)
 
 # Main Functions ----------------------------------------------------------
 
+# FIXME HOT, FLAMING garbage
 
 #' Get Links from a Website
 #'
