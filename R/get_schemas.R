@@ -33,22 +33,15 @@ gs_check_schema <- function(website_url) {
 
 #' Write a New Schema to the Local CSV File
 #'
-#' This function writes a new schema to the local CSV file. If the schema already exists,
-#' it generates a warning but still writes the new schema with a unique ID.
+#' This function writes a new schema to the local CSV file.
 #' @param website_url A character string for the URL of the website.
 #' @param sitemap_url A charachter string for the URL of the sitemap.
 #' @param author_element A character string for the CSS selector/XPath for the author element.
 #' @param title_element A character string for the CSS selector/XPath for the title element.
 #' @param date_element A character string for the CSS selector/XPath for the published date element.
 #' @param text_element A character string for the CSS selector/XPath for the article text element.
-#' @param year_type A character string specifying the type of year links (default: NULL).
-#' @param year_class A character string specifying the class for year links (default: NULL).
-#' @param month_type A character string specifying the type of month links (default: NULL).
-#' @param month_class A character string specifying the class for month links (default: NULL).
-#' @param day_type A character string specifying the type of day links (default: NULL).
-#' @param day_class A character string specifying the class for day links (default: NULL).
-#' @param article_type A character string specifying the type of article links (default: NULL).
-#' @param article_class A character string specifying the class for article links (default: NULL).
+#' @param structure A character string for the sitemap structure (e.g., nested, flat).
+#' @param layer1_type, layer1_class, layer2_type, layer2_class, layer3_type, layer3_class, layer4_type, layer4_class Element types and classes for sitemap layers.
 #' @return TRUE if the schema is successfully written, FALSE otherwise.
 #' @importFrom utils read.csv write.csv
 #' @export
@@ -58,16 +51,16 @@ gs_write_schema <- function(website_url,
                             title_element,
                             date_element,
                             text_element,
-                            year_type = NA,
-                            year_class = NA,
-                            month_type = NA,
-                            month_class = NA,
-                            day_type = NA,
-                            day_class = NA,
-                            article_type = NA,
-                            article_class = NA) {
+                            structure,
+                            layer1_type = NA,
+                            layer1_class = NA,
+                            layer2_type = NA,
+                            layer2_class = NA,
+                            layer3_type = NA,
+                            layer3_class = NA,
+                            layer4_type = NA,
+                            layer4_class = NA) {
 
-  # Paths for development and installed package
   dev_mode_path <- "inst/extdata/website_schemas.csv"
   schema_file_path <- system.file("extdata", "website_schemas.csv", package = "articleharvestr")
 
@@ -77,40 +70,34 @@ gs_write_schema <- function(website_url,
     stop("Local schema file not found. Ensure 'website_schemas.csv' exists in the 'inst/extdata/' directory.")
   }
 
-  # Read the current schema file
   website_schemas <- read.csv(schema_file_path, stringsAsFactors = FALSE)
 
-  # Ensure column names match exactly by defining them explicitly
   new_schema_row <- data.frame(
     website_structure = website_url,
-    sitemap_url = sitemap_url,
+    starting_sitemap = sitemap_url,
     author_element = author_element,
     title_element = title_element,
     date_element = date_element,
     text_element = text_element,
     key = tolower(gsub("https://|http://|www\\.|\\..*", "", website_url)),
     id = paste0(tolower(gsub("https://|http://|www\\.|\\..*", "", website_url)), "_", as.integer(Sys.time()), "_", sample(1:10000, 1)),
-    structure = "nested",  # Set default or conditional value if not provided
-    year_type = year_type,
-    year_class = year_class,
-    month_type = month_type,
-    month_class = month_class,
-    day_type = day_type,
-    day_class = day_class,
-    article_type = article_type,
-    article_class = article_class,
+    structure = structure,
+    layer1_type = layer1_type,
+    layer1_class = layer1_class,
+    layer2_type = layer2_type,
+    layer2_class = layer2_class,
+    layer3_type = layer3_type,
+    layer3_class = layer3_class,
+    layer4_type = layer4_type,
+    layer4_class = layer4_class,
     stringsAsFactors = FALSE
   )
 
-  # Check if columns align before binding
   if (!all(names(new_schema_row) == names(website_schemas))) {
     stop("Column names in new row do not match the existing schema CSV file.")
   }
 
-  # Append the new row to the schema data frame
   updated_schemas <- rbind(website_schemas, new_schema_row)
-
-  # Write the updated data frame back to the CSV file
   write.csv(updated_schemas, schema_file_path, row.names = FALSE)
   message("New schema successfully written to the CSV file.")
   return(TRUE)

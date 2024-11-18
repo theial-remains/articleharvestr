@@ -3,6 +3,9 @@ setwd("C:/Users/Preet/OneDrive - Ursinus College/paid_labor/articleharvestr")
 
 devtools::load_all()
 
+library(xml2)
+library(httr)
+
 #' title
 #'
 #' description
@@ -38,159 +41,11 @@ View(schema)
 
 gs_remove_schema("https://www.nytimes.com/sitemap/", every = TRUE)
 
-# Example call to gu_get_article_links
-long_list_yo <- gu_get_links(
-  website_url = "https://www.nytimes.com/sitemap/",
-  start_date = "2020-03-11",
-  end_date = "2020-03-15",
-  id = "nytimes_1728439811_4239"
-) # FUTURE THEA: KEEP THE RANGE SMALL FOR THE LOVE OF GOD
-head(long_list_yo)
 
-# create file for nytimes
-su_create_csv("https://www.nytimes.com/sitemap/", overwrite = TRUE)
+test_sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
+test_start_date <- "2015-01-01"
+test_end_date <- "2015-01-31"
 
-# check if nytimes file exists
-su_check_csv("https://www.nytimes.com/sitemap/")
-
-# remove file test
-su_remove_csv("https://www.nytimes.com/sitemap/")
-
-su_write_urls("https://www.nytimes.com/sitemap/", long_list_yo)
-
-#Test:
-su_create_csv("https://www.wsj.com/sitemap/", overwrite = TRUE)
-class(long_list_yo)
-long_list_yo[1:3]
-
-su_write_urls("https://www.wsj.com/sitemap/", c("https://www.wsj.com/finance/betting-election-pro-trump-ad74aa71?mod=", "https://www.wsj.com/business/energy-oil?mod=nav_top_subsection", "whatever"))
-
-# 3. url scraper, 4 browsers, 4s delay
-# helper function for scrape_links
-# extract data from a single link
-
-scrape_article_data("https://www.nytimes.com/2023/01/01/us/california-earthquake.html")
-# <div class="css-1vkm6nb ehdk2mb0"><h1 id="link-75c81eb1" class="css-88wicj e1h9rw200" data-testid="headline">California Town Rattled by Earthquake a Second Time</h1></div>
-scrape_article_data <- function(article_url) {
-  webpage <- read_html(article_url)
-  title <- webpage %>%
-    html_nodes(".css-88wicj.e1h9rw200") %>%
-    html_text(trim = TRUE)
- # all_paragraphs <- webpage %>%
- #   html_nodes('.primary-cli.cli.cli-text p') %>%
-  #  html_text(trim = TRUE)
- # excluded_paragraphs <- webpage %>%
-   # html_nodes('#support-huffpost-entry p') %>%
-    #html_text(trim = TRUE)
-  #article_text <- setdiff(all_paragraphs, excluded_paragraphs) %>%
-   # paste(collapse = " ")
-  #published_date <- webpage %>%
-   # html_node("meta[property='article:published_time']") %>%
-    #html_attr("content")
-  #author <- webpage %>%
-    #html_node(".author-list a") %>%
-   # html_attr("aria-label") %>%
-    #str_replace("By ", "")
-  df <- data.frame(
-   Title = title
-    #Author = author,
-    #Published_Date = published_date,
-    #Article_Text = article_text,
-    #stringsAsFactors = FALSE
-  )
-  return(df)
-}
-
-article_url <- "https://www.nytimes.com/2023/01/01/us/california-earthquake.html"
-read_html(article_url)
-
-# template solution code
-# TODO update NAMESPACE
-library(httr)
-api_key <- "Qh78GcW8uJuG0zXNlQb9hr33KdGdM4kF"
-api_secret <- "q06GzCQFuYIdAKsu"
-base_url <- "https://api.nytimes.com/svc/search/v2/articlesearch.json"
-
-res <- GET(base_url, query = list(
-  q = "California earthquake", # Query for 'California earthquake'
-  `api-key` = api_key # Correct query parameter for API key (use `api-key`)
-))
-
-# Check the structure of the response
-content_raw <- content(res, as = "parsed", type = "application/json")
-str(content_raw)
-
-
-gs_write_schema(
-  website_url = "https://www.wsj.com",
-  author_element = ".author",
-  title_element = ".title",
-  date_element = ".date",
-  text_element = ".content",
-  year_type = "ol",
-  year_class = "css-7ybqih",
-  month_type = "ol",
-  month_class = "css-5emfqe",
-  day_type = "ol",
-  day_class = "css-7ybqih",
-  article_type = "ul",
-  article_class = "css-d7lzgg"
-)
-
-# month links test
-year_link <- "https://www.nytimes.com/sitemap/2020/"
-year <- 2020
-year_min <- 2020
-year_max <- 2020
-start_date <- "2020-03-01"
-end_date <- "2020-04-30"
-month_tag_type <- "ol"
-month_tag_class <- "css-5emfqe"
-website_structure <- "https://www.nytimes.com"
-
-# Call the function to get month links for March and April of 2020
-month_links <- gu_apply_month_links(
-  year_link = year_link,
-  year = year,
-  year_min = year_min,
-  year_max = year_max,
-  start_date = as.Date(start_date),
-  end_date = as.Date(end_date),
-  month_tag_type = month_tag_type,
-  month_tag_class = month_tag_class,
-  website_structure = website_structure
-)
-
-gu_month_links(
-  "https://www.nytimes.com/sitemap/2020/",
-  month_min = 1,
-  month_max = 12,
-  tag_type = month_tag_type,
-  tag_class = month_tag_class)
-
-# day links test
-# Define parameters for the day links retrieval
-month_link <- "https://www.nytimes.com/sitemap/2003/03/"
-month <- 3
-year <- 2003
-year_min <- 2003
-year_max <- 2004
-start_date <- as.Date("2003-03-11")
-end_date <- as.Date("2004-06-15")
-day_tag_type <- "ol"
-day_tag_class <- "css-7ybqih"
-website_structure <- "https://www.nytimes.com/sitemap/"
-
-# Call the `gu_apply_day_links` function
-day_links <- gu_apply_day_links(
-  month_link = month_link,
-  month = month,
-  year = year,
-  year_min = year_min,
-  year_max = year_max,
-  start_date = start_date,
-  end_date = end_date,
-  day_tag_type = day_tag_type,
-  day_tag_class = day_tag_class,
-  website_structure = website_structure
-)
+# Run the function and print results
+test_results <- gu_parse_xml_sitemap_date_in_url(test_sitemap_url, test_start_date, test_end_date)
+print(test_results)

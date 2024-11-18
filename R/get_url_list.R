@@ -1,7 +1,133 @@
 # gets list of links from article sitemap.xml
 # TODO make main function work for xmls that contain multiple years, multiple months
 
+# XML Functions ----------------------------------------------------------
+# Helper Functions ----------------------------------------------------------
 
+
+#' Scrape Sitemap with Date in URL
+#'
+#' Parses an XML sitemap where the date information is part of the URL and filters links by a date range.
+#'
+#' @param sitemap_url The URL of the XML sitemap to parse.
+#' @param start_date The start date for filtering (as "YYYY-MM-DD").
+#' @param end_date The end date for filtering (as "YYYY-MM-DD").
+#' @return A character vector of filtered links from the sitemap.
+#' @import httr
+#' @import xml2
+#' @export
+gu_parse_xml_sitemap_date_in_url <- function(sitemap_url, start_date, end_date) {
+  # Fetch the sitemap content
+  response <- tryCatch(GET(sitemap_url), error = function(e) {
+    message("Error fetching URL: ", e)
+    return(NULL)
+  })
+
+  if (is.null(response) || http_status(response)$category != "Success") {
+    stop("Failed to retrieve the URL content: ", sitemap_url)
+  }
+
+  # Parse XML content
+  raw_content <- content(response, as = "text")
+  content_xml <- tryCatch(read_xml(raw_content), error = function(e) {
+    message("Error parsing XML content: ", e)
+    return(NULL)
+  })
+
+  if (is.null(content_xml)) return(character())
+
+  # Handle namespaces in the XML, extract links
+  no_ns <- xml_ns_strip(content_xml)
+  links <- xml_find_all(no_ns, ".//loc") %>%
+    xml_text()
+
+  link_numbers <- seq_along(links)
+
+  # Extract dates by removing all non-date characters
+  link_dates <- sapply(links, function(link) {
+    date_match <- regmatches(link, regexpr("\\d{4}-\\d{2}-\\d{2}", link))
+    if (length(date_match) > 0) {
+      return(as.Date(date_match))
+    }
+    return(NA)
+  })
+
+  # Filter by date range
+  start_date <- as.Date(start_date)
+  end_date <- as.Date(end_date)
+
+  valid_indices <- which(!is.na(link_dates) & link_dates >= start_date & link_dates <= end_date)
+
+  # Return filtered links by their indices
+  filtered_links <- links[valid_indices]
+
+  return(filtered_links)
+}
+
+
+#' Scrape Sitemap with Dates in XML Tags
+#'
+#' Parses an XML sitemap where the date information is stored in an XML tag (e.g., `<lastmod>`) and filters links by a date range.
+#'
+#' @param sitemap_url The URL of the XML sitemap to parse.
+#' @param start_date The start date for filtering (as "YYYY-MM-DD").
+#' @param end_date The end date for filtering (as "YYYY-MM-DD").
+#' @return A character vector of filtered links from the sitemap.
+#' @import httr
+#' @import xml2
+#' @export
+gu_parse_xml_sitemap_date_in_tag <- function(sitemap_url, start_date, end_date) {
+  # Fetch the sitemap content
+  response <- tryCatch(GET(sitemap_url), error = function(e) {
+    message("Error fetching URL: ", e)
+    return(NULL)
+  })
+
+  if (is.null(response) || http_status(response)$category != "Success") {
+    stop("Failed to retrieve the URL content: ", sitemap_url)
+  }
+
+  # Parse XML content
+  raw_content <- content(response, as = "text")
+  content_xml <- tryCatch(read_xml(raw_content), error = function(e) {
+    message("Error parsing XML content: ", e)
+    return(NULL)
+  })
+
+  if (is.null(content_xml)) return(character())
+
+  # Handle namespaces in the XML and extract links and dates
+  no_ns <- xml_ns_strip(content_xml)
+  links <- xml_find_all(no_ns, ".//loc") %>% xml_text()
+  dates <- xml_find_all(no_ns, ".//lastmod") %>% xml_text()
+
+  # Ensure links and dates align
+  if (length(links) != length(dates)) {
+    stop("Mismatch between number of links and dates.")
+  }
+
+  # Convert dates to Date objects
+  link_dates <- sapply(dates, function(date) {
+    tryCatch(as.Date(substr(date, 1, 10)), error = function(e) NA)
+  })
+
+  # Filter by date range
+  start_date <- as.Date(start_date)
+  end_date <- as.Date(end_date)
+
+  valid_indices <- which(!is.na(link_dates) & link_dates >= start_date & link_dates <= end_date)
+
+  # Return filtered links by their indices
+  filtered_links <- links[valid_indices]
+
+  return(filtered_links)
+}
+
+
+# Main Functions ----------------------------------------------------------
+
+
+# HTML Functions ----------------------------------------------------------
 # Helper Functions ----------------------------------------------------------
 
 
@@ -83,83 +209,6 @@ gu_parse_sitemap <- function(content_text,
   }
 
   return(all_links)
-}
-
-
-# Recursive helper function to parse sitemaps based on a dynamic hierarchy
-#' Recursive Sitemap Parser
-#'
-#' This recursive function parses sitemaps based on a specified level hierarchy.
-#' @param base_url The URL for the sitemap.
-#' @param levels A character vector specifying the levels in the hierarchy (e.g., c("year", "month", "day")).
-#' @param start_date The start date for filtering (if applicable).
-#' @param end_date The end date for filtering (if applicable).
-#' @param accumulated_links A character vector of accumulated links from higher levels.
-#' @return A character vector of article links from the sitemap.
-#' @import httr
-#' @import purrr
-#' @import xml2
-#' @export
-gu_parse_sitemap_recursive <- function(base_url,
-                                       levels,
-                                       start_date,
-                                       end_date,
-                                       accumulated_links = character()) {
-  if (length(levels) == 0) {
-    # Base case: no more levels to process, return accumulated links as final articles
-    return(accumulated_links)
-  }
-
-  schema <- gs_pull_schema(base_url)
-
-  # Get the current level and corresponding tag/class from the schema
-  current_level <- levels[1]
-  tag_type <- schema[[paste0(current_level, "_type")]]
-  tag_class <- schema[[paste0(current_level, "_class")]]
-
-  # Make an HTTP request to fetch the sitemap content
-  response <- tryCatch(GET(base_url), error = function(e) {
-    message("Error fetching URL: ", e)
-    return(NULL)
-  })
-
-  # Check if the response is valid
-  if (is.null(response) || http_status(response)$category != "Success") {
-    message("Failed to retrieve the URL content at level ", current_level)
-    return(NULL)
-  }
-
-  # Fetch content and headers
-  content_text <- content(response, as = "text")
-  content_type <- headers(response)$`content-type`
-
-  # Parse the sitemap based on content type and tag info
-  current_links <- tryCatch({
-    gu_parse_sitemap(content_text = content_text,
-                     content_type = content_type,
-                     tag_type = tag_type,
-                     tag_class = tag_class)
-  }, error = function(e) {
-    message("Error parsing sitemap at level ", current_level, ": ", e)
-    return(NULL)
-  })
-
-  # Filter links by date if current level corresponds to a time period
-  if (current_level %in% c("year", "month", "day")) {
-    current_links <- gu_filter_links_by_date(current_links, current_level, start_date, end_date)
-  }
-
-  # If no further levels, return the final article links
-  if (length(levels) == 1) {
-    return(current_links)
-  }
-
-  # Otherwise, recursively parse each link at the next level
-  all_article_links <- purrr::map_chr(current_links, ~ {
-    gu_parse_sitemap_recursive(.x, levels[-1], start_date, end_date, accumulated_links = c(accumulated_links, .x))
-  })
-
-  return(all_article_links)
 }
 
 
