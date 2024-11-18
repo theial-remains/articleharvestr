@@ -5,26 +5,27 @@
 \title{Write a New Schema to the Local CSV File}
 \usage{
 gs_write_schema(
-  website_url,
-  sitemap_url,
+  website_structure,
+  starting_sitemap,
   author_element,
   title_element,
   date_element,
   text_element,
-  year_type = NA,
-  year_class = NA,
-  month_type = NA,
-  month_class = NA,
-  day_type = NA,
-  day_class = NA,
-  article_type = NA,
-  article_class = NA
+  structure,
+  layer1_type = NA,
+  layer1_class = NA,
+  layer2_type = NA,
+  layer2_class = NA,
+  layer3_type = NA,
+  layer3_class = NA,
+  layer4_type = NA,
+  layer4_class = NA
 )
 }
 \arguments{
-\item{website_url}{A character string for the URL of the website.}
+\item{website_structure}{A character string for the URL of the website.}
 
-\item{sitemap_url}{A charachter string for the URL of the sitemap.}
+\item{starting_sitemap}{A character string for the URL of the starting sitemap.}
 
 \item{author_element}{A character string for the CSS selector/XPath for the author element.}
 
@@ -34,26 +35,13 @@ gs_write_schema(
 
 \item{text_element}{A character string for the CSS selector/XPath for the article text element.}
 
-\item{year_type}{A character string specifying the type of year links (default: NULL).}
+\item{structure}{A character string for the sitemap structure (e.g., nested, flat).}
 
-\item{year_class}{A character string specifying the class for year links (default: NULL).}
-
-\item{month_type}{A character string specifying the type of month links (default: NULL).}
-
-\item{month_class}{A character string specifying the class for month links (default: NULL).}
-
-\item{day_type}{A character string specifying the type of day links (default: NULL).}
-
-\item{day_class}{A character string specifying the class for day links (default: NULL).}
-
-\item{article_type}{A character string specifying the type of article links (default: NULL).}
-
-\item{article_class}{A character string specifying the class for article links (default: NULL).}
+\item{layer1_type, }{layer1_class, layer2_type, layer2_class, layer3_type, layer3_class, layer4_type, layer4_class Element types and classes for sitemap layers.}
 }
 \value{
 TRUE if the schema is successfully written, FALSE otherwise.
 }
 \description{
-This function writes a new schema to the local CSV file. If the schema already exists,
-it generates a warning but still writes the new schema with a unique ID.
+This function writes a new schema to the local CSV file.
 }
