@@ -4,7 +4,7 @@
 \alias{gu_parse_xml_sitemap_date_in_tag}
 \title{Scrape Sitemap with Dates in XML Tags}
 \usage{
-gu_parse_xml_sitemap_date_in_tag(sitemap_url, start_date, end_date)
+gu_parse_xml_sitemap_date_in_tag(sitemap_url, start_date, end_date, tag)
 }
 \arguments{
 \item{sitemap_url}{The URL of the XML sitemap to parse.}
@@ -12,6 +12,8 @@ gu_parse_xml_sitemap_date_in_tag(sitemap_url, start_date, end_date)
 \item{start_date}{The start date for filtering (as "YYYY-MM-DD").}
 
 \item{end_date}{The end date for filtering (as "YYYY-MM-DD").}
+
+\item{tag}{The xml tag containing the date information for each link}
 }
 \value{
 A character vector of filtered links from the sitemap.
