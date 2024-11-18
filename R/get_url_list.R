@@ -124,6 +124,40 @@ gu_parse_xml_sitemap_date_in_tag <- function(sitemap_url, start_date, end_date) 
 }
 
 
+#' Get Schema Information for a Website
+#'
+#' This helper function retrieves and processes schema information for a given website
+#' to prepare for sitemap scraping.
+#'
+#' @param website_url A character string representing the URL of the website.
+#' @return A data frame with columns "number", "type", and "class", where each row represents a layer.
+#' @importFrom utils read.csv
+#' @export
+gu_get_schema_info <- function(website_url) {
+  # Step 1: Retrieve the schema for the website
+  schema <- gs_pull_schema(website_url)
+
+  # Check if schema was found
+  if (is.null(schema)) {
+    stop("Schema not found for the given website.")
+  }
+
+  # Step 2: Create a data frame for layers
+  schema_info <- data.frame(
+    number = 1:4, # Representing layers 1–4
+    type = c(schema$layer1_type, schema$layer2_type, schema$layer3_type, schema$layer4_type),
+    class = c(schema$layer1_class, schema$layer2_class, schema$layer3_class, schema$layer4_class),
+    stringsAsFactors = FALSE
+  )
+
+  # Step 3: Remove rows with only NA in "type" and "class"
+  schema_info <- schema_info[!(is.na(schema_info$type) & is.na(schema_info$class)), ]
+
+  # Step 4: Return the processed schema info
+  return(schema_info)
+}
+
+
 # Main Functions ----------------------------------------------------------
 
 
