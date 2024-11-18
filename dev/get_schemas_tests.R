@@ -28,7 +28,7 @@ View(schema)
 # Test Call for Adding Huffington Post Schema
 gs_write_schema(
   website_structure = "https://www.huffpost.com",
-  starting_sitemap = "https://www.huffpost.com/sitemaps/archive/sitemap-index.xml",
+  starting_sitemap = "https://www.huffpost.com/sitemaps/sitemap-v1.xml",
   author_element = "//meta[@name='author']/@content",
   title_element = "//title",
   date_element = "//meta[@property='article:published_time']/@content",

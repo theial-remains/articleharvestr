@@ -72,11 +72,12 @@ gu_parse_xml_sitemap_date_in_url <- function(sitemap_url, start_date, end_date) 
 #' @param sitemap_url The URL of the XML sitemap to parse.
 #' @param start_date The start date for filtering (as "YYYY-MM-DD").
 #' @param end_date The end date for filtering (as "YYYY-MM-DD").
+#' @param tag The xml tag containing the date information for each link
 #' @return A character vector of filtered links from the sitemap.
 #' @import httr
 #' @import xml2
 #' @export
-gu_parse_xml_sitemap_date_in_tag <- function(sitemap_url, start_date, end_date) {
+gu_parse_xml_sitemap_date_in_tag <- function(sitemap_url, start_date, end_date, tag) {
   # Fetch the sitemap content
   response <- tryCatch(GET(sitemap_url), error = function(e) {
     message("Error fetching URL: ", e)
@@ -99,7 +100,7 @@ gu_parse_xml_sitemap_date_in_tag <- function(sitemap_url, start_date, end_date) 
   # Handle namespaces in the XML and extract links and dates
   no_ns <- xml_ns_strip(content_xml)
   links <- xml_find_all(no_ns, ".//loc") %>% xml_text()
-  dates <- xml_find_all(no_ns, ".//lastmod") %>% xml_text()
+  dates <- xml_find_all(no_ns, tag) %>% xml_text()
 
   # Ensure links and dates align
   if (length(links) != length(dates)) {
@@ -158,7 +159,39 @@ gu_get_schema_info <- function(website_url) {
 }
 
 
+#' Get Instructions for Each Layer of Sitemap Parsing
+#'
+#' This function determines the action and helper function for each layer
+#' based on the schema info and whether the layer is the first or subsequent.
+#'
+#' @param layer_info A single-row data frame with columns "number", "type", and "class" for a layer.
+#' @return A character string with instructions, e.g., "single gu_parse_xml_sitemap_date_in_url" or "map gu_parse_xml_sitemap_date_in_tag".
+#' @export
+gu_get_layer_instructions <- function(layer_info) {
+  # Ensure the input is a single row
+  if (nrow(layer_info) != 1) {
+    stop("layer_info must be a single-row data frame.")
+  }
+
+  # Determine the helper function based on "type"
+  helper_function <- switch(
+    layer_info$type,
+    url_date = "gu_parse_xml_sitemap_date_in_url",
+    tag_date = "gu_parse_xml_sitemap_date_in_tag",
+    stop(paste("Unsupported type:", layer_info$type))
+  )
+
+  return(paste(helper_function))
+}
+
+
 # Main Functions ----------------------------------------------------------
+
+
+# FIXME: error when sitemap urls do not have full ymd info. cannot be fucked to fix it rn
+# easiest way to fix it would be to have the helper functions handle yyyy case ect.
+# or make another helper function to do it for them and integrate that
+
 
 
 # HTML Functions ----------------------------------------------------------
