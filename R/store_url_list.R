@@ -3,6 +3,33 @@
 # create and check article key
 
 
+#' Read CSV and Filter Rows with NA Metadata
+#'
+#' This function reads a CSV file for a specific website and returns all rows
+#' where the columns `published_date`, `author`, `title`, and `text` are all `NA`.
+#'
+#' @param website_url A character string representing the URL of the website.
+#' @param folder_path A character string specifying the folder where the CSV is located.
+#' @return A data frame containing the filtered rows, or an empty data frame if no matching rows are found.
+#' @importFrom utils read.csv
+#' @export
+su_read_csv <- function(website_url, folder_path = "inst/extdata/scraped_data/") {
+  file_info <- su_check_csv(website_url, folder_path = folder_path, return_path = TRUE)
+
+  if (!file_info$exists) {
+    stop("No CSV file found for the specified website.")
+  }
+
+  # Read the CSV file
+  data <- read.csv(file_info$path, stringsAsFactors = FALSE)
+
+  # Filter rows where specified columns are all NA
+  filtered_data <- subset(data, is.na(published_date) & is.na(author) & is.na(title) & is.na(text))
+
+  return(filtered_data)
+}
+
+
 #' Check if File Exists for a Specific News Website
 #'
 #' This function checks if a file with a name based on the website key exists

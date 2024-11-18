@@ -30,3 +30,6 @@ result_links <- gu_parse_xml("https://www.huffpost.com",
 su_write_urls("https://www.huffpost.com",
               result_links,
               folder_path = "inst/extdata/scraped_data/")
+
+results <- su_read_csv("https://www.huffpost.com")
+results
