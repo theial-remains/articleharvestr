@@ -198,13 +198,13 @@ gu_get_layer_instructions <- function(layer_info) {
 #' This function processes up to four sitemap layers for a given website URL.
 #' It dynamically retrieves schema information and applies helper functions
 #' for processing links at each layer. The function supports error handling
-#' and outputs processed links for each layer.
+#' and outputs processed links for the highest layer successfully processed.
 #'
 #' @param website_url A string. The base URL of the website to process.
 #' @param start_date A string. The start date for filtering sitemap links in "YYYY-MM-DD" format.
 #' @param end_date A string. The end date for filtering sitemap links in "YYYY-MM-DD" format.
 #'
-#' @return A list where each element corresponds to the processed links at each layer.
+#' @return A vector containing the links from the highest numbered layer processed.
 #' @export
 #'
 #' @examples
@@ -212,27 +212,31 @@ gu_get_layer_instructions <- function(layer_info) {
 #' website_url <- "https://www.huffpost.com"
 #' start_date <- "2015-01-01"
 #' end_date <- "2015-01-04"
-#' result_links <- gu_parse_xml(website_url, start_date, end_date)
+#' result_links <- gu_parse_xml("https://www.huffpost.com", "2015-01-01", "2015-01-04")
 #' print(result_links)
 gu_parse_xml <- function(website_url, start_date, end_date) {
   # Fetch schema information and starting sitemap
   schema_info <- gu_get_schema_info(website_url)
   starting_sitemap <- gs_pull_schema(website_url)$starting_sitemap[1]
 
-  # Initialize link lists
-  link_lists <- list()
+  # Initialize variable for final links
+  final_links <- character(0)
 
   # Layer 1
-  link_lists[[1]] <- tryCatch({
+  layer_links <- tryCatch({
     gu_parse_xml_sitemap_date_in_url(starting_sitemap, start_date, end_date)
   }, error = function(e) {
     message("Error in Layer 1:", e)
     return(character(0))
   })
 
+  # If no links are found in Layer 1, stop the process
+  if (length(layer_links) == 0) return(final_links)
+  final_links <- layer_links
+
   # Process subsequent layers dynamically
   for (layer in 2:min(4, nrow(schema_info))) {
-    if (length(link_lists[[layer - 1]]) == 0) {
+    if (length(final_links) == 0) {
       stop(paste("No links to process for Layer", layer))
     }
 
@@ -241,7 +245,7 @@ gu_parse_xml <- function(website_url, start_date, end_date) {
     helper_function <- gu_parse_xml_sitemap_date_in_tag
 
     # Process links for the current layer
-    link_lists[[layer]] <- purrr::map(link_lists[[layer - 1]], function(link) {
+    layer_links <- purrr::map(final_links, function(link) {
       tryCatch({
         helper_function(link, start_date, end_date, tag)
       }, error = function(e) {
@@ -249,10 +253,16 @@ gu_parse_xml <- function(website_url, start_date, end_date) {
         return(character(0))
       })
     }) %>% unlist()
+
+    # If no links are found in the current layer, stop processing further
+    if (length(layer_links) == 0) break
+
+    # Update final links with the links from the current layer
+    final_links <- layer_links
   }
 
-  # Return the final set of links
-  return(link_lists)
+  # Return the final set of links from the highest processed layer
+  return(final_links)
 }
 
 

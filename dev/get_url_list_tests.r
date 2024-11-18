@@ -45,7 +45,7 @@ instructions
 
 # overall xml function ver. test
 result_links <- gu_parse_xml("https://www.huffpost.com", "2015-01-01", "2015-01-04")
-result_links
+View(result_links)
 
 
 # overall xml non function ver. test
