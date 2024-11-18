@@ -34,8 +34,8 @@ gs_check_schema <- function(website_url) {
 #' Write a New Schema to the Local CSV File
 #'
 #' This function writes a new schema to the local CSV file.
-#' @param website_url A character string for the URL of the website.
-#' @param sitemap_url A charachter string for the URL of the sitemap.
+#' @param website_structure A character string for the URL of the website.
+#' @param starting_sitemap A character string for the URL of the starting sitemap.
 #' @param author_element A character string for the CSS selector/XPath for the author element.
 #' @param title_element A character string for the CSS selector/XPath for the title element.
 #' @param date_element A character string for the CSS selector/XPath for the published date element.
@@ -45,8 +45,8 @@ gs_check_schema <- function(website_url) {
 #' @return TRUE if the schema is successfully written, FALSE otherwise.
 #' @importFrom utils read.csv write.csv
 #' @export
-gs_write_schema <- function(website_url,
-                            sitemap_url,
+gs_write_schema <- function(website_structure,
+                            starting_sitemap,
                             author_element,
                             title_element,
                             date_element,
@@ -73,14 +73,14 @@ gs_write_schema <- function(website_url,
   website_schemas <- read.csv(schema_file_path, stringsAsFactors = FALSE)
 
   new_schema_row <- data.frame(
-    website_structure = website_url,
-    starting_sitemap = sitemap_url,
+    website_structure = website_structure,
+    starting_sitemap = starting_sitemap,
     author_element = author_element,
     title_element = title_element,
     date_element = date_element,
     text_element = text_element,
-    key = tolower(gsub("https://|http://|www\\.|\\..*", "", website_url)),
-    id = paste0(tolower(gsub("https://|http://|www\\.|\\..*", "", website_url)), "_", as.integer(Sys.time()), "_", sample(1:10000, 1)),
+    key = tolower(gsub("https://|http://|www\\.|\\..*", "", website_structure)),
+    id = paste0(tolower(gsub("https://|http://|www\\.|\\..*", "", website_structure)), "_", as.integer(Sys.time()), "_", sample(1:10000, 1)),
     structure = structure,
     layer1_type = layer1_type,
     layer1_class = layer1_class,

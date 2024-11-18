@@ -17,23 +17,25 @@ ex_function <- function(params1) {
 }
 
 # testing find_schema_elements
-gs_check_schema("https://www.nytimes.com/sitemap/")
+gs_check_schema("https://www.huffpost.com/sitemaps/archive/sitemap-index.xml")
 
+# Test Call for Adding Huffington Post Schema
 gs_write_schema(
-  website_url = "https://www.nytimes.com",
-  sitemap_url = "https://www.nytimes.com/sitemap/",
-  author_element = ".author",
-  title_element = ".title",
-  date_element = ".date",
-  text_element = ".content",
-  year_type = "ol",
-  year_class = "css-7ybqih",
-  month_type = "ol",
-  month_class = "css-5emfqe",
-  day_type = "ol",
-  day_class = "css-7ybqih",
-  article_type = "ul",
-  article_class = "css-d7lzgg"
+  website_url = "https://www.huffpost.com",
+  sitemap_url = "https://www.huffpost.com/sitemaps/archive/sitemap-index.xml",
+  author_element = "//meta[@name='author']/@content",
+  title_element = "//title",
+  date_element = "//meta[@property='article:published_time']/@content",
+  text_element = "//div[contains(@class, 'content-list-component')]",
+  structure = "xml",
+  layer1_type = "year",
+  layer1_class = "sitemap-year",
+  layer2_type = "month",
+  layer2_class = "sitemap-month",
+  layer3_type = "day",
+  layer3_class = "sitemap-day",
+  layer4_type = "article",
+  layer4_class = "sitemap-article"
 )
 
 schema <- gs_pull_schema("https://www.nytimes.com/sitemap/")
