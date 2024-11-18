@@ -67,7 +67,6 @@ sa_scrape_article_data <- function(article_url) {
 #' @return A data frame containing the scraped data for all articles, with columns: title, author, published date, and article text.
 #' @importFrom purrr map_dfr
 #' @importFrom utils head
-#' @importFrom Sys.sleep
 #' @export
 sa_scrape_articles <- function(articles_df, max_requests = 15, delay = 5) {
   if (!"url" %in% names(articles_df)) {
