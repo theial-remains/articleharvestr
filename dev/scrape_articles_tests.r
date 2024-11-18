@@ -17,7 +17,13 @@ View(article)
 results <- su_read_csv("https://www.huffpost.com")
 View(results)
 
-scraped_articles <- sa_scrape_articles(results[1:5])
+# TODO make this take the data for classes from the csv not hardcoded
+# before doing that DO NOT FORGET to correct the cols in website_schemas
+# DO NOT debug for an hour over this plz future Thea
+
+# sys.sleep needs to be longer I think??? keep getting 404ed
+test1 <- head(results, n = 5)
+scraped_articles <- sa_scrape_articles(test1)
 View(scraped_articles)
 
 # TODO function to write data into corresponding rows

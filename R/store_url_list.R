@@ -3,6 +3,78 @@
 # create and check article key
 
 
+#' Store Article Data in CSV
+#'
+#' This function reads the corresponding CSV for the articles using `su_check_csv` to find the appropriate file
+#' and appends new article data by matching the URLs from the input data frame to the URLs in the CSV.
+#' If URLs already exist in the CSV, their data can be updated based on the `overwrite` parameter.
+#'
+#' @param website_url A character string representing the website URL.
+#' @param article_data A data frame containing columns: title, url, author, published_date, and text.
+#' @param folder_path A character string specifying the folder where the CSV is located. Defaults to `"inst/extdata/scraped_data/"`.
+#' @param overwrite A logical value indicating whether to overwrite existing data for URLs in the CSV. Defaults to FALSE.
+#' @return A message indicating success, and the updated CSV is saved to disk.
+#' @importFrom utils read.csv write.csv
+#' @export
+su_store_article_data <- function(website_url, article_data, folder_path = "inst/extdata/scraped_data/", overwrite = FALSE) {
+  # Check if the input data frame has the required columns
+  required_columns <- c("url", "title", "author", "published_date", "text")
+  if (!all(required_columns %in% names(article_data))) {
+    stop("Input data frame must contain the following columns: ", paste(required_columns, collapse = ", "))
+  }
+
+  # Find the corresponding CSV file
+  file_info <- su_check_csv(website_url, folder_path = folder_path, return_path = TRUE)
+  file_path <- file_info$path
+
+  if (!file_info$exists) {
+    stop("The corresponding CSV file does not exist. Create the file first using `su_create_csv`.")
+  }
+
+  # Read the existing data from the CSV
+  existing_data <- read.csv(file_path, stringsAsFactors = FALSE)
+
+  # Ensure both dataframes have the same columns in the same order
+  all_columns <- union(names(existing_data), names(article_data))
+
+  # Add missing columns to both dataframes
+  for (col in setdiff(all_columns, names(existing_data))) {
+    existing_data[[col]] <- NA
+  }
+  for (col in setdiff(all_columns, names(article_data))) {
+    article_data[[col]] <- NA
+  }
+
+  # Reorder columns to ensure they match
+  existing_data <- existing_data[, all_columns]
+  article_data <- article_data[, all_columns]
+
+  # Merge the new data with the existing data
+  for (i in seq_len(nrow(article_data))) {
+    row <- article_data[i, ]
+    url <- row$url
+    existing_row_index <- which(existing_data$url == url)
+
+    if (length(existing_row_index) > 0) {
+      # URL exists in the CSV
+      if (overwrite) {
+        # Overwrite existing row
+        existing_data[existing_row_index, ] <- row
+      }
+      # If not overwriting, leave the existing row as is
+    } else {
+      # URL does not exist in the CSV; append new row
+      existing_data <- rbind(existing_data, row)
+    }
+  }
+
+  # Write the updated data back to the CSV
+  write.csv(existing_data, file_path, row.names = FALSE)
+
+  return(paste("Article data successfully stored in:", file_path))
+}
+
+
 #' Read CSV and Filter Rows with NA Metadata
 #'
 #' This function reads a CSV file for a specific website and returns all rows

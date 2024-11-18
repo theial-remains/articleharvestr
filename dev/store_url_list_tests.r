@@ -33,3 +33,14 @@ su_write_urls("https://www.huffpost.com",
 
 results <- su_read_csv("https://www.huffpost.com")
 results
+
+test1 <- head(results, n = 4)
+scraped_articles <- sa_scrape_articles(test1)
+View(scraped_articles)
+
+# store article data test
+su_store_article_data(
+  website_url = "https://www.huffpost.com",
+  article_data = scraped_articles,
+  overwrite = TRUE
+)

@@ -46,10 +46,11 @@ sa_scrape_article_data <- function(article_url) {
     Title = title,
     Author = author,
     Published_Date = published_date,
-    Article_Text = article_text,
+    text = article_text,
     stringsAsFactors = FALSE
   )
 
+  df <- df %>% janitor::clean_names()
   return(df)
 }
 
@@ -59,12 +60,12 @@ sa_scrape_article_data <- function(article_url) {
 #' This function maps the `sa_scrape_article_data` function over the "url" column
 #' of a given dataframe, limiting the number of requests and adding polite delays
 #' to prevent 404 errors or overloading the server. The results are returned as a
-#' combined data frame with the scraped data for all articles.
+#' combined data frame with the scraped data for all articles and the corresponding URLs.
 #'
 #' @param articles_df A data frame containing a column named "url" with article URLs to scrape.
 #' @param max_requests An integer. Maximum number of requests to process in one session (default: 15).
 #' @param delay An integer. Number of seconds to delay between each request (default: 5).
-#' @return A data frame containing the scraped data for all articles, with columns: title, author, published date, and article text.
+#' @return A data frame containing the scraped data for all articles, with columns: url, title, author, published_date, and article_text.
 #' @importFrom purrr map_dfr
 #' @importFrom utils head
 #' @export
@@ -85,16 +86,20 @@ sa_scrape_articles <- function(articles_df, max_requests = 15, delay = 5) {
       {
         message("Processing URL: ", url)
         Sys.sleep(delay)  # Be polite to the server
-        sa_scrape_article_data(url)
+        article_data <- sa_scrape_article_data(url)
+        # Add the URL to the scraped data
+        article_data$url <- url
+        article_data
       },
       error = function(e) {
         message("Error scraping article: ", url, " - ", e)
-        # Return an empty data frame for failed articles
+        # Return a row with NA values and the URL for failed articles
         data.frame(
-          Title = NA,
-          Author = NA,
-          Published_Date = NA,
-          Article_Text = NA,
+          url = url,
+          title = NA,
+          author = NA,
+          published_date = NA,
+          article_text = NA,
           stringsAsFactors = FALSE
         )
       }
