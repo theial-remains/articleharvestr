@@ -2,7 +2,7 @@
 % Please edit documentation in R/scrape_articles.r
 \name{sa_scrape_article_data}
 \alias{sa_scrape_article_data}
-\title{Scrape Article Data}
+\title{Scrape and Extract Full Article Data}
 \usage{
 sa_scrape_article_data(article_url)
 }
@@ -10,8 +10,8 @@ sa_scrape_article_data(article_url)
 \item{article_url}{A character string representing the URL of the article to scrape.}
 }
 \value{
-A data frame containing the scraped data: title, author, published date, and article text.
+A data frame containing the article URL, title, author, published date, and text.
 }
 \description{
-This function scrapes key data (title, author, published date, and article text) from a single article URL.
+This function scrapes an article and extracts its key components, then organizes them into a dataframe.
 }
