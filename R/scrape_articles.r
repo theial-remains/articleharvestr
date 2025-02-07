@@ -146,18 +146,19 @@ sa_extract_text <- function(article_html) {
 #' @return A data frame containing the article URL, title, author, published date, and text.
 #' @import dplyr
 #' @export
-sa_scrape_article_data <- function(article_url) {
-  article_html <- sa_scrape_full_article(article_url)
+sa_get_article_data <- function(article_url) {
+  article_html <- sa_get_html(article_url)
 
-  # TODO placeholder
+  if (is.null(article_html)) {
+    message("Failed to retrieve article: ", article_url)
+    return(NA)
+  }
 
-
-  # Create data frame with scraped information
   df <- data.frame(
     url = article_url,
-    title = sa_extract_title(article_html),
+    published_date = sa_extract_date(article_html),
     author = sa_extract_author(article_html),
-    published_date = sa_extract_published_date(article_html),
+    title = sa_extract_title(article_html),
     text = sa_extract_text(article_html),
     stringsAsFactors = FALSE
   )
