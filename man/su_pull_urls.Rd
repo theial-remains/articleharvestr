@@ -2,16 +2,20 @@
 % Please edit documentation in R/store_url_list.R
 \name{su_pull_urls}
 \alias{su_pull_urls}
-\title{title}
+\title{Pull URLs from CSV for a Specific News Website}
 \usage{
-su_pull_urls(param1)
+su_pull_urls(start_date, end_date, website_url)
 }
 \arguments{
-\item{param1}{parameter desc}
+\item{start_date}{parameter desc}
+
+\item{end_date}{param desc}
+
+\item{website_url}{param desc}
 }
 \value{
-what it returns
+A dataframe containing the title, published date, author, and text for a selected date range for a specific news website.
 }
 \description{
-description
+desc, too lazy do later
 }

@@ -3,6 +3,19 @@
 # create and check article key
 
 
+#' Pull URLs from CSV for a Specific News Website
+#'
+#' desc, too lazy do later
+#' @param start_date parameter desc
+#' @param end_date param desc
+#' @param website_url param desc
+#' @return A dataframe containing the title, published date, author, and text for a selected date range for a specific news website.
+#' @export
+su_pull_urls <- function(start_date, end_date, website_url) {
+
+}
+
+
 #' Store Article Data in CSV
 #'
 #' This function reads the corresponding CSV for the articles using `su_check_csv` to find the appropriate file
@@ -241,16 +254,5 @@ su_write_urls <- function(website_url, urls, folder_path = "inst/extdata/scraped
 #' @return what it returns
 #' @export
 su_check_urls <- function(param1) {
-  # code goes here
-}
-
-
-#' title
-#'
-#' description
-#' @param param1 parameter desc
-#' @return what it returns
-#' @export
-su_pull_urls <- function(param1) {
   # code goes here
 }
