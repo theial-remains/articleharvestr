@@ -15,11 +15,12 @@ ex_function <- function(params1) {
   # code goes here
 }
 
+# done:
 # scrape_articles done
 # get_urls done
 
-# TODO fix verbose
 
+# TODO fix verbose
 # step 1: get urls for a year
 sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
@@ -29,9 +30,27 @@ article_urls <- gu_fetch_sitemap_articles(sitemap_url,
 
 # step 2 take a random sample of 100 articles per month
 article_urls <- sa_sample_article_urls(sitemap_url,
-                                        year = 2023,
-                                        month_start = 1,
-                                        month_end = 2)
+                                       year = 2023,
+                                       month_start = 1,
+                                       month_end = 2)
 head(article_urls)
 
 # step 3: scrape articles and return a dataframe
+results <- sa_scrape_articles(article_urls)
+View(head(results))
+
+# step 4: clean dataframe and store rows in author csvs in news site folder
+# TODO:
+# function to clean author names and publsihed date in store_url_list
+# in C:\Users\Preet\OneDrive - Ursinus College\paid_labor\articleharvestr\inst\extdata/article_data
+# in store_url_list
+# make new folder for news site if does not already exist
+# make new csv for author in news site if does not already exist
+# for a df of results, append all rows to the correct csv based on author
+
+# step 5: sentiment analysis
+# in C:\Users\Preet\OneDrive - Ursinus College\paid_labor\articleharvestr\inst\extdata/sentiment_analysis
+
+# step 6: sentiment analysis data storage
+
+# step 7: integrate data and maybe code from the rest of dsi

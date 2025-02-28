@@ -29,15 +29,21 @@ su_pull_urls <- function(start_date, end_date, website_url) {
 #' @return A message indicating success, and the updated CSV is saved to disk.
 #' @importFrom utils read.csv write.csv
 #' @export
-su_store_article_data <- function(website_url, article_data, folder_path = "inst/extdata/scraped_data/", overwrite = FALSE) {
+su_store_article_data <- function(website_url,
+                                  article_data,
+                                  folder_path = "inst/extdata/scraped_data/",
+                                  overwrite = FALSE) {
   # Check if the input data frame has the required columns
   required_columns <- c("url", "title", "author", "published_date", "text")
   if (!all(required_columns %in% names(article_data))) {
-    stop("Input data frame must contain the following columns: ", paste(required_columns, collapse = ", "))
+    stop("Input data frame must contain the following columns: ",
+    paste(required_columns, collapse = ", "))
   }
 
   # Find the corresponding CSV file
-  file_info <- su_check_csv(website_url, folder_path = folder_path, return_path = TRUE)
+  file_info <- su_check_csv(website_url,
+                            folder_path = folder_path,
+                            return_path = TRUE)
   file_path <- file_info$path
 
   if (!file_info$exists) {

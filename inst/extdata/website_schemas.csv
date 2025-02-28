@@ -1,3 +1,0 @@
-website_structure,starting_sitemap,author_element,title_element,date_element,text_element,key,id,structure,layer1_type,layer1_class,layer2_type,layer2_class,layer3_type,layer3_class,layer4_type,layer4_class
-https://www.nytimes.com,NA,.author,.title,.date,.content,nytimes,nytimes_1728439811_4239,html,ol,css-7ybqih,ol,css-5emfqe,ol,css-7ybqih,ul,css-d7lzgg
-https://www.huffpost.com,https://www.huffpost.com/sitemaps/sitemap-v1.xml,//meta[@name='author']/@content,//title,//meta[@property='article:published_time']/@content,"//div[contains(@class, 'content-list-component')]",huffpost,huffpost_1731918541_4223,xml,url_date,NA,tag_date,lastmod,NA,NA,NA,NA
