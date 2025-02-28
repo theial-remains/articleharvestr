@@ -3,9 +3,6 @@ setwd("C:/Users/Preet/OneDrive - Ursinus College/paid_labor/articleharvestr")
 
 devtools::load_all()
 
-library(xml2)
-library(httr)
-
 #' title
 #'
 #' description
@@ -20,4 +17,13 @@ ex_function <- function(params1) {
 
 # step 2 take a random sample of 100 articles per month
 
-# step 3: scrape articles and
+# step 3: scrape articles and return a dataframe
+
+
+# Fetch all articles from 2023 for a given news website
+article_urls <- fetch_article_urls_by_year("https://www.huffpost.com/sitemaps/sitemap-v1.xml", 2023)
+
+# View the first few URLs
+head(article_urls)
+
+

@@ -51,4 +51,3 @@ list <- c("https://www.huffpost.com/entry/emperor-penguin-gus-returned-sea-austr
 
 results4 <- sa_scrape_articles(list)
 View(results4)
-View(results4$text)
