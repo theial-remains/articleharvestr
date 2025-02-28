@@ -5,6 +5,7 @@ devtools::load_all()
 devtools::document()
 
 library(xml2)
+library(furrr)
 library(rvest)
 library(httr)
 library(purrr)

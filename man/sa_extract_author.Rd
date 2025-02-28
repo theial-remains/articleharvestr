@@ -7,11 +7,11 @@
 sa_extract_author(article_html)
 }
 \arguments{
-\item{article_html}{An rvest HTML document object containing the full article content.}
+\item{article_html}{An rvest HTML document object.}
 }
 \value{
-A character string representing the author's name.
+A character string representing the author's name or NA if not found.
 }
 \description{
-This function extracts the author's name from a scraped article HTML document.
+Extract Article Author
 }

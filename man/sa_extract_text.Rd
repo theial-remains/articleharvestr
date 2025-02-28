@@ -7,11 +7,11 @@
 sa_extract_text(article_html)
 }
 \arguments{
-\item{article_html}{An rvest HTML document object containing the full article content.}
+\item{article_html}{An rvest HTML document object.}
 }
 \value{
-A character string representing the cleaned article text.
+A character string representing the cleaned article text or NA if not found.
 }
 \description{
-This function extracts the article text, filtering out unwanted content.
+Extract Article Text
 }

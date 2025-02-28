@@ -4,14 +4,14 @@
 \alias{sa_scrape_articles}
 \title{Scrape Multiple Articles}
 \usage{
-sa_scrape_articles(article_urls)
+sa_scrape_articles(article_urls, parallel = TRUE)
 }
 \arguments{
 \item{article_urls}{A character vector containing multiple article URLs.}
 }
 \value{
-A data frame where each row represents an article with its extracted data.
+A data frame where each row represents an article.
 }
 \description{
-This function scrapes multiple articles from a list of URLs and returns a structured data frame.
+Scrape Multiple Articles
 }

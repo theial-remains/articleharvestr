@@ -7,11 +7,11 @@
 sa_get_article_data(article_url)
 }
 \arguments{
-\item{article_url}{A character string representing the URL of the article to scrape.}
+\item{article_url}{A character string representing the URL of the article.}
 }
 \value{
-A data frame containing the article URL, title, author, published date, and text.
+A data frame containing the article data.
 }
 \description{
-This function scrapes an article and extracts its key components, then organizes them into a dataframe.
+Scrape and Extract Full Article Data
 }

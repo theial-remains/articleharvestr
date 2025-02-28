@@ -7,11 +7,11 @@
 sa_extract_date(article_html)
 }
 \arguments{
-\item{article_html}{An rvest HTML document object containing the full article content.}
+\item{article_html}{An rvest HTML document object.}
 }
 \value{
-A character string representing the published date.
+A character string representing the published date or NA if not found.
 }
 \description{
-This function extracts the published date from a scraped article HTML document.
+Extract Published Date
 }
