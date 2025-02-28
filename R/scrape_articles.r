@@ -167,3 +167,50 @@ sa_scrape_articles <- function(article_urls) {
 
   return(articles_df)
 }
+
+#' Scrape and Sample Articles by Month
+#'
+#' This function extracts article URLs for a given year and month range,
+#' randomly samples 100 articles per month, and returns a final list.
+#'
+#' @param sitemap_url The base sitemap URL.
+#' @param year The year to scrape articles from.
+#' @param month_start The starting month (e.g., 1 for January).
+#' @param month_end The ending month (e.g., 12 for December).
+#' @return A character vector of sampled article URLs.
+#' @import dplyr
+#' @import stringr
+#' @import purrr
+#' @export
+sa_sample_article_urls <- function(sitemap_url,
+                                   year,
+                                   month_start,
+                                   month_end) {
+  final_article_urls <- character(0)
+
+  for (month in month_start:month_end) {
+    month_str <- sprintf("%02d", month)
+    last_day <- as.character(as.Date(paste0(year, "-", month_str, "-01")) + 31)
+    last_day <- format(as.Date(last_day) - as.numeric(format(as.Date(last_day), "%d")), "%d")
+    start_date <- paste0(year, "-", month_str, "-01")
+    end_date <- paste0(year, "-", month_str, "-", last_day)  # because months have different amounts of days
+
+    message("Fetching articles for ", start_date, " to ", end_date, "...")
+    article_urls <- gu_fetch_sitemap_articles(sitemap_url, levels = 1, start_date, end_date)
+
+    if (length(article_urls) == 0) {
+      message("No articles found for ", start_date, " to ", end_date)
+      next  # skip to the next month
+    }
+
+    sampled_articles <- sample(article_urls, min(100, length(article_urls)))
+    final_article_urls <- c(final_article_urls, sampled_articles)
+    message("Sampled ", length(sampled_articles),
+            " articles for ", month_str, " ", year)
+  }
+
+  message("Completed scraping. Returning ", length(final_article_urls),
+          " sampled articles.")
+
+  return(final_article_urls)
+}
