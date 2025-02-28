@@ -7,117 +7,102 @@
 #' @param article_url A character string representing the URL of the article to scrape.
 #' @return An rvest HTML document object containing the full article content.
 #' @import rvest
+#' @import httr
 #' @export
 sa_get_html <- function(article_url) {
   tryCatch({
-    webpage <- read_html(article_url)
+    response <- GET(article_url)
+
+    # check if the URL is accessible
+    if (http_error(response)) {
+      message("Error: Unable to access URL - ", article_url)
+      return(NULL)
+    }
+
+    webpage <- read_html(response)
     return(webpage)
   }, error = function(e) {
-    message("Error retrieving article: ", article_url, " - ", e)
+    message("Error retrieving article: ", article_url, " - ", e$message)
     return(NULL)
   })
 }
 
 #' Extract Article Title
 #'
-#' This function extracts the title from a scraped article HTML document.
-#'
-#' @param article_html An rvest HTML document object containing the full article content.
-#' @return A character string representing the article title.
+#' @param article_html An rvest HTML document object.
+#' @return A character string representing the article title or NA if not found.
 #' @import rvest
 #' @export
 sa_extract_title <- function(article_html) {
   if (is.null(article_html)) return(NA)
 
-  # extract from any element that contains "headline" in its class, id, tag, or attributes
   title_text <- article_html %>%
     html_node("title") %>%
     html_text(trim = TRUE)
 
-    if (is.na(title_text) || title_text == "") {
+  if (is.na(title_text) || title_text == "") {
     headline_text <- article_html %>%
-      html_nodes(xpath = "//*[contains(@class, 'headline') or
-                           contains(@id, 'headline') or
-                           contains(name(), 'headline') or
-                           contains(@*, 'headline')]") %>%
+      html_nodes(xpath = "//*[contains(@class, 'headline') or contains(@id, 'headline')]") %>%
       html_text(trim = TRUE) %>%
       na.omit()
 
-    # Return first valid headline if available
-    if (length(headline_text) > 0) {
-      return(headline_text[1])
-    }
+    if (length(headline_text) > 0) return(headline_text[1])
   }
 
-  return(title_text)
+  return(ifelse(title_text == "", NA, title_text))
 }
 
 #' Extract Article Author
 #'
-#' This function extracts the author's name from a scraped article HTML document.
-#'
-#' @param article_html An rvest HTML document object containing the full article content.
-#' @return A character string representing the author's name.
+#' @param article_html An rvest HTML document object.
+#' @return A character string representing the author's name or NA if not found.
 #' @import rvest
-#' @importFrom stringr str_replace
 #' @export
 sa_extract_author <- function(article_html) {
   if (is.null(article_html)) return(NA)
 
-  # from <meta> tags
   author_text <- article_html %>%
     html_node("meta[name='author'], meta[property='article:author'], meta[property='og:author']") %>%
     html_attr("content")
 
-  # if meta NA, look for byline in class, ID, or attr.
   if (is.na(author_text) || author_text == "") {
     byline_text <- article_html %>%
-      html_nodes(xpath = "//*[contains(@class, 'byline') or
-                           contains(@id, 'byline') or
-                           contains(name(), 'byline')]") %>%
+      html_nodes(xpath = "//*[contains(@class, 'byline') or contains(@id, 'byline')]") %>%
       html_text(trim = TRUE) %>%
       na.omit()
 
-    if (length(byline_text) > 0) {
-      return(byline_text[1]) # first instance returned
-    }
+    if (length(byline_text) > 0) return(byline_text[1])
   }
 
-  return(author_text)
+  return(ifelse(author_text == "", NA, author_text))
 }
-
 
 #' Extract Published Date
 #'
-#' This function extracts the published date from a scraped article HTML document.
-#'
-#' @param article_html An rvest HTML document object containing the full article content.
-#' @return A character string representing the published date.
+#' @param article_html An rvest HTML document object.
+#' @return A character string representing the published date or NA if not found.
 #' @import rvest
 #' @export
 sa_extract_date <- function(article_html) {
   if (is.null(article_html)) return(NA)
 
   published_date <- article_html %>%
-      html_node("time") %>%
-      html_text(trim = TRUE)
+    html_node("time") %>%
+    html_text(trim = TRUE)
 
-  # try meta tag
   if (is.na(published_date) || published_date == "") {
     published_date <- article_html %>%
-      html_node("meta[property='article:published_time']") %>%
+      html_node("meta[property='article:published_time'], meta[property='datePublished'], meta[name='date']") %>%
       html_attr("content")
   }
 
-  return(published_date)
+  return(ifelse(published_date == "", NA, published_date))
 }
 
 #' Extract Article Text
 #'
-#' This function extracts the article text, filtering out unwanted content.
-#'
-#' @param article_html An rvest HTML document object containing the full article content.
-#' @return A character string representing the cleaned article text.
+#' @param article_html An rvest HTML document object.
+#' @return A character string representing the cleaned article text or NA if not found.
 #' @import rvest
 #' @export
 sa_extract_text <- function(article_html) {
@@ -127,7 +112,6 @@ sa_extract_text <- function(article_html) {
     html_nodes('p') %>%
     html_text(trim = TRUE)
 
-  # Remove known irrelevant paragraphs (e.g., disclaimers, footers, support messages)
   excluded_paragraphs <- article_html %>%
     html_nodes('#support-huffpost-entry p, .footer p, .advertisement p') %>%
     html_text(trim = TRUE)
@@ -135,15 +119,13 @@ sa_extract_text <- function(article_html) {
   article_text <- setdiff(all_paragraphs, excluded_paragraphs) %>%
     paste(collapse = " ")
 
-  return(article_text)
+  return(ifelse(article_text == "", NA, article_text))
 }
 
 #' Scrape and Extract Full Article Data
 #'
-#' This function scrapes an article and extracts its key components, then organizes them into a dataframe.
-#'
-#' @param article_url A character string representing the URL of the article to scrape.
-#' @return A data frame containing the article URL, title, author, published date, and text.
+#' @param article_url A character string representing the URL of the article.
+#' @return A data frame containing the article data.
 #' @import dplyr
 #' @export
 sa_get_article_data <- function(article_url) {
@@ -151,7 +133,7 @@ sa_get_article_data <- function(article_url) {
 
   if (is.null(article_html)) {
     message("Failed to retrieve article: ", article_url)
-    return(NA)
+    return(data.frame(url = article_url, published_date = NA, author = NA, title = NA, text = NA, stringsAsFactors = FALSE))
   }
 
   df <- data.frame(
@@ -166,57 +148,33 @@ sa_get_article_data <- function(article_url) {
   return(df)
 }
 
-
-#' Scrape Multiple Articles from DataFrame with 404 Prevention
+#' Scrape Multiple Articles
 #'
-#' This function maps the `sa_scrape_article_data` function over the "url" column
-#' of a given dataframe, limiting the number of requests and adding polite delays
-#' to prevent 404 errors or overloading the server. The results are returned as a
-#' combined data frame with the scraped data for all articles and the corresponding URLs.
-#'
-#' @param articles_df A data frame containing a column named "url" with article URLs to scrape.
-#' @param max_requests An integer. Maximum number of requests to process in one session (default: 15).
-#' @param delay An integer. Number of seconds to delay between each request (default: 5).
-#' @return A data frame containing the scraped data for all articles, with columns: url, title, author, published_date, and article_text.
-#' @importFrom purrr map_dfr
-#' @importFrom utils head
+#' @param article_urls A character vector containing multiple article URLs.
+#' @return A data frame where each row represents an article.
+#' @import dplyr
+#' @import purrr
+#' @import future
+#' @import furrr
 #' @export
-sa_scrape_articles <- function(articles_df, max_requests = 15, delay = 5) {
-  if (!"url" %in% names(articles_df)) {
-    stop("Input dataframe must contain a 'url' column.")
+sa_scrape_articles <- function(article_urls, parallel = TRUE) {
+  if (length(article_urls) == 0) {
+    stop("No URLs provided.")
   }
 
-  # Extract URLs from the "url" column
-  article_urls <- articles_df$url
+  if (parallel) {
+    plan(multisession)
+    articles_df <- future_map_dfr(article_urls, function(url) {
+      message("Scraping: ", url)
+      sa_get_article_data(url)
+    })
+    plan(sequential)  # reset parallel processing after use
+  } else {
+    articles_df <- map_dfr(article_urls, function(url) {
+      message("Scraping: ", url)
+      sa_get_article_data(url)
+    })
+  }
 
-  # Limit the number of requests to `max_requests`
-  article_urls <- head(article_urls, max_requests)
-
-  # Scrape each article with polite delay
-  scraped_data <- purrr::map_dfr(article_urls, function(url) {
-    tryCatch(
-      {
-        message("Processing URL: ", url)
-        Sys.sleep(delay)  # Be polite to the server
-        article_data <- sa_scrape_article_data(url)
-        # Add the URL to the scraped data
-        article_data$url <- url
-        article_data
-      },
-      error = function(e) {
-        message("Error scraping article: ", url, " - ", e)
-        # Return a row with NA values and the URL for failed articles
-        data.frame(
-          url = url,
-          title = NA,
-          author = NA,
-          published_date = NA,
-          article_text = NA,
-          stringsAsFactors = FALSE
-        )
-      }
-    )
-  })
-
-  return(scraped_data)
+  return(articles_df)
 }

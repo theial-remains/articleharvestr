@@ -2,23 +2,16 @@
 % Please edit documentation in R/scrape_articles.r
 \name{sa_scrape_articles}
 \alias{sa_scrape_articles}
-\title{Scrape Multiple Articles from DataFrame with 404 Prevention}
+\title{Scrape Multiple Articles}
 \usage{
-sa_scrape_articles(articles_df, max_requests = 15, delay = 5)
+sa_scrape_articles(article_urls)
 }
 \arguments{
-\item{articles_df}{A data frame containing a column named "url" with article URLs to scrape.}
-
-\item{max_requests}{An integer. Maximum number of requests to process in one session (default: 15).}
-
-\item{delay}{An integer. Number of seconds to delay between each request (default: 5).}
+\item{article_urls}{A character vector containing multiple article URLs.}
 }
 \value{
-A data frame containing the scraped data for all articles, with columns: url, title, author, published_date, and article_text.
+A data frame where each row represents an article with its extracted data.
 }
 \description{
-This function maps the \code{sa_scrape_article_data} function over the "url" column
-of a given dataframe, limiting the number of requests and adding polite delays
-to prevent 404 errors or overloading the server. The results are returned as a
-combined data frame with the scraped data for all articles and the corresponding URLs.
+This function scrapes multiple articles from a list of URLs and returns a structured data frame.
 }

@@ -19,16 +19,16 @@ article_html2 <- sa_get_html("https://www.huffpost.com/entry/emperor-penguin-gus
 # NBC
 article_html3 <- sa_get_html("https://www.nbcnews.com/news/us-news/anxiety-mounts-us-government-workers-face-buyout-deadline-rcna190987")
 
-text <- sa_extract_text(article_html3)
+text <- sa_extract_text(article_html2)
 text
 
-title <- sa_extract_title(article_html3)
+title <- sa_extract_title(article_html2)
 title
 
-date <- sa_extract_date(article_html3)
+date <- sa_extract_date(article_html2)
 date
 
-author <- sa_extract_author(article_html1)
+author <- sa_extract_author(article_html2)
 author
 
 
@@ -43,3 +43,11 @@ View(results2$text)
 results3 <- sa_get_article_data("https://www.nbcnews.com/news/us-news/anxiety-mounts-us-government-workers-face-buyout-deadline-rcna190987")
 View(results3)
 View(results3$text)
+
+
+list <- c("https://www.huffpost.com/entry/emperor-penguin-gus-returned-sea-australia_n_6740d07be4b078cce4af287e",
+           "https://www.huffpost.com/entry/federal-worker-firings-illegal_n_67c0f9cbe4b01834869f0d79")
+
+results4 <- sa_scrape_articles(list)
+View(results4)
+View(results4$text)
