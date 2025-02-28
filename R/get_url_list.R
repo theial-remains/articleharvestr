@@ -101,14 +101,16 @@ gu_filter_links_by_date <- function(links, level, start_date, end_date) {
 #' Extracts article URLs from a sitemap, filtering at each level and processing all valid sitemaps.
 #'
 #' @param sitemap_url The URL of the sitemap.
-#' @param levels The number of levels in the sitemap (0 = articles, 1 = days, 2 = months, 3 = years).
+#' @param levels The number of levels in the sitemap (1 = days, 2 = months, 3 = years).
 #' @param start_date The start date for filtering (YYYY-MM-DD).
 #' @param end_date The end date for filtering (YYYY-MM-DD).
 #' @return A character vector of article URLs.
 #' @import stringr
 #' @export
 gu_fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date) {
-  # Extract links from sitemap
+  message("Fetching sitemap: ", sitemap_url, " (Levels: ", levels, ")")
+
+  # Extract links from the current sitemap
   extracted_data <- gu_extract_sitemap_links(sitemap_url)
   all_links <- extracted_data$links
 
@@ -125,23 +127,29 @@ gu_fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date)
     return(character(0))
   }
 
-  # **Separate sitemap links (XML) from article links (non-XML)**
-  sitemap_links <- filtered_links[str_detect(filtered_links, "\\.xml$")]
-  article_links <- setdiff(filtered_links, sitemap_links)
+  # **Initialize output container**
+  final_links <- character(0)
 
-  # **Base Case: If levels == 0 or no sitemap links remain, return articles**
-  if (levels == 0 || length(sitemap_links) == 0) {
-    message("Reached article level. Returning ", length(article_links), " articles.")
-    return(article_links)
+  # **At level 1, extract and return article links instead of recursing further**
+  if (levels == 1) {
+    message("Extracting article links from final sitemap level...")
+
+    for (link in filtered_links) {
+      extracted_data <- gu_extract_sitemap_links(link)
+      nested_links <- extracted_data$links
+      final_links <- c(final_links, nested_links)
+    }
+
+    message("Returning ", length(final_links), " articles from level 1.")
+    return(final_links)
   }
 
-  # **Recursive Case: Extract and process all valid sitemap links**
-  final_links <- character(0)
-  for (link in sitemap_links) {
-    extracted_data <- gu_extract_sitemap_links(link)  # Extract nested links
+  # **Otherwise, continue processing nested sitemaps for deeper levels**
+  for (link in filtered_links) {
+    extracted_data <- gu_extract_sitemap_links(link)
     nested_links <- extracted_data$links
 
-    if (length(nested_links) > 0) {
+    if (levels > 1 && length(nested_links) > 0) {
       filtered_nested_links <- gu_filter_links_by_date(nested_links, levels - 1, start_date, end_date)
 
       for (nested_link in filtered_nested_links) {

@@ -9,7 +9,7 @@ gu_fetch_sitemap_articles(sitemap_url, levels, start_date, end_date)
 \arguments{
 \item{sitemap_url}{The URL of the sitemap.}
 
-\item{levels}{The number of levels in the sitemap (0 = articles, 1 = days, 2 = months, 3 = years).}
+\item{levels}{The number of levels in the sitemap (1 = days, 2 = months, 3 = years).}
 
 \item{start_date}{The start date for filtering (YYYY-MM-DD).}
 
