@@ -7,6 +7,7 @@ devtools::document()
 library(xml2)
 library(httr)
 library(purrr)
+library(stringr)
 
 sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 extracted_data <- extract_sitemap_links(sitemap_url)
@@ -21,3 +22,4 @@ article_urls <- fetch_sitemap_articles(sitemap_url,
 
 # View the first few
 head(article_urls)
+

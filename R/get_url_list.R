@@ -56,15 +56,49 @@ extract_sitemap_links <- function(sitemap_url) {
   return(list(links = character(0), format = NA))
 }
 
-#' Fetch Article URLs by Sitemap Levels
+#' Filter Links by Date
 #'
-#' Processes sitemaps based on known levels (0 = direct to articles, 1 = daily, 2 = monthly, 3 = yearly).
+#' Filters sitemap links based on the level and date range.
+#'
+#' @param links A character vector of sitemap links.
+#' @param level The depth of the sitemap (0 = articles, 1 = days, 2 = months, 3 = years).
+#' @param start_date The start date for filtering (YYYY-MM-DD).
+#' @param end_date The end date for filtering (YYYY-MM-DD).
+#' @return A character vector of filtered links.
+#' @import stringr
+#' @export
+filter_links_by_date <- function(links, level, start_date, end_date) {
+  start_date <- as.Date(start_date)
+  end_date <- as.Date(end_date)
+
+  # Determine the appropriate date pattern for filtering
+  date_pattern <- switch(level,
+                         "3" = "\\d{4}",              # Yearly
+                         "2" = "\\d{4}-\\d{2}",       # Monthly
+                         "1" = "\\d{4}-\\d{2}-\\d{2}",# Daily
+                         NULL)  # Articles don't need filtering
+
+  if (!is.null(date_pattern)) {
+    # Extract dates from links
+    link_dates <- as.Date(str_extract(links, date_pattern), format = "%Y-%m-%d")
+
+    # Filter links by date range
+    links <- links[!is.na(link_dates) & link_dates >= start_date & link_dates <= end_date]
+  }
+
+  return(links)
+}
+
+#' Fetch Article URLs from Sitemap
+#'
+#' Recursively extracts article URLs from a sitemap, filtering results at each level.
 #'
 #' @param sitemap_url The URL of the sitemap.
-#' @param levels The number of levels in the sitemap structure.
+#' @param levels The number of levels in the sitemap (0 = articles, 1 = days, 2 = months, 3 = years).
 #' @param start_date The start date for filtering (YYYY-MM-DD).
 #' @param end_date The end date for filtering (YYYY-MM-DD).
 #' @return A character vector of article URLs.
+#' @import stringr
 #' @export
 fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date) {
   message("Fetching sitemap: ", sitemap_url, " (Levels: ", levels, ")")
@@ -78,19 +112,26 @@ fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date) {
     return(character(0))
   }
 
-  # If the sitemap is already at the article level, return the links
+  # Filter links by the appropriate date format
+  filtered_links <- filter_links_by_date(all_links, levels, start_date, end_date)
+
+  if (length(filtered_links) == 0) {
+    message("No links remain after date filtering at level ", levels)
+    return(character(0))
+  }
+
+  # If we're at the article level, return links
   if (levels == 0) {
-    message("Article-level sitemap detected. Returning links.")
-    return(all_links)
+    message("Reached article level. Returning ", length(filtered_links), " articles.")
+    return(filtered_links)
   }
 
-  # Recursive processing based on sitemap depth
-  filtered_links <- character(0)
-
-  for (link in all_links) {
+  # Recursively process the next level
+  final_links <- character(0)
+  for (link in filtered_links) {
     new_links <- fetch_sitemap_articles(link, levels - 1, start_date, end_date)
-    filtered_links <- c(filtered_links, new_links)
+    final_links <- c(final_links, new_links)
   }
 
-  return(filtered_links)
+  return(final_links)
 }

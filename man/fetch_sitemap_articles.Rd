@@ -2,14 +2,14 @@
 % Please edit documentation in R/get_url_list.R
 \name{fetch_sitemap_articles}
 \alias{fetch_sitemap_articles}
-\title{Fetch Article URLs by Sitemap Levels}
+\title{Fetch Article URLs from Sitemap}
 \usage{
 fetch_sitemap_articles(sitemap_url, levels, start_date, end_date)
 }
 \arguments{
 \item{sitemap_url}{The URL of the sitemap.}
 
-\item{levels}{The number of levels in the sitemap structure.}
+\item{levels}{The number of levels in the sitemap (0 = articles, 1 = days, 2 = months, 3 = years).}
 
 \item{start_date}{The start date for filtering (YYYY-MM-DD).}
 
@@ -19,5 +19,5 @@ fetch_sitemap_articles(sitemap_url, levels, start_date, end_date)
 A character vector of article URLs.
 }
 \description{
-Processes sitemaps based on known levels (0 = direct to articles, 1 = daily, 2 = monthly, 3 = yearly).
+Recursively extracts article URLs from a sitemap, filtering results at each level.
 }
