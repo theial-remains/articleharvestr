@@ -26,6 +26,7 @@ all_links <- extracted_data$links
 head(all_links)
 
 
+sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,
                                           start_date = "2023-01-01",

@@ -11,9 +11,6 @@
 #' @import rvest
 #' @export
 gu_extract_sitemap_links <- function(sitemap_url) {
-  message("Fetching sitemap: ", sitemap_url)
-
-  # Fetch the sitemap content
   response <- tryCatch(GET(sitemap_url), error = function(e) {
     message("Error fetching URL: ", e)
     return(NULL)
