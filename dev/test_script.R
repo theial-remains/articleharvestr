@@ -5,6 +5,8 @@ setwd("C:/Users/Preet/OneDrive - Ursinus College/paid_labor/articleharvestr")
 devtools::load_all()
 devtools::document()
 
+library(tictoc)
+
 #' title
 #'
 #' description
@@ -25,19 +27,27 @@ ex_function <- function(params1) {
 sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,
-                                          start_date = "2023-01-01",
-                                          end_date = "2023-01-31")
+                                          start_date = "2024-12-01",
+                                          end_date = "2024-12-07")
 
 # step 2 take a random sample of 100 articles per month
 article_urls <- sa_sample_article_urls(sitemap_url,
-                                       year = 2023,
+                                       year = 2024,
                                        month_start = 1,
                                        month_end = 2)
 head(article_urls)
+# TODO make a function that matches these urls to already-downloaded articles
+# and gets those instead of rescraping them
 
 # step 3: scrape articles and return a dataframe
+tic()
 results <- sa_scrape_articles(article_urls)
-View(head(results))
+toc()
+
+results <- results %>%
+  mutate(date2 = lubridate::as_date(published_date)) %>%
+  tibble()
+View(results$date2)
 
 # step 4: clean dataframe and store rows in author csvs in news site folder
 # TODO:

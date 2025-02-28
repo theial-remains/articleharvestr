@@ -21,15 +21,12 @@ gu_extract_sitemap_links <- function(sitemap_url) {
     return(list(links = character(0), format = NA))
   }
 
-  # Get content as text
   raw_content <- content(response, as = "text")
   content_type <- headers(response)$`content-type`
 
-  # Try parsing as XML first
   content_xml <- tryCatch(read_xml(raw_content), error = function(e) NULL)
 
   if (!is.null(content_xml)) {
-    # Handle namespaces in XML and extract <loc> elements
     no_ns <- xml_ns_strip(content_xml)
     links <- xml_find_all(no_ns, ".//loc") %>% xml_text()
 
@@ -38,7 +35,6 @@ gu_extract_sitemap_links <- function(sitemap_url) {
     }
   }
 
-  # If XML fails, try parsing as HTML
   content_html <- tryCatch(read_html(raw_content), error = function(e) NULL)
 
   if (!is.null(content_html)) {
@@ -68,7 +64,6 @@ gu_filter_links_by_date <- function(links, level, start_date, end_date) {
   start_date <- as.Date(start_date)
   end_date <- as.Date(end_date)
 
-  # Determine the appropriate regex pattern for extracting the date
   date_pattern <- switch(as.character(level),
                          "3" = "\\d{4}",              # Yearly
                          "2" = "\\d{4}-\\d{2}",       # Monthly
@@ -76,20 +71,15 @@ gu_filter_links_by_date <- function(links, level, start_date, end_date) {
                          NULL)  # Articles don't need filtering
 
   if (!is.null(date_pattern)) {
-    # Extract the first date that matches the pattern from each link
     extracted_dates <- str_extract(links, date_pattern)
-
-    # Convert extracted dates to Date format
     parsed_dates <- suppressWarnings(as.Date(extracted_dates, format = "%Y-%m-%d"))
 
-    # Handle cases where monthly or yearly links are extracted
     if (level == 2) {
       parsed_dates <- suppressWarnings(as.Date(paste0(extracted_dates, "-01"), format = "%Y-%m-%d"))
     } else if (level == 3) {
       parsed_dates <- suppressWarnings(as.Date(paste0(extracted_dates, "-01-01"), format = "%Y-%m-%d"))
     }
 
-    # Filter links by date range
     links <- links[!is.na(parsed_dates) & parsed_dates >= start_date & parsed_dates <= end_date]
   }
 
@@ -110,7 +100,6 @@ gu_filter_links_by_date <- function(links, level, start_date, end_date) {
 gu_fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date) {
   message("Fetching sitemap: ", sitemap_url, " (Levels: ", levels, ")")
 
-  # Extract links from the current sitemap
   extracted_data <- gu_extract_sitemap_links(sitemap_url)
   all_links <- extracted_data$links
 
@@ -119,7 +108,6 @@ gu_fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date)
     return(character(0))
   }
 
-  # **Filter links by date at the current level**
   filtered_links <- gu_filter_links_by_date(all_links, levels, start_date, end_date)
 
   if (length(filtered_links) == 0) {
@@ -127,10 +115,8 @@ gu_fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date)
     return(character(0))
   }
 
-  # **Initialize output container**
   final_links <- character(0)
 
-  # **At level 1, extract and return article links instead of recursing further**
   if (levels == 1) {
     message("Extracting article links from final sitemap level...")
 
@@ -144,7 +130,6 @@ gu_fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date)
     return(final_links)
   }
 
-  # **Otherwise, continue processing nested sitemaps for deeper levels**
   for (link in filtered_links) {
     extracted_data <- gu_extract_sitemap_links(link)
     nested_links <- extracted_data$links

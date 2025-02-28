@@ -33,14 +33,12 @@ su_store_article_data <- function(website_url,
                                   article_data,
                                   folder_path = "inst/extdata/scraped_data/",
                                   overwrite = FALSE) {
-  # Check if the input data frame has the required columns
   required_columns <- c("url", "title", "author", "published_date", "text")
   if (!all(required_columns %in% names(article_data))) {
     stop("Input data frame must contain the following columns: ",
     paste(required_columns, collapse = ", "))
   }
 
-  # Find the corresponding CSV file
   file_info <- su_check_csv(website_url,
                             folder_path = folder_path,
                             return_path = TRUE)
@@ -50,13 +48,10 @@ su_store_article_data <- function(website_url,
     stop("The corresponding CSV file does not exist. Create the file first using `su_create_csv`.")
   }
 
-  # Read the existing data from the CSV
   existing_data <- read.csv(file_path, stringsAsFactors = FALSE)
 
-  # Ensure both dataframes have the same columns in the same order
   all_columns <- union(names(existing_data), names(article_data))
 
-  # Add missing columns to both dataframes
   for (col in setdiff(all_columns, names(existing_data))) {
     existing_data[[col]] <- NA
   }
@@ -64,30 +59,23 @@ su_store_article_data <- function(website_url,
     article_data[[col]] <- NA
   }
 
-  # Reorder columns to ensure they match
   existing_data <- existing_data[, all_columns]
   article_data <- article_data[, all_columns]
 
-  # Merge the new data with the existing data
   for (i in seq_len(nrow(article_data))) {
     row <- article_data[i, ]
     url <- row$url
     existing_row_index <- which(existing_data$url == url)
 
     if (length(existing_row_index) > 0) {
-      # URL exists in the CSV
       if (overwrite) {
-        # Overwrite existing row
         existing_data[existing_row_index, ] <- row
       }
-      # If not overwriting, leave the existing row as is
     } else {
-      # URL does not exist in the CSV; append new row
       existing_data <- rbind(existing_data, row)
     }
   }
 
-  # Write the updated data back to the CSV
   write.csv(existing_data, file_path, row.names = FALSE)
 
   return(paste("Article data successfully stored in:", file_path))
@@ -111,10 +99,7 @@ su_read_csv <- function(website_url, folder_path = "inst/extdata/scraped_data/")
     stop("No CSV file found for the specified website.")
   }
 
-  # Read the CSV file
   data <- read.csv(file_info$path, stringsAsFactors = FALSE)
-
-  # Filter rows where specified columns are all NA
   filtered_data <- subset(data, is.na(published_date) & is.na(author) & is.na(title) & is.na(text))
 
   return(filtered_data)
@@ -142,20 +127,20 @@ su_check_csv <- function(website_url, id = NULL, folder_path = "inst/extdata/scr
   }
 
   website_key <- tolower(gsub("https://|http://|www\\.|\\..*", "", website_url))
-  folder_path <- sub("/$", "", folder_path)  # Remove trailing slash if present
+  folder_path <- sub("/$", "", folder_path)
 
   file_name <- paste0(website_key, ".csv")
   file_path <- file.path(folder_path, file_name)
 
   if (file.exists(file_path)) {
     if (return_path) {
-      return(list(exists = TRUE, path = file_path))  # Return a list when return_path is TRUE
+      return(list(exists = TRUE, path = file_path))
     } else {
-      return(TRUE)  # Return TRUE if return_path is FALSE
+      return(TRUE)
     }
   } else {
     if (return_path) {
-      return(list(exists = FALSE, path = file_path))  # Return path even if the file doesn't exist
+      return(list(exists = FALSE, path = file_path))
     } else {
       return(FALSE)
     }
