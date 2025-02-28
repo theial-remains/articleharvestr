@@ -99,9 +99,9 @@ gu_filter_links_by_date <- function(links, level, start_date, end_date) {
   return(links)
 }
 
-#' Fetch Article URLs from Sitemap with Date Filtering
+#' Recursively Fetch Article URLs from Sitemap with Date Filtering
 #'
-#' Recursively extracts article URLs from a sitemap, filtering results at each level.
+#' Extracts article URLs from a sitemap, filtering at each level and processing all valid sitemaps.
 #'
 #' @param sitemap_url The URL of the sitemap.
 #' @param levels The number of levels in the sitemap (0 = articles, 1 = days, 2 = months, 3 = years).
@@ -110,12 +110,7 @@ gu_filter_links_by_date <- function(links, level, start_date, end_date) {
 #' @return A character vector of article URLs.
 #' @import stringr
 #' @export
-gu_fetch_sitemap_articles <- function(sitemap_url,
-                                      levels,
-                                      start_date,
-                                      end_date) {
-  message("Fetching sitemap: ", sitemap_url, " (Levels: ", levels, ")")
-
+gu_fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date) {
   # Extract links from sitemap
   extracted_data <- gu_extract_sitemap_links(sitemap_url)
   all_links <- extracted_data$links
@@ -125,29 +120,38 @@ gu_fetch_sitemap_articles <- function(sitemap_url,
     return(character(0))
   }
 
-  filtered_links <- gu_filter_links_by_date(all_links,
-                                            levels,
-                                            start_date,
-                                            end_date)
+  # **Filter links by date at the current level**
+  filtered_links <- gu_filter_links_by_date(all_links, levels, start_date, end_date)
 
   if (length(filtered_links) == 0) {
     message("No links remain after date filtering at level ", levels)
     return(character(0))
   }
 
-  if (levels == 0) {
-    message("Reached article level. Returning ",
-            length(filtered_links), " articles.")
-    return(filtered_links)
+  # **Separate sitemap links (XML) from article links (non-XML)**
+  sitemap_links <- filtered_links[str_detect(filtered_links, "\\.xml$")]
+  article_links <- setdiff(filtered_links, sitemap_links)
+
+  # **Base Case: If levels == 0 or no sitemap links remain, return articles**
+  if (levels == 0 || length(sitemap_links) == 0) {
+    message("Reached article level. Returning ", length(article_links), " articles.")
+    return(article_links)
   }
 
+  # **Recursive Case: Extract and process all valid sitemap links**
   final_links <- character(0)
-  for (link in filtered_links) {
-    new_links <- gu_fetch_sitemap_articles(link,
-                                           levels - 1,
-                                           start_date,
-                                           end_date)
-    final_links <- c(final_links, new_links)
+  for (link in sitemap_links) {
+    extracted_data <- gu_extract_sitemap_links(link)  # Extract nested links
+    nested_links <- extracted_data$links
+
+    if (length(nested_links) > 0) {
+      filtered_nested_links <- gu_filter_links_by_date(nested_links, levels - 1, start_date, end_date)
+
+      for (nested_link in filtered_nested_links) {
+        new_links <- gu_fetch_sitemap_articles(nested_link, levels - 1, start_date, end_date)
+        final_links <- c(final_links, new_links)
+      }
+    }
   }
 
   return(final_links)

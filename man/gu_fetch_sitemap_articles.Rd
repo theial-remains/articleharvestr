@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_url_list.R
 \name{gu_fetch_sitemap_articles}
 \alias{gu_fetch_sitemap_articles}
-\title{Fetch Article URLs from Sitemap with Date Filtering}
+\title{Recursively Fetch Article URLs from Sitemap with Date Filtering}
 \usage{
 gu_fetch_sitemap_articles(sitemap_url, levels, start_date, end_date)
 }
@@ -19,5 +19,5 @@ gu_fetch_sitemap_articles(sitemap_url, levels, start_date, end_date)
 A character vector of article URLs.
 }
 \description{
-Recursively extracts article URLs from a sitemap, filtering results at each level.
+Extracts article URLs from a sitemap, filtering at each level and processing all valid sitemaps.
 }
