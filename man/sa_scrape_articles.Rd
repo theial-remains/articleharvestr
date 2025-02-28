@@ -4,7 +4,7 @@
 \alias{sa_scrape_articles}
 \title{Scrape Multiple Articles}
 \usage{
-sa_scrape_articles(article_urls, parallel = TRUE)
+sa_scrape_articles(article_urls)
 }
 \arguments{
 \item{article_urls}{A character vector containing multiple article URLs.}

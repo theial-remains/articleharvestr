@@ -154,27 +154,16 @@ sa_get_article_data <- function(article_url) {
 #' @return A data frame where each row represents an article.
 #' @import dplyr
 #' @import purrr
-#' @import future
-#' @import furrr
 #' @export
-sa_scrape_articles <- function(article_urls, parallel = TRUE) {
+sa_scrape_articles <- function(article_urls) {
   if (length(article_urls) == 0) {
     stop("No URLs provided.")
   }
 
-  if (parallel) {
-    plan(multisession)
-    articles_df <- future_map_dfr(article_urls, function(url) {
-      message("Scraping: ", url)
-      sa_get_article_data(url)
-    })
-    plan(sequential)  # reset parallel processing after use
-  } else {
-    articles_df <- map_dfr(article_urls, function(url) {
-      message("Scraping: ", url)
-      sa_get_article_data(url)
-    })
-  }
+  articles_df <- map_dfr(article_urls, function(url) {
+    message("Scraping: ", url)
+    sa_get_article_data(url)
+  })
 
   return(articles_df)
 }
