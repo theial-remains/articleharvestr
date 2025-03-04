@@ -2,7 +2,7 @@
 % Please edit documentation in R/scrape_articles.r
 \name{sa_scrape_articles}
 \alias{sa_scrape_articles}
-\title{Scrape Multiple Articles}
+\title{Scrape Multiple Articles Efficiently}
 \usage{
 sa_scrape_articles(article_urls)
 }
@@ -13,5 +13,5 @@ sa_scrape_articles(article_urls)
 A data frame where each row represents an article.
 }
 \description{
-Scrape Multiple Articles
+Scrape Multiple Articles Efficiently
 }

@@ -4,10 +4,12 @@
 \alias{sa_extract_author}
 \title{Extract Article Author}
 \usage{
-sa_extract_author(article_html)
+sa_extract_author(article_html, selector)
 }
 \arguments{
 \item{article_html}{An rvest HTML document object.}
+
+\item{selector}{The CSS/XPath selector for extracting the author.}
 }
 \value{
 A character string representing the author's name or NA if not found.

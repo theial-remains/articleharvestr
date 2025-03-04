@@ -4,10 +4,12 @@
 \alias{sa_extract_date}
 \title{Extract Published Date}
 \usage{
-sa_extract_date(article_html)
+sa_extract_date(article_html, selector)
 }
 \arguments{
 \item{article_html}{An rvest HTML document object.}
+
+\item{selector}{The CSS/XPath selector for extracting the date.}
 }
 \value{
 A character string representing the published date or NA if not found.

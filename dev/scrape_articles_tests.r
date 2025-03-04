@@ -20,17 +20,18 @@ article_html2 <- sa_get_html("https://www.huffpost.com/entry/emperor-penguin-gus
 # NBC
 article_html3 <- sa_get_html("https://www.nbcnews.com/news/us-news/anxiety-mounts-us-government-workers-face-buyout-deadline-rcna190987")
 
-text <- sa_extract_text(article_html2)
-text
 
-title <- sa_extract_title(article_html2)
-title
+# individual tests
+sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
+selectors <- sa_get_site_selectors(sitemap_url)
 
-date <- sa_extract_date(article_html2)
-date
+test_title <- sa_extract_title(article_html2, selectors$title)
+test_author <- sa_extract_author(article_html2, selectors$author)
+test_date <- sa_extract_date(article_html2, selectors$date)
+test_text <- sa_extract_text(article_html2, selectors$text)
 
-author <- sa_extract_author(article_html2)
-author
+test_article_data <- sa_get_article_data("https://www.huffpost.com/entry/emperor-penguin-gus-returned-sea-australia_n_6740d07be4b078cce4af287e")
+View(test_article_data)
 
 
 results1 <- sa_get_article_data("https://www.cnn.com/politics/live-news/trump-gaza-news-02-06-25/index.html")

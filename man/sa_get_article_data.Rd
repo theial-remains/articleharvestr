@@ -4,10 +4,12 @@
 \alias{sa_get_article_data}
 \title{Scrape and Extract Full Article Data}
 \usage{
-sa_get_article_data(article_url)
+sa_get_article_data(article_url, selectors = NULL)
 }
 \arguments{
 \item{article_url}{A character string representing the URL of the article.}
+
+\item{selectors}{A named list of CSS/XPath selectors (title, author, date, text), or NULL if not found.}
 }
 \value{
 A data frame containing the article data.

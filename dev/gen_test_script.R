@@ -1,5 +1,7 @@
 rm(list = ls())
 
+setwd("C:/Users/Preet/OneDrive - Ursinus College/paid_labor/articleharvestr")
+
 devtools::load_all()
 devtools::document()
 
@@ -30,28 +32,11 @@ article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           end_date = "2024-12-07")
 
 # step 2: scrape articles and return a dataframe
-selectors <- sa_get_selectors(sitemap_url)
-
-file_path <- system.file("extdata", "news_selectors.csv", package = "articleharvestr")
-
-
-
-
-
-
-
-
-
-
-
 tic()
 results <- sa_scrape_articles(article_urls)
 toc()
-
-results <- results %>%
-  mutate(date2 = lubridate::as_date(published_date)) %>%
-  tibble()
-View(results$date2)
+View(results)
+class(results)
 
 # step 3: clean dataframe and store rows in author csvs in news site folder
 # TODO:

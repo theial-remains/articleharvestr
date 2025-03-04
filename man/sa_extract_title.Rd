@@ -4,10 +4,12 @@
 \alias{sa_extract_title}
 \title{Extract Article Title}
 \usage{
-sa_extract_title(article_html)
+sa_extract_title(article_html, selector)
 }
 \arguments{
 \item{article_html}{An rvest HTML document object.}
+
+\item{selector}{The CSS/XPath selector for extracting the title.}
 }
 \value{
 A character string representing the article title or NA if not found.

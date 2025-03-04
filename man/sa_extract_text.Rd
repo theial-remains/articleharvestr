@@ -4,10 +4,12 @@
 \alias{sa_extract_text}
 \title{Extract Article Text}
 \usage{
-sa_extract_text(article_html)
+sa_extract_text(article_html, selector)
 }
 \arguments{
 \item{article_html}{An rvest HTML document object.}
+
+\item{selector}{The CSS/XPath selector for extracting the article text.}
 }
 \value{
 A character string representing the cleaned article text or NA if not found.
