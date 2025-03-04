@@ -3,29 +3,32 @@
 #' Removes specified words (case-insensitive) from author names and trims whitespace.
 #' Splits words if they are incorrectly combined (e.g., "VeraSenior" → "Vera Senior").
 #' Keeps only the first two words of the author's name.
+#' Converts all names to lowercase for consistency.
+#' Removes spaces before the first word.
 #'
 #' @param dataframe A dataframe containing an "author" column.
 #' @param words_to_remove A character vector of words/phrases to remove from author names (case-insensitive).
 #' @return The same dataframe with a cleaned "author" column.
 #' @export
-ss_clean_author <- function(dataframe, words_to_remove = c("By")) {
+ss_clean_author <- function(dataframe, words_to_remove = c("By", "Byline")) {
   if (!"author" %in% names(dataframe)) {
     stop("Error: Dataframe must contain an 'author' column.")
   }
 
   dataframe$author <- as.character(dataframe$author)
-
   pattern <- paste0("\\b(", paste(words_to_remove, collapse = "|"), ")\\b\\s*", collapse = "|")
 
   dataframe$author <- ifelse(
     is.na(dataframe$author) | dataframe$author == "",
     NA,
-    trimws(gsub(pattern, "", dataframe$author, ignore.case = TRUE, perl = TRUE))
+    gsub(pattern, "", dataframe$author, ignore.case = TRUE, perl = TRUE)
   )
 
-  dataframe$author <- gsub("([a-z])([A-Z])",
-                           "\\1 \\2",
-                           dataframe$author, perl = TRUE)
+  dataframe$author <- gsub("([a-z])([A-Z])", "\\1 \\2", dataframe$author, perl = TRUE) # split joined words
+  dataframe$author <- gsub("[^a-zA-Z\s]", " ", dataframe$author, perl = TRUE) # replace non-letter characters with space
+  dataframe$author <- gsub("\s+", " ", dataframe$author, perl = TRUE) # rm extra spaces
+  dataframe$author <- tolower(dataframe$author) # convert to lowercase
+  dataframe$author <- gsub("^\s+|\s+$", "", dataframe$author) # trim leading and trailing spaces
 
   dataframe$author <- sapply(dataframe$author, function(name) {
     if (!is.na(name) && name != "") {
@@ -35,6 +38,9 @@ ss_clean_author <- function(dataframe, words_to_remove = c("By")) {
       NA
     }
   }, USE.NAMES = FALSE)
+
+  dataframe$author <- trimws(dataframe$author)
+  dataframe$author <- gsub("[\u00A0\u2000-\u200B]+", " ", dataframe$author, perl = TRUE)
 
   return(dataframe)
 }
@@ -88,8 +94,8 @@ ss_clean_date <- function(dataframe) {
 #' @import dplyr
 #' @export
 ss_store_articles <- function(article_data,
-                                         news_site,
-                                         folder_path = "inst/extdata/article_data/") {
+                              news_site,
+                              folder_path = "inst/extdata/article_data/") {
   if (!dir.exists(folder_path)) {
     dir.create(folder_path, recursive = TRUE)
   }
@@ -106,7 +112,6 @@ ss_store_articles <- function(article_data,
 
   if (file.exists(file_path)) {
     existing_data <- read.csv(file_path, stringsAsFactors = FALSE)
-
     new_articles <- subset(article_data, !url %in% existing_data$url)
 
     if (nrow(new_articles) == 0) {
@@ -139,7 +144,6 @@ ss_pull_random_articles <- function(start_date,
                                     end_date,
                                     news_site,
                                     folder_path = "inst/extdata/article_data/") {
-  # Generate CSV filename
   file_path <- file.path(folder_path, paste0(news_site, ".csv"))
 
   if (!file.exists(file_path)) {
@@ -149,18 +153,13 @@ ss_pull_random_articles <- function(start_date,
   data <- read.csv(file_path, stringsAsFactors = FALSE)
   data$published_date <- as.Date(data$published_date)
 
-  # Filter articles by date range
   filtered_data <- subset(data, published_date >= as.Date(start_date) & published_date <= as.Date(end_date))
 
   if (nrow(filtered_data) == 0) {
     return("No articles found in the given date range.")
   }
 
-  # Random sample of 100 articles or all available if fewer
   sampled_data <- filtered_data[sample(nrow(filtered_data), min(100, nrow(filtered_data))), ]
 
   return(sampled_data)
 }
-
-
-

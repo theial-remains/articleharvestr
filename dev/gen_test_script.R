@@ -39,19 +39,22 @@ toc()
 View(results)
 
 # step 3: clean dataframe
-words_to_remove <- c("By") # TODO needs to remove blank spaces and alltolower
+words_to_remove <- c("By")
 results2 <- ss_clean_author(results, words_to_remove)
+View(results2) # TODO not done
 
 results3 <- ss_clean_date(results2)
 View(results3)
 
 # store rows in author csvs in news site folder
-ss_store_articles(results3)
+ss_store_articles(
+  article_data = results3,
+  news_site = "huffpost",
+  folder_path = "inst/extdata/article_data/"
+)
 
 # pull 100 random articles
-
-
-
+# TODO function not tested yet
 
 
 # step 4: sentiment analysis
