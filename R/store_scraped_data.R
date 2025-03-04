@@ -13,26 +13,24 @@ ss_clean_author <- function(dataframe, words_to_remove = c("By")) {
     stop("Error: Dataframe must contain an 'author' column.")
   }
 
-  # Ensure 'author' column is treated as character
   dataframe$author <- as.character(dataframe$author)
 
-  # Create regex pattern to remove words (case-insensitive, match whole words)
   pattern <- paste0("\\b(", paste(words_to_remove, collapse = "|"), ")\\b\\s*", collapse = "|")
 
   dataframe$author <- ifelse(
     is.na(dataframe$author) | dataframe$author == "",
-    NA,  # Keep NA values
+    NA,
     trimws(gsub(pattern, "", dataframe$author, ignore.case = TRUE, perl = TRUE))
   )
 
-  # Split incorrectly joined words on capital letters (e.g., "VeraSenior" → "Vera Senior")
-  dataframe$author <- gsub("([a-z])([A-Z])", "\\1 \\2", dataframe$author, perl = TRUE)
+  dataframe$author <- gsub("([a-z])([A-Z])",
+                           "\\1 \\2",
+                           dataframe$author, perl = TRUE)
 
-  # Keep only the first two words
   dataframe$author <- sapply(dataframe$author, function(name) {
     if (!is.na(name) && name != "") {
-      words <- unlist(strsplit(name, "\\s+"))  # Split into words
-      paste(head(words, 2), collapse = " ")   # Keep first two words
+      words <- unlist(strsplit(name, "\\s+"))
+      paste(head(words, 2), collapse = " ")
     } else {
       NA
     }
@@ -58,13 +56,19 @@ ss_clean_date <- function(dataframe) {
     if (is.na(date_string) || date_string == "") return(NA)
 
     tryCatch({
-      # Remove time and timezone (e.g., "Dec 1, 2024, 06:21 PM EST" → "Dec 1, 2024")
-      date_only <- gsub(",?\\s+\\d{1,2}:\\d{2}\\s*(AM|PM)?\\s*[A-Z]*", "", date_string)
+      date_only <- gsub(",?\\s*\\d{1,2}:\\d{2}\\s*(AM|PM)?\\s*[A-Z]*", "", date_string)
 
-      # Directly use `ymd()` for parsing
-      as.character(ymd(date_only))
-    },
-    error = function(e) {
+      date_only <- gsub("[^A-Za-z0-9, ]", "", date_only)
+
+      parsed_date <- suppressWarnings(parse_date_time(
+        date_only,
+        orders = c("b d, Y", "b d Y", "mdy", "dmy", "ymd", "mdY")
+      ))
+
+      if (is.na(parsed_date)) return(NA)
+
+      as.character(as.Date(parsed_date))
+    }, error = function(e) {
       return(NA)
     })
   })
