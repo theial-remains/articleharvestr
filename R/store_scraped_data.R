@@ -1,249 +1,217 @@
-# push and pull link list to csv
-# push and pull scraped elements to correct article link
-# create and check article key
-
-
-#' Pull URLs from CSV for a Specific News Website
+#' Clean Author Names in Dataframe
 #'
-#' desc, too lazy do later
-#' @param start_date parameter desc
-#' @param end_date param desc
-#' @param website_url param desc
-#' @return A dataframe containing the title, published date, author, and text for a selected date range for a specific news website.
+#' Removes specified words (case-insensitive) from author names and trims whitespace.
+#' Splits words if they are incorrectly combined (e.g., "VeraSenior" → "Vera Senior").
+#' Keeps only the first two words of the author's name.
+#'
+#' @param dataframe A dataframe containing an "author" column.
+#' @param words_to_remove A character vector of words/phrases to remove from author names (case-insensitive).
+#' @return The same dataframe with a cleaned "author" column.
 #' @export
-su_pull_urls <- function(start_date, end_date, website_url) {
+ss_clean_author <- function(dataframe, words_to_remove = c("By")) {
+  if (!"author" %in% names(dataframe)) {
+    stop("Error: Dataframe must contain an 'author' column.")
+  }
 
+  # Ensure 'author' column is treated as character
+  dataframe$author <- as.character(dataframe$author)
+
+  # Create regex pattern to remove words (case-insensitive, match whole words)
+  pattern <- paste0("\\b(", paste(words_to_remove, collapse = "|"), ")\\b\\s*", collapse = "|")
+
+  dataframe$author <- ifelse(
+    is.na(dataframe$author) | dataframe$author == "",
+    NA,  # Keep NA values
+    trimws(gsub(pattern, "", dataframe$author, ignore.case = TRUE, perl = TRUE))
+  )
+
+  # Split incorrectly joined words on capital letters (e.g., "VeraSenior" → "Vera Senior")
+  dataframe$author <- gsub("([a-z])([A-Z])", "\\1 \\2", dataframe$author, perl = TRUE)
+
+  # Keep only the first two words
+  dataframe$author <- sapply(dataframe$author, function(name) {
+    if (!is.na(name) && name != "") {
+      words <- unlist(strsplit(name, "\\s+"))  # Split into words
+      paste(head(words, 2), collapse = " ")   # Keep first two words
+    } else {
+      NA
+    }
+  }, USE.NAMES = FALSE)
+
+  return(dataframe)
 }
 
-
-#' Store Article Data in CSV
+#' Clean Published Dates in Dataframe
 #'
-#' This function reads the corresponding CSV for the articles using `su_check_csv` to find the appropriate file
-#' and appends new article data by matching the URLs from the input data frame to the URLs in the CSV.
-#' If URLs already exist in the CSV, their data can be updated based on the `overwrite` parameter.
+#' Removes time and timezone, then converts dates into "YYYY-MM-DD" format.
 #'
-#' @param website_url A character string representing the website URL.
-#' @param article_data A data frame containing columns: title, url, author, published_date, and text.
-#' @param folder_path A character string specifying the folder where the CSV is located. Defaults to `"inst/extdata/scraped_data/"`.
-#' @param overwrite A logical value indicating whether to overwrite existing data for URLs in the CSV. Defaults to FALSE.
-#' @return A message indicating success, and the updated CSV is saved to disk.
-#' @importFrom utils read.csv write.csv
+#' @param dataframe A dataframe containing a "published_date" column.
+#' @return The same dataframe with a cleaned "published_date" column.
+#' @import lubridate
 #' @export
-su_store_article_data <- function(website_url,
-                                  article_data,
-                                  folder_path = "inst/extdata/scraped_data/",
-                                  overwrite = FALSE) {
+ss_clean_date <- function(dataframe) {
+  dataframe$published_date <- ifelse(
+    is.na(dataframe$published_date) | dataframe$published_date == "",
+    NA,
+    tryCatch({
+      # Remove time and timezone (e.g., "Dec 1, 2024, 06:21 PM EST" → "Dec 1, 2024")
+      date_only <- gsub(",?\\s\\d{1,2}:\\d{2}\\s(AM|PM)\\s[A-Z]+", "", dataframe$published_date)
+
+      parsed_date <- lubridate::parse_date_time(
+        date_only,
+        orders = c("b d, Y", "b d Y", "mdy", "dmy", "ymd", "mdY")
+      )
+
+      if (is.na(parsed_date)) stop("Unable to parse date")
+      as.character(parsed_date)
+    },
+    error = function(e) {
+      return(NA)
+    })
+  )
+
+  return(dataframe)
+}
+
+#' Store Article Data for Any News Site
+#'
+#' Saves scraped article data into a CSV, creating the file if it doesn't exist.
+#'
+#' @param article_data A data frame with columns: url, title, author, published_date, text.
+#' @param news_site The name of the news site (e.g., "huffpost").
+#' @param folder_path Directory for storing CSV files.
+#' @return The full path of the saved CSV.
+#' @import dplyr
+#' @export
+ss_store_article_data <- function(article_data,
+                                  news_site,
+                                  folder_path = "inst/extdata/article_data/") {
+  if (!dir.exists(folder_path)) {
+    dir.create(folder_path, recursive = TRUE)
+  }
+
   required_columns <- c("url", "title", "author", "published_date", "text")
   if (!all(required_columns %in% names(article_data))) {
-    stop("Input data frame must contain the following columns: ",
-    paste(required_columns, collapse = ", "))
+    stop("Input data frame must contain: ", paste(required_columns, collapse = ", "))
   }
 
-  file_info <- su_check_csv(website_url,
-                            folder_path = folder_path,
-                            return_path = TRUE)
-  file_path <- file_info$path
+  # Generate CSV filename based on news site
+  file_path <- file.path(folder_path, paste0(news_site, ".csv"))
 
-  if (!file_info$exists) {
-    stop("The corresponding CSV file does not exist. Create the file first using `su_create_csv`.")
-  }
-
-  existing_data <- read.csv(file_path, stringsAsFactors = FALSE)
-
-  all_columns <- union(names(existing_data), names(article_data))
-
-  for (col in setdiff(all_columns, names(existing_data))) {
-    existing_data[[col]] <- NA
-  }
-  for (col in setdiff(all_columns, names(article_data))) {
-    article_data[[col]] <- NA
-  }
-
-  existing_data <- existing_data[, all_columns]
-  article_data <- article_data[, all_columns]
-
-  for (i in seq_len(nrow(article_data))) {
-    row <- article_data[i, ]
-    url <- row$url
-    existing_row_index <- which(existing_data$url == url)
-
-    if (length(existing_row_index) > 0) {
-      if (overwrite) {
-        existing_data[existing_row_index, ] <- row
-      }
-    } else {
-      existing_data <- rbind(existing_data, row)
-    }
-  }
-
-  write.csv(existing_data, file_path, row.names = FALSE)
-
-  return(paste("Article data successfully stored in:", file_path))
-}
-
-
-#' Read CSV and Filter Rows with NA Metadata
-#'
-#' This function reads a CSV file for a specific website and returns all rows
-#' where the columns `published_date`, `author`, `title`, and `text` are all `NA`.
-#'
-#' @param website_url A character string representing the URL of the website.
-#' @param folder_path A character string specifying the folder where the CSV is located.
-#' @return A data frame containing the filtered rows, or an empty data frame if no matching rows are found.
-#' @importFrom utils read.csv
-#' @export
-su_read_csv <- function(website_url, folder_path = "inst/extdata/scraped_data/") {
-  file_info <- su_check_csv(website_url, folder_path = folder_path, return_path = TRUE)
-
-  if (!file_info$exists) {
-    stop("No CSV file found for the specified website.")
-  }
-
-  data <- read.csv(file_info$path, stringsAsFactors = FALSE)
-  filtered_data <- subset(data, is.na(published_date) & is.na(author) & is.na(title) & is.na(text))
-
-  return(filtered_data)
-}
-
-
-#' Check if File Exists for a Specific News Website
-#'
-#' This function checks if a file with a name based on the website key exists
-#' in the specified folder. The file should match the key element pulled from
-#' the schema by the `gs_pull_schema` function.
-#'
-#' @param website_url A character string representing the URL of the website.
-#' @param id A character string specifying the unique ID of the schema to pull (optional).
-#' @param folder_path A character string specifying the folder where the file should be located.
-#' @param return_path A logical value indicating whether to return the file path if the file exists. Defaults to FALSE.
-#' @return TRUE if the file exists, or FALSE if it does not. If `return_path` is TRUE, returns a list with `exists = TRUE` and the `path` to the file.
-#' @import utils
-#' @export
-su_check_csv <- function(website_url, id = NULL, folder_path = "inst/extdata/scraped_data/", return_path = FALSE) {
-  schema <- gs_pull_schema(website_url, id)
-
-  if (is.null(schema)) {
-    stop("No schema found for the given website.")
-  }
-
-  website_key <- tolower(gsub("https://|http://|www\\.|\\..*", "", website_url))
-  folder_path <- sub("/$", "", folder_path)
-
-  file_name <- paste0(website_key, ".csv")
-  file_path <- file.path(folder_path, file_name)
+  # Clean Author Names and Dates
+  cleaned_metadata <- ss_clean_metadata(article_data$author, article_data$published_date)
+  article_data$author <- cleaned_metadata$clean_author
+  article_data$published_date <- cleaned_metadata$clean_date
 
   if (file.exists(file_path)) {
-    if (return_path) {
-      return(list(exists = TRUE, path = file_path))
-    } else {
-      return(TRUE)
-    }
-  } else {
-    if (return_path) {
-      return(list(exists = FALSE, path = file_path))
-    } else {
-      return(FALSE)
-    }
-  }
-}
-
-
-#' Add CSV for a Specific News Website
-#'
-#' This function creates a new CSV file for a website based on the website key.
-#' If a file with the same name already exists, the function will either overwrite
-#' it (if specified) or skip the creation.
-#'
-#' @param website_url A character string representing the URL of the website.
-#' @param folder_path A character string specifying the folder where the file should be saved.
-#' @param overwrite A logical value indicating whether to overwrite an existing file. Defaults to FALSE.
-#' @return The full path to the created CSV file, or a message if the file already exists and overwrite is FALSE.
-#' @import utils
-#' @export
-su_create_csv <- function(website_url, folder_path = "inst/extdata/scraped_data/", overwrite = FALSE) {
-  file_info <- su_check_csv(website_url, folder_path = folder_path, return_path = TRUE)
-
-  if (file_info$exists && !overwrite) {
-    message("File already exists. Use overwrite = TRUE to replace the existing file.")
-    return(file_info$path)
-  }
-
-  file_path <- file_info$path
-  columns <- c("url", "published_date", "author", "title", "text")
-  data <- data.frame(matrix(ncol = length(columns), nrow = 0))
-  colnames(data) <- columns
-  write.csv(data, file_path, row.names = FALSE)
-
-  return(file_path)
-}
-
-
-#' Remove CSV for a Specific News Website
-#'
-#' This function removes the CSV file for a website based on the website key.
-#' It first checks if the file exists using `su_check_csv`, and if it does,
-#' the file is deleted. If the file does not exist, a message is returned.
-#'
-#' @param website_url A character string representing the URL of the website.
-#' @param folder_path A character string specifying the folder where the file is located.
-#' @return A message indicating whether the file was successfully removed or if it did not exist.
-#' @import utils
-#' @export
-su_remove_csv <- function(website_url, folder_path = "inst/extdata/scraped_data/") {
-  file_info <- su_check_csv(website_url, folder_path = folder_path, return_path = TRUE)
-
-  if (file_info$exists) {
-    file.remove(file_info$path)
-    return(paste("File", file_info$path, "successfully removed."))
-  } else {
-    return("No file found for the given website.")
-  }
-}
-
-
-#' Append URLs to CSV for a Specific News Website
-#'
-#' This function takes a website URL, finds the corresponding CSV file using `su_check_csv`,
-#' and appends a list of URLs to new rows in the CSV file. Only the "url" column is filled in.
-#' If the file does not exist, it creates a new one.
-#'
-#' @param website_url A character string representing the URL of the website.
-#' @param urls A vector of URLs to be added to the CSV file.
-#' @param folder_path A character string specifying the folder where the CSV is located.
-#' @return The full path to the CSV file, or a message indicating the result of the operation.
-#' @importFrom utils write.csv read.csv
-#' @export
-su_write_urls <- function(website_url, urls, folder_path = "inst/extdata/scraped_data/") {
-  file_info <- su_check_csv(website_url, folder_path = folder_path, return_path = TRUE)
-  file_path <- file_info$path
-  new_data <- data.frame(url = urls,
-                         published_date = NA,
-                         author = NA,
-                         title = NA,
-                         text = NA,
-                         stringsAsFactors = FALSE)
-
-  if (file_info$exists) {
     existing_data <- read.csv(file_path, stringsAsFactors = FALSE)
-    combined_data <- rbind(existing_data, new_data)
 
-    write.csv(combined_data, file_path, row.names = FALSE)
-    message("New URLs appended to the CSV file.")
+    # Ensure correct column names
+    all_columns <- union(names(existing_data), names(article_data))
+    for (col in setdiff(all_columns, names(existing_data))) existing_data[[col]] <- NA
+    for (col in setdiff(all_columns, names(article_data))) article_data[[col]] <- NA
 
+    existing_data <- existing_data[, all_columns]
+    article_data <- article_data[, all_columns]
+
+    # Append new data
+    combined_data <- rbind(existing_data, article_data)
   } else {
-    write.csv(new_data, file_path, row.names = FALSE)
-    message("CSV file created and URLs added.")
+    combined_data <- article_data
   }
+
+  write.csv(combined_data, file_path, row.names = FALSE)
   return(file_path)
 }
 
-
-#' title
+#' Append New Articles to News Site CSV
 #'
-#' description
-#' @param param1 parameter desc
-#' @return what it returns
+#' Adds new articles to the existing CSV for a news site, avoiding duplicates.
+#'
+#' @param article_data A data frame with columns: url, title, author, published_date, text.
+#' @param news_site The name of the news site (e.g., "huffpost").
+#' @param folder_path Directory for storing CSV files.
+#' @return The full path of the updated CSV.
+#' @import dplyr
 #' @export
-su_check_urls <- function(param1) {
-  # code goes here
+ss_append_new_articles <- function(article_data,
+                                   news_site,
+                                   folder_path = "inst/extdata/article_data/") {
+  if (!dir.exists(folder_path)) {
+    dir.create(folder_path, recursive = TRUE)
+  }
+
+  required_columns <- c("url", "title", "author", "published_date", "text")
+  if (!all(required_columns %in% names(article_data))) {
+    stop("Input data frame must contain: ", paste(required_columns, collapse = ", "))
+  }
+
+  # Generate CSV filename based on news site
+  file_path <- file.path(folder_path, paste0(news_site, ".csv"))
+
+  # Clean Author Names and Dates
+  cleaned_metadata <- ss_clean_metadata(article_data$author, article_data$published_date)
+  article_data$author <- cleaned_metadata$clean_author
+  article_data$published_date <- cleaned_metadata$clean_date
+
+  if (file.exists(file_path)) {
+    existing_data <- read.csv(file_path, stringsAsFactors = FALSE)
+
+    # Find new articles that are not in the existing dataset
+    new_articles <- subset(article_data, !url %in% existing_data$url)
+
+    if (nrow(new_articles) == 0) {
+      message("No new articles to add.")
+      return(file_path)
+    }
+
+    combined_data <- rbind(existing_data, new_articles)
+  } else {
+    combined_data <- article_data
+  }
+
+  write.csv(combined_data, file_path, row.names = FALSE)
+  message(nrow(article_data), " articles checked, ", nrow(combined_data) - nrow(existing_data), " new articles added.")
+  return(file_path)
 }
+
+#' Pull Random Sample of 100 Articles from a News Site
+#'
+#' Retrieves a random sample of articles from a CSV for a given date range.
+#'
+#' @param start_date The start date (YYYY-MM-DD).
+#' @param end_date The end date (YYYY-MM-DD).
+#' @param news_site The name of the news site (e.g., "huffpost").
+#' @param folder_path Directory where the CSV is stored.
+#' @return A data frame containing the sampled articles or a message if no articles exist.
+#' @import dplyr
+#' @export
+ss_pull_random_articles <- function(start_date,
+                                    end_date,
+                                    news_site,
+                                    folder_path = "inst/extdata/article_data/") {
+  # Generate CSV filename
+  file_path <- file.path(folder_path, paste0(news_site, ".csv"))
+
+  if (!file.exists(file_path)) {
+    stop("No article data found for ", news_site, ". Please store data first.")
+  }
+
+  data <- read.csv(file_path, stringsAsFactors = FALSE)
+  data$published_date <- as.Date(data$published_date)
+
+  # Filter articles by date range
+  filtered_data <- subset(data, published_date >= as.Date(start_date) & published_date <= as.Date(end_date))
+
+  if (nrow(filtered_data) == 0) {
+    return("No articles found in the given date range.")
+  }
+
+  # Random sample of 100 articles or all available if fewer
+  sampled_data <- filtered_data[sample(nrow(filtered_data), min(100, nrow(filtered_data))), ]
+
+  return(sampled_data)
+}
+
+
+
