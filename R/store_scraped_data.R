@@ -58,15 +58,11 @@ ss_clean_date <- function(dataframe) {
     if (is.na(date_string) || date_string == "") return(NA)
 
     tryCatch({
-      # rm time and timezone (ex. "Dec 1, 2024, 06:21 PM EST" to "Dec 1, 2024")
+      # Remove time and timezone (e.g., "Dec 1, 2024, 06:21 PM EST" → "Dec 1, 2024")
       date_only <- gsub(",?\\s+\\d{1,2}:\\d{2}\\s*(AM|PM)?\\s*[A-Z]*", "", date_string)
 
-      parsed_date <- parse_date_time(
-        date_only,
-        orders = c("b d, Y", "b d Y", "mdy", "dmy", "ymd", "mdY")
-      )
-
-      as.character(as.Date(parsed_date))
+      # Directly use `ymd()` for parsing
+      as.character(ymd(date_only))
     },
     error = function(e) {
       return(NA)
@@ -87,7 +83,7 @@ ss_clean_date <- function(dataframe) {
 #' @return The full path of the updated CSV.
 #' @import dplyr
 #' @export
-ss_store_and_append_articles <- function(article_data,
+ss_store_articles <- function(article_data,
                                          news_site,
                                          folder_path = "inst/extdata/article_data/") {
   if (!dir.exists(folder_path)) {

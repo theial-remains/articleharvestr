@@ -43,10 +43,10 @@ words_to_remove <- c("By") # TODO needs to remove blank spaces and alltolower
 results2 <- ss_clean_author(results, words_to_remove)
 
 results3 <- ss_clean_date(results2)
-View(results3)
+View(results3) # TODO I have not a fuckin clue why lubridate keeps beating me with a metal pipe
 
 # store rows in author csvs in news site folder
-
+ss_store_articles(results3)
 
 # pull 100 random articles
 
