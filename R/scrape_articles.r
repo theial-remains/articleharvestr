@@ -28,14 +28,28 @@ sa_get_html <- function(article_url) {
 }
 
 #' Extract Article Title
-#'
 #' @param article_html An rvest HTML document object.
+#' @param url The article URL.
 #' @return A character string representing the article title or NA if not found.
 #' @import rvest
 #' @export
-sa_extract_title <- function(article_html) {
+sa_extract_title <- function(article_html, url) {
   if (is.null(article_html)) return(NA)
 
+  # get custom selectors
+  selectors <- sa_get_selectors(url)
+
+  if (!is.null(selectors$title_selector)) {
+    title_text <- article_html %>%
+      html_node(selectors$title_selector) %>%
+      html_text(trim = TRUE)
+
+    if (!is.na(title_text) && title_text != "") {
+      return(title_text)
+    }
+  }
+
+  # fallback logic
   title_text <- article_html %>%
     html_node("title") %>%
     html_text(trim = TRUE)
@@ -53,14 +67,28 @@ sa_extract_title <- function(article_html) {
 }
 
 #' Extract Article Author
-#'
 #' @param article_html An rvest HTML document object.
+#' @param url The article URL.
 #' @return A character string representing the author's name or NA if not found.
 #' @import rvest
 #' @export
-sa_extract_author <- function(article_html) {
+sa_extract_author <- function(article_html, url) {
   if (is.null(article_html)) return(NA)
 
+  # get custom selectors
+  selectors <- sa_get_selectors(url)
+
+  if (!is.null(selectors$author_selector)) {
+    author_text <- article_html %>%
+      html_node(selectors$author_selector) %>%
+      html_text(trim = TRUE)
+
+    if (!is.na(author_text) && author_text != "") {
+      return(author_text)
+    }
+  }
+
+  # fallback logic
   author_text <- article_html %>%
     html_node("meta[name='author'], meta[property='article:author'], meta[property='og:author']") %>%
     html_attr("content")
@@ -78,14 +106,28 @@ sa_extract_author <- function(article_html) {
 }
 
 #' Extract Published Date
-#'
 #' @param article_html An rvest HTML document object.
+#' @param url The article URL.
 #' @return A character string representing the published date or NA if not found.
 #' @import rvest
 #' @export
-sa_extract_date <- function(article_html) {
+sa_extract_date <- function(article_html, url) {
   if (is.null(article_html)) return(NA)
 
+  # get custom selectors
+  selectors <- sa_get_selectors(url)
+
+  if (!is.null(selectors$date_selector)) {
+    published_date <- article_html %>%
+      html_node(selectors$date_selector) %>%
+      html_text(trim = TRUE)
+
+    if (!is.na(published_date) && published_date != "") {
+      return(published_date)
+    }
+  }
+
+  # fallback logic
   published_date <- article_html %>%
     html_node("time") %>%
     html_text(trim = TRUE)
@@ -100,14 +142,29 @@ sa_extract_date <- function(article_html) {
 }
 
 #' Extract Article Text
-#'
 #' @param article_html An rvest HTML document object.
+#' @param url The article URL.
 #' @return A character string representing the cleaned article text or NA if not found.
 #' @import rvest
 #' @export
-sa_extract_text <- function(article_html) {
+sa_extract_text <- function(article_html, url) {
   if (is.null(article_html)) return(NA)
 
+  # get custom selectors
+  selectors <- sa_get_selectors(url)
+
+  if (!is.null(selectors$text_selector)) {
+    article_text <- article_html %>%
+      html_nodes(selectors$text_selector) %>%
+      html_text(trim = TRUE) %>%
+      paste(collapse = " ")
+
+    if (!is.na(article_text) && article_text != "") {
+      return(article_text)
+    }
+  }
+
+  # fallback logic
   all_paragraphs <- article_html %>%
     html_nodes('p') %>%
     html_text(trim = TRUE)
@@ -213,4 +270,36 @@ sa_sample_article_urls <- function(sitemap_url,
           " sampled articles.")
 
   return(final_article_urls)
+}
+
+#' Load Selectors for a Given News Website
+#'
+#' This function retrieves the appropriate CSS/XPath selectors for extracting article elements.
+#' @param url A character string representing the article URL.
+#' @return A named list containing the CSS/XPath selectors for title, author, date, and text.
+#' @import readr
+#' @export
+sa_get_selectors <- function(url) {
+  # Load selectors dataframe
+  selectors_df <- read.csv(system.file("extdata", "news_selectors.csv", package = "yourPackageName"),
+                           stringsAsFactors = FALSE)
+
+  # Extract domain name from URL
+  domain <- gsub("https?://(www\\.)?", "", url)
+  domain <- gsub("/.*", "", domain)  # Keep only the base domain
+
+  # Filter for the matching website
+  site_selectors <- selectors_df[grepl(domain, selectors_df$website), ]
+
+  if (nrow(site_selectors) == 0) {
+    message("No custom selectors found for: ", domain)
+    return(NULL)
+  }
+
+  return(list(
+    title_selector = site_selectors$title_selector,
+    author_selector = site_selectors$author_selector,
+    date_selector = site_selectors$date_selector,
+    text_selector = site_selectors$text_selector
+  ))
 }

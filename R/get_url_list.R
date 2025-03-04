@@ -65,19 +65,22 @@ gu_filter_links_by_date <- function(links, level, start_date, end_date) {
   end_date <- as.Date(end_date)
 
   date_pattern <- switch(as.character(level),
-                         "3" = "\\d{4}",              # Yearly
-                         "2" = "\\d{4}-\\d{2}",       # Monthly
-                         "1" = "\\d{4}-\\d{2}-\\d{2}",# Daily
-                         NULL)  # Articles don't need filtering
+                         "3" = "\\d{4}",              # yearly
+                         "2" = "\\d{4}-\\d{2}",       # monthly
+                         "1" = "\\d{4}-\\d{2}-\\d{2}",# daily
+                         NULL)  # articles don't need filtering
 
   if (!is.null(date_pattern)) {
     extracted_dates <- str_extract(links, date_pattern)
-    parsed_dates <- suppressWarnings(as.Date(extracted_dates, format = "%Y-%m-%d"))
+    parsed_dates <- suppressWarnings(as.Date(extracted_dates,
+                                             format = "%Y-%m-%d"))
 
     if (level == 2) {
-      parsed_dates <- suppressWarnings(as.Date(paste0(extracted_dates, "-01"), format = "%Y-%m-%d"))
+      parsed_dates <- suppressWarnings(as.Date(paste0(extracted_dates, "-01"),
+                                                      format = "%Y-%m-%d"))
     } else if (level == 3) {
-      parsed_dates <- suppressWarnings(as.Date(paste0(extracted_dates, "-01-01"), format = "%Y-%m-%d"))
+      parsed_dates <- suppressWarnings(as.Date(paste0(extracted_dates, "-01-01"),
+                                                      format = "%Y-%m-%d"))
     }
 
     links <- links[!is.na(parsed_dates) & parsed_dates >= start_date & parsed_dates <= end_date]

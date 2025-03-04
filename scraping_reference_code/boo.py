@@ -36,15 +36,15 @@ MAX_RETRIES = 3
 
 with open("output.txt", 'r') as fp:
     years = json.load(fp)
-    
+
 def download_pdf_with_requests(url, output_path):
     session = HTMLSession()
     response = session.get(url)
     response.html.render()
     pdfkit.from_string(response.html.html, output_path)
 
-try: 
-    with open('adapted_progress.json', 'r') as f: 
+try:
+    with open('adapted_progress.json', 'r') as f:
         progress = json.load(f)
         dic = progress.get("dic", {})
         unable_to_load_urls = progress.get("unable_to_load_urls", [])
@@ -55,12 +55,12 @@ except FileNotFoundError:
     unable_to_load_urls = []
     non_usable_urls = []
     urls_to_retest = []
-    
+
 def save_progress():
     with open('adapted_progress.json', 'w') as f:
         json.dump({"dic": dic, "unable_to_load_urls": unable_to_load_urls, "non_usable_urls": non_usable_urls}, f)
 
-try: 
+try:
     for i, year in enumerate(years.keys()):
         print("The year is ", year, ". The index is ", i, ".")
         for j, month in enumerate(years[year].keys()):
@@ -73,15 +73,15 @@ try:
                         if dic.get(year, {}).get(month, {}).get(day, {}).get(time, {}).get(article) or (article in unable_to_load_urls) or (article in non_usable_urls):
                             print("Skipping already processed article:", article)
                             continue
-                        
-                        try: 
+
+                        try:
                             print("Processing article:", article)
                             dic.setdefault(year, {}).setdefault(month, {}).setdefault(day, {}).setdefault(time, {}).setdefault(article, {})
                             for attempt in range(MAX_RETRIES):
                                 try:
                                     driver.get(article)
-                                    
-                                    paragraphs = driver.find_elements(By.TAG_NAME, 'p') 
+
+                                    paragraphs = driver.find_elements(By.TAG_NAME, 'p')
                                     all_text = " ".join([paragraph.text for paragraph in paragraphs if paragraph.text.strip()])
                                     if all_text:
                                         language = detect(all_text)
@@ -89,7 +89,7 @@ try:
                                         if language == "en" and author_line:
                                             headline = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "headline"))).text
                                             header = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "entry__header")))
-                                            section = header.find_element(By.XPATH, './/span').text 
+                                            section = header.find_element(By.XPATH, './/span').text
                                             tags = [tag.text for tag in header.find_elements(By.XPATH, './/a[@data-vars-subunit-name="tags"]')]
                                             summary = driver.find_element(By.CLASS_NAME, "dek").text
                                             authors = []
@@ -105,7 +105,7 @@ try:
                                                 "text": all_text
                                             })
                                             for i in authors:
-                                                path = "C:\\Users\\nerdb\\Documents\\STAT-EM\\HuffingtonPost\\" + i 
+                                                path = "C:\\Users\\nerdb\\Documents\\STAT-EM\\HuffingtonPost\\" + i
                                                 os.makedirs(path, exist_ok=True)
                                                 dateofCovid = datetime.datetime(2020, 1, 21, 0, 0, 0)
                                                 hours, minutes, seconds = map(int, time.split(":"))
@@ -124,33 +124,33 @@ try:
                                                     filename = path1 + "\\" + headline + ".pdf"
                                                     if not os.path.exists(filename):
                                                         r = requests.get(article, stream=True)
-                                                        with open(filename, 'wb') as fd: 
+                                                        with open(filename, 'wb') as fd:
                                                             for chunk in r.iter_content(chunk_size):
                                         else:
                                             log.error(
-                                                text=f"Cannot use article that have no named author or that is not in english. The language is {language}.", 
-                                                prefix=True, 
+                                                text=f"Cannot use article that have no named author or that is not in english. The language is {language}.",
+                                                prefix=True,
                                                 tag="Non-english text or text without named author"
                                             )
                                             non_usable_urls.append(article)
                                         save_progress()
                                         break
-                                except WebDriverException as e: 
+                                except WebDriverException as e:
                                     log.error(
-                                        text=f"Attempt {attempt + 1} failed: {e}", 
-                                        prefix=True, 
+                                        text=f"Attempt {attempt + 1} failed: {e}",
+                                        prefix=True,
                                         tag="Web Driver Exception Error!"
                                     )
-                                    if attempt == MAX_RETRIES - 1: 
+                                    if attempt == MAX_RETRIES - 1:
                                         unable_to_load_urls.append(article)
                                         save_progress()
-                                    else: 
+                                    else:
                                         time_clock.sleep(2 ** attempt)
                         except KeyboardInterrupt:
                             log.error(
                                 text="A keyboard interruption occurred",
                                 prefix=True,
-                                tag="KeyboardInterrupt" 
+                                tag="KeyboardInterrupt"
                             )
                             save_progress()
                             driver.quit()
@@ -175,17 +175,17 @@ try:
                             save_progress()
                         except Exception as e:
                             log.error(
-                                text=f"Unexpected error with article: {str(e)}", 
-                                prefix=True, 
+                                text=f"Unexpected error with article: {str(e)}",
+                                prefix=True,
                                 tag="UnexpectedError"
                             )
                             unable_to_load_urls.append(article)
                             save_progress()
                         time_clock.sleep(3)
-finally: 
+finally:
     log.error(
         text="Exiting program... saving progress.",
-        prefix=True, 
+        prefix=True,
         tag="Finished!"
     )
     save_progress()

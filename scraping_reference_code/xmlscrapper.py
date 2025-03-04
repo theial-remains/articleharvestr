@@ -17,7 +17,7 @@ def parse_datetime_string(dt_string):
     month = dt_object.month
     day = dt_object.day
     time = dt_object.strftime("%H:%M:%S")  # Format time as HH:MM:SS
-    
+
     return year, month, day, time
 
 xml_dict = {}
@@ -29,7 +29,7 @@ raw = xmltodict.parse(res.text)
 data = [r["loc"] for r in raw["sitemapindex"]["sitemap"]]
 arr = {}
 
-for i in range(len(data)): 
+for i in range(len(data)):
     print("Starting lap ", i, " of ", len(data), " in first loop")
     url_to_be = data[i]
     res_to_be = requests.get(url_to_be)
@@ -39,7 +39,7 @@ for i in range(len(data)):
         loc = raw_to_be['urlset']['url']['loc']
         if year not in arr.keys():
             arr[year] = {month: {day: {time: [loc]}}}
-        elif month not in arr[year].keys(): 
+        elif month not in arr[year].keys():
             arr[year][month] = {day: {time: [loc]}}
         elif day not in arr[year][month].keys():
             arr[year][month][day] = {time: [loc]}
@@ -55,7 +55,7 @@ for i in range(len(data)):
             year, month, day, time = parse_datetime_string(lastmod)
             if year not in arr.keys():
                 arr[year] = {month: {day: {time: [loc]}}}
-            elif month not in arr[year].keys(): 
+            elif month not in arr[year].keys():
                 arr[year][month] = {day: {time: [loc]}}
             elif day not in arr[year][month].keys():
                 arr[year][month][day] = {time: [loc]}
@@ -63,7 +63,7 @@ for i in range(len(data)):
                 arr[year][month][day][time] = [loc]
             elif time in arr[year][month][day].keys():
                 arr[year][month][day][time].append(loc)
-            
+
 f = open('output.txt', 'w')
 json.dump(arr, f)
 f.close()

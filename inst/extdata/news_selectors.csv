@@ -1,0 +1,3 @@
+website,title_selector,author_selector,date_selector,text_selector
+huffpost.com,.headline,.entry__byline__author,time,.entry__content p
+nytimes.com,h1,.css-1baulvz,"meta[name=""article:published_time""]",.css-53u6y8 p

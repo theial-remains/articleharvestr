@@ -1,5 +1,4 @@
 rm(list = ls())
-setwd("C:/Users/Preet/OneDrive - Ursinus College/paid_labor/articleharvestr")
 
 devtools::load_all()
 devtools::document()
@@ -26,8 +25,6 @@ all_links <- extracted_data$links
 head(all_links)
 
 
-
-
 sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,
@@ -35,4 +32,5 @@ article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           end_date = "2023-01-03")
 
 head(article_urls)
+
 
