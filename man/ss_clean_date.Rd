@@ -13,5 +13,5 @@ ss_clean_date(dataframe)
 The same dataframe with a cleaned "published_date" column.
 }
 \description{
-Removes time and timezone, then converts dates into "YYYY-MM-DD" format.
+Extracts only the date from mixed datetime formats and converts it into "YYYY-MM-DD".
 }

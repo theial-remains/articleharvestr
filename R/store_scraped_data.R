@@ -43,90 +43,43 @@ ss_clean_author <- function(dataframe, words_to_remove = c("By")) {
 
 #' Clean Published Dates in Dataframe
 #'
-#' Removes time and timezone, then converts dates into "YYYY-MM-DD" format.
+#' Extracts only the date from mixed datetime formats and converts it into "YYYY-MM-DD".
 #'
 #' @param dataframe A dataframe containing a "published_date" column.
 #' @return The same dataframe with a cleaned "published_date" column.
 #' @import lubridate
 #' @export
 ss_clean_date <- function(dataframe) {
-  dataframe$published_date <- ifelse(
-    is.na(dataframe$published_date) | dataframe$published_date == "",
-    NA,
-    tryCatch({
-      # Remove time and timezone (e.g., "Dec 1, 2024, 06:21 PM EST" → "Dec 1, 2024")
-      date_only <- gsub(",?\\s\\d{1,2}:\\d{2}\\s(AM|PM)\\s[A-Z]+", "", dataframe$published_date)
+  if (!"published_date" %in% names(dataframe)) {
+    stop("Error: Dataframe must contain a 'published_date' column.")
+  }
 
-      parsed_date <- lubridate::parse_date_time(
+  dataframe$published_date <- sapply(dataframe$published_date, function(date_string) {
+    if (is.na(date_string) || date_string == "") return(NA)
+
+    tryCatch({
+      # rm time and timezone (ex. "Dec 1, 2024, 06:21 PM EST" to "Dec 1, 2024")
+      date_only <- gsub(",?\\s+\\d{1,2}:\\d{2}\\s*(AM|PM)?\\s*[A-Z]*", "", date_string)
+
+      parsed_date <- parse_date_time(
         date_only,
         orders = c("b d, Y", "b d Y", "mdy", "dmy", "ymd", "mdY")
       )
 
-      if (is.na(parsed_date)) stop("Unable to parse date")
-      as.character(parsed_date)
+      as.character(as.Date(parsed_date))
     },
     error = function(e) {
       return(NA)
     })
-  )
+  })
 
   return(dataframe)
 }
 
-#' Store Article Data for Any News Site
+#' Store and Append Articles for Any News Site
 #'
-#' Saves scraped article data into a CSV, creating the file if it doesn't exist.
-#'
-#' @param article_data A data frame with columns: url, title, author, published_date, text.
-#' @param news_site The name of the news site (e.g., "huffpost").
-#' @param folder_path Directory for storing CSV files.
-#' @return The full path of the saved CSV.
-#' @import dplyr
-#' @export
-ss_store_article_data <- function(article_data,
-                                  news_site,
-                                  folder_path = "inst/extdata/article_data/") {
-  if (!dir.exists(folder_path)) {
-    dir.create(folder_path, recursive = TRUE)
-  }
-
-  required_columns <- c("url", "title", "author", "published_date", "text")
-  if (!all(required_columns %in% names(article_data))) {
-    stop("Input data frame must contain: ", paste(required_columns, collapse = ", "))
-  }
-
-  # Generate CSV filename based on news site
-  file_path <- file.path(folder_path, paste0(news_site, ".csv"))
-
-  # Clean Author Names and Dates
-  cleaned_metadata <- ss_clean_metadata(article_data$author, article_data$published_date)
-  article_data$author <- cleaned_metadata$clean_author
-  article_data$published_date <- cleaned_metadata$clean_date
-
-  if (file.exists(file_path)) {
-    existing_data <- read.csv(file_path, stringsAsFactors = FALSE)
-
-    # Ensure correct column names
-    all_columns <- union(names(existing_data), names(article_data))
-    for (col in setdiff(all_columns, names(existing_data))) existing_data[[col]] <- NA
-    for (col in setdiff(all_columns, names(article_data))) article_data[[col]] <- NA
-
-    existing_data <- existing_data[, all_columns]
-    article_data <- article_data[, all_columns]
-
-    # Append new data
-    combined_data <- rbind(existing_data, article_data)
-  } else {
-    combined_data <- article_data
-  }
-
-  write.csv(combined_data, file_path, row.names = FALSE)
-  return(file_path)
-}
-
-#' Append New Articles to News Site CSV
-#'
-#' Adds new articles to the existing CSV for a news site, avoiding duplicates.
+#' This function creates the CSV if it doesn't exist and appends new articles to it,
+#' ensuring no duplicate URLs are added.
 #'
 #' @param article_data A data frame with columns: url, title, author, published_date, text.
 #' @param news_site The name of the news site (e.g., "huffpost").
@@ -134,9 +87,9 @@ ss_store_article_data <- function(article_data,
 #' @return The full path of the updated CSV.
 #' @import dplyr
 #' @export
-ss_append_new_articles <- function(article_data,
-                                   news_site,
-                                   folder_path = "inst/extdata/article_data/") {
+ss_store_and_append_articles <- function(article_data,
+                                         news_site,
+                                         folder_path = "inst/extdata/article_data/") {
   if (!dir.exists(folder_path)) {
     dir.create(folder_path, recursive = TRUE)
   }
@@ -146,18 +99,14 @@ ss_append_new_articles <- function(article_data,
     stop("Input data frame must contain: ", paste(required_columns, collapse = ", "))
   }
 
-  # Generate CSV filename based on news site
   file_path <- file.path(folder_path, paste0(news_site, ".csv"))
 
-  # Clean Author Names and Dates
-  cleaned_metadata <- ss_clean_metadata(article_data$author, article_data$published_date)
-  article_data$author <- cleaned_metadata$clean_author
-  article_data$published_date <- cleaned_metadata$clean_date
+  article_data <- ss_clean_author(article_data, c("By", "Byline"))
+  article_data <- ss_clean_date(article_data)
 
   if (file.exists(file_path)) {
     existing_data <- read.csv(file_path, stringsAsFactors = FALSE)
 
-    # Find new articles that are not in the existing dataset
     new_articles <- subset(article_data, !url %in% existing_data$url)
 
     if (nrow(new_articles) == 0) {
