@@ -10,7 +10,7 @@ sa_get_selectors(url)
 \item{url}{A character string representing the article URL.}
 }
 \value{
-A named list containing the CSS/XPath selectors for title, author, date, and text, or NULL if no custom selectors exist.
+A named list containing the CSS/XPath selectors and tags or NULL if no custom selectors exist.
 }
 \description{
 Load Selectors for a Given News Website

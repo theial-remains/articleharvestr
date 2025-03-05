@@ -1,5 +1,3 @@
-# it does what it says on the tin
-
 #' Scrape Entire Article Content
 #'
 #' This function retrieves the raw HTML content of an article from a given URL.
@@ -27,185 +25,14 @@ sa_get_html <- function(article_url) {
   })
 }
 
-#' Extract Article Title
-#'
-#' @param article_html An rvest HTML document object.
-#' @param selector The CSS/XPath selector for extracting the title.
-#' @return A character string representing the article title or NA if not found.
-#' @import rvest
-#' @export
-sa_extract_title <- function(article_html, selector) {
-  if (is.null(article_html)) return(NA)
-
-  # try selector
-  if (!is.null(selector) && selector != "") {
-    title_text <- article_html %>%
-      html_node(selector) %>%
-      html_text(trim = TRUE)
-    if (!is.na(title_text) && title_text != "") return(title_text)
-  }
-
-  # fallback
-  title_text <- article_html %>%
-    html_node("title") %>%
-    html_text(trim = TRUE)
-
-  if (is.na(title_text) || title_text == "") {
-    headline_text <- article_html %>%
-      html_nodes(xpath = "//*[contains(@class, 'headline') or contains(@id, 'headline')]") %>%
-      html_text(trim = TRUE) %>%
-      na.omit()
-
-    if (length(headline_text) > 0) return(headline_text[1])
-  }
-
-  return(ifelse(title_text == "", NA, title_text))
-}
-
-#' Extract Article Author
-#'
-#' @param article_html An rvest HTML document object.
-#' @param selector The CSS/XPath selector for extracting the author.
-#' @return A character string representing the author's name or NA if not found.
-#' @import rvest
-#' @export
-sa_extract_author <- function(article_html, selector) {
-  if (is.null(article_html)) return(NA)
-
-  # try selector
-  if (!is.null(selector) && selector != "") {
-    author_text <- article_html %>%
-      html_node(selector) %>%
-      html_text(trim = TRUE)
-    if (!is.na(author_text) && author_text != "") return(author_text)
-  }
-
-  # fallback
-  author_text <- article_html %>%
-    html_node("meta[name='author'], meta[property='article:author'], meta[property='og:author']") %>%
-    html_attr("content")
-
-  if (is.na(author_text) || author_text == "") {
-    byline_text <- article_html %>%
-      html_nodes(xpath = "//*[contains(@class, 'byline') or contains(@id, 'byline')]") %>%
-      html_text(trim = TRUE) %>%
-      na.omit()
-
-    if (length(byline_text) > 0) return(byline_text[1])
-  }
-
-  return(ifelse(author_text == "", NA, author_text))
-}
-
-#' Extract Published Date
-#'
-#' @param article_html An rvest HTML document object.
-#' @param selector The CSS/XPath selector for extracting the date.
-#' @return A character string representing the published date or NA if not found.
-#' @import rvest
-#' @export
-sa_extract_date <- function(article_html, selector) {
-  if (is.null(article_html)) return(NA)
-
-  # try selector
-  if (!is.null(selector) && selector != "") {
-    published_date <- article_html %>%
-      html_node(selector) %>%
-      html_text(trim = TRUE)
-    if (!is.na(published_date) && published_date != "") return(published_date)
-  }
-
-  # fallback
-  published_date <- article_html %>%
-    html_node("time") %>%
-    html_text(trim = TRUE)
-
-  if (is.na(published_date) || published_date == "") {
-    published_date <- article_html %>%
-      html_node("meta[property='article:published_time'], meta[property='datePublished'], meta[name='date']") %>%
-      html_attr("content")
-  }
-
-  return(ifelse(published_date == "", NA, published_date))
-}
-
-#' Extract Article Text
-#'
-#' @param article_html An rvest HTML document object.
-#' @param selector The CSS/XPath selector for extracting the article text.
-#' @return A character string representing the cleaned article text or NA if not found.
-#' @import rvest
-#' @export
-sa_extract_text <- function(article_html, selector) {
-  if (is.null(article_html)) return(NA)
-
-  # try selector
-  if (!is.null(selector) && selector != "") {
-    article_text <- article_html %>%
-      html_nodes(selector) %>%
-      html_text(trim = TRUE) %>%
-      paste(collapse = " ")
-    if (!is.na(article_text) && article_text != "") return(article_text)
-  }
-
-  # fallback
-  all_paragraphs <- article_html %>%
-    html_nodes('p') %>%
-    html_text(trim = TRUE)
-
-  return(ifelse(length(all_paragraphs) == 0,
-                NA,
-                paste(all_paragraphs, collapse = " ")))
-}
-
-#' Scrape and Extract Full Article Data
-#'
-#' @param article_url A character string representing the URL of the article.
-#' @param selectors A named list of CSS/XPath selectors (title, author, date, text), or NULL if not found.
-#' @return A data frame containing the article data.
-#' @import dplyr
-#' @export
-sa_get_article_data <- function(article_url, selectors = NULL) {
-  article_html <- sa_get_html(article_url)
-
-  if (is.null(article_html)) {
-    message("Failed to retrieve article: ", article_url)
-    return(data.frame(
-      url = article_url,
-      published_date = NA,
-      author = NA,
-      title = NA,
-      text = NA,
-      stringsAsFactors = FALSE
-    ))
-  }
-
-  # NULL passed if selectors are missing
-  selectors <- selectors %||% list(title_selector = NULL,
-                                   author_selector = NULL,
-                                   date_selector = NULL,
-                                   text_selector = NULL)
-
-  df <- data.frame(
-    url = article_url,
-    published_date = sa_extract_date(article_html, selectors$date_selector),
-    author = sa_extract_author(article_html, selectors$author_selector),
-    title = sa_extract_title(article_html, selectors$title_selector),
-    text = sa_extract_text(article_html, selectors$text_selector),
-    stringsAsFactors = FALSE
-  )
-
-  return(df)
-}
-
 #' Load Selectors for a Given News Website
 #'
 #' @param url A character string representing the article URL.
-#' @return A named list containing the CSS/XPath selectors for title, author, date, and text, or NULL if no custom selectors exist.
+#' @return A named list containing the CSS/XPath selectors and tags or NULL if no custom selectors exist.
 #' @import readr
 #' @export
 sa_get_selectors <- function(url) {
-  file_path <- system.file("extdata", "news_selectors.csv", package = "yourPackageName")
+  file_path <- system.file("extdata", "news_selectors.csv", package = "articleharvestr")
 
   if (file_path == "") {
     message("Development mode detected: Using local file path.")
@@ -218,7 +45,6 @@ sa_get_selectors <- function(url) {
 
   selectors_df <- read.csv(file_path, stringsAsFactors = FALSE)
 
-  # Standardize domain: Remove "www." and keep only base domain
   domain <- gsub("https?://(www\\.)?", "", url)
   domain <- gsub("/.*", "", domain)
 
@@ -226,15 +52,230 @@ sa_get_selectors <- function(url) {
 
   if (nrow(site_selectors) == 0) {
     message("No custom selectors found for: ", domain)
-    return(NULL)  # Return NULL so fallback methods are used
+    return(NULL)
   }
 
   return(list(
-    title_selector = ifelse(nzchar(site_selectors$title_selector[1]), site_selectors$title_selector[1], NULL),
-    author_selector = ifelse(nzchar(site_selectors$author_selector[1]), site_selectors$author_selector[1], NULL),
-    date_selector = ifelse(nzchar(site_selectors$date_selector[1]), site_selectors$date_selector[1], NULL),
-    text_selector = ifelse(nzchar(site_selectors$text_selector[1]), site_selectors$text_selector[1], NULL)
+    title_element = site_selectors$title_element[1],
+    title_tag = site_selectors$title_tag[1],
+    author_element = site_selectors$author_element[1],
+    author_tag = site_selectors$author_tag[1],
+    date_element = site_selectors$date_element[1],
+    date_tag = site_selectors$date_tag[1],
+    text_element = site_selectors$text_element[1],
+    text_tag = site_selectors$text_tag[1]
   ))
+}
+
+#' Extract Article Author
+#'
+#' @param article_html An rvest HTML document object.
+#' @param selector The CSS/XPath selector for extracting the author.
+#' @param tag The CSS tag
+#' @return A character string representing the author's name or NA if not found.
+#' @import rvest
+#' @export
+sa_extract_author <- function(article_html, selector, tag) {
+  if (is.null(article_html) || is.null(selector) || selector == "") return(NA)
+
+  # selector
+  author_node <- article_html %>% html_node(selector)
+
+  if (!is.null(author_node)) {
+    author_text <- if (tag == "text") {
+      author_node %>% html_text(trim = TRUE)
+    } else {
+      author_node %>% html_node(tag) %>% html_text(trim = TRUE)
+    }
+
+    if (!is.na(author_text) && author_text != "") {
+      return(gsub("^By\\s+", "", author_text))
+    }
+  }
+
+  # fallback
+  author_text <- article_html %>%
+    html_node("meta[name='author'], meta[property='article:author'], meta[property='og:author']") %>%
+    html_attr("content")
+
+  if (!is.na(author_text) && author_text != "") {
+    return(author_text)
+  }
+
+  byline_text <- article_html %>%
+    html_nodes(xpath = "//*[contains(@class, 'byline') or contains(@id, 'byline')]") %>%
+    html_text(trim = TRUE) %>%
+    na.omit()
+
+  if (length(byline_text) > 0) {
+    return(byline_text[1])
+  }
+
+  return(NA)
+}
+
+#' Extract Published Date
+#'
+#' @param article_html An rvest HTML document object.
+#' @param selector The CSS/XPath selector for extracting the date.
+#' @param tag The CSS tag
+#' @return A character string representing the published date or NA if not found.
+#' @import rvest
+#' @export
+sa_extract_date <- function(article_html, selector, tag) {
+  if (is.null(article_html) || is.null(selector) || selector == "") return(NA)
+
+  # selector
+  date_node <- article_html %>% html_node(selector)
+
+  if (!is.null(date_node)) {
+    date_text <- if (tag == "text") {
+      date_node %>% html_text(trim = TRUE)
+    } else {
+      date_node %>% html_attr(tag)
+    }
+
+    if (!is.na(date_text) && date_text != "") {
+      return(date_text)
+    }
+  }
+
+  # fallback
+  date_text <- article_html %>%
+    html_node("time") %>%
+    html_text(trim = TRUE)
+
+  if (!is.na(date_text) && date_text != "") {
+    return(date_text)
+  }
+
+  date_text <- article_html %>%
+    html_node("meta[property='article:published_time'], meta[property='datePublished'], meta[name='date']") %>%
+    html_attr("content")
+
+  if (!is.na(date_text) && date_text != "") {
+    return(date_text)
+  }
+
+  return(NA)
+}
+
+#' Extract Article Title
+#'
+#' @param article_html An rvest HTML document object.
+#' @param selector The CSS/XPath selector for extracting the title.
+#' @param tag The CSS tag
+#' @return A character string representing the article title or NA if not found.
+#' @import rvest
+#' @export
+sa_extract_title <- function(article_html, selector, tag) {
+  if (is.null(article_html) || is.null(selector) || selector == "") return(NA)
+
+  # selector
+  title_node <- article_html %>% html_node(selector)
+
+  if (!is.null(title_node)) {
+    title_text <- if (tag == "text") {
+      title_node %>% html_text(trim = TRUE)
+    } else {
+      title_node %>% html_node(tag) %>% html_text(trim = TRUE)
+    }
+
+    if (!is.na(title_text) && title_text != "") {
+      return(title_text)
+    }
+  }
+
+  # fallback
+  title_text <- article_html %>%
+    html_node("title") %>%
+    html_text(trim = TRUE)
+
+  if (!is.na(title_text) && title_text != "") {
+    return(title_text)
+  }
+
+  headline_text <- article_html %>%
+    html_nodes(xpath = "//*[contains(@class, 'headline') or contains(@id, 'headline')]") %>%
+    html_text(trim = TRUE) %>%
+    na.omit()
+
+  if (length(headline_text) > 0) {
+    return(headline_text[1])
+  }
+
+  return(NA)
+}
+
+#' Extract Article Text
+#'
+#' @param article_html An rvest HTML document object.
+#' @param selector The CSS/XPath selector for extracting the article text.
+#' @param tag The CSS tag
+#' @return A character string representing the cleaned article text or NA if not found.
+#' @import rvest
+#' @export
+sa_extract_text <- function(article_html, selector, tag) {
+  if (is.null(article_html) || is.null(selector) || selector == "") return(NA)
+
+  # selector
+  text_nodes <- article_html %>% html_nodes(selector)
+
+  if (length(text_nodes) > 0) {
+    article_text <- if (tag == "text") {
+      text_nodes %>% html_text(trim = TRUE) %>% paste(collapse = " ")
+    } else {
+      text_nodes %>% html_nodes(tag) %>% html_text(trim = TRUE) %>% paste(collapse = " ")
+    }
+
+    if (!is.na(article_text) && article_text != "") {
+      return(article_text)
+    }
+  }
+
+  # fallback
+  all_paragraphs <- article_html %>%
+    html_nodes('p') %>%
+    html_text(trim = TRUE)
+
+  if (length(all_paragraphs) > 0) {
+    return(paste(all_paragraphs, collapse = " "))
+  }
+
+  return(NA)
+}
+
+#' Scrape and Extract Full Article Data
+#'
+#' @param article_url A character string representing the URL of the article.
+#' @param selectors A named list of CSS/XPath selectors and tags.
+#' @return A data frame containing the article data.
+#' @import dplyr
+#' @export
+sa_get_article_data <- function(article_url, selectors) {
+  article_html <- sa_get_html(article_url)
+
+  if (is.null(article_html)) {
+    return(data.frame(
+      url = article_url,
+      published_date = NA,
+      author = NA,
+      title = NA,
+      text = NA,
+      stringsAsFactors = FALSE
+    ))
+  }
+
+  df <- data.frame(
+    url = article_url,
+    published_date = sa_extract_date(article_html, selectors$date_element, selectors$date_tag),
+    author = sa_extract_author(article_html, selectors$author_element, selectors$author_tag),
+    title = sa_extract_title(article_html, selectors$title_element, selectors$title_tag),
+    text = sa_extract_text(article_html, selectors$text_element, selectors$text_tag),
+    stringsAsFactors = FALSE
+  )
+
+  return(df)
 }
 
 #' Scrape Multiple Articles Efficiently

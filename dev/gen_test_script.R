@@ -7,16 +7,6 @@ devtools::document()
 
 library(tictoc)
 
-#' title
-#'
-#' description
-#' @param params1 parameter desc
-#' @return what it returns
-#' @export
-ex_function <- function(params1) {
-  # code goes here
-}
-
 # done for huffpost:
 # scrape_articles done
 # get_url_list done
@@ -32,7 +22,7 @@ article_urls <- gu_fetch_sitemap_articles(sitemap_url,
 
 # step 2: scrape articles and return a dataframe
 tic()
-results <- sa_scrape_articles(article_urls) # TODO needs to indicate if used selectors sucessfully
+results <- sa_scrape_articles(article_urls)
 toc()
 View(results)
 
