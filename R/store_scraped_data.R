@@ -35,42 +35,6 @@ ss_clean_author <- function(dataframe, words_to_remove = c("By")) {
   return(dataframe)
 }
 
-#' Clean Published Dates by Removing Unwanted Words
-#'
-#' Removes all words that are not month names and removes commas.
-#'
-#' @param dataframe A dataframe containing a "published_date" column.
-#' @return The same dataframe with a cleaned "published_date" column.
-#' @import dplyr
-#' @export
-ss_clean_date_text <- function(dataframe) {
-  if (!"published_date" %in% names(dataframe)) {
-    stop("Error: Dataframe must contain a 'published_date' column.")
-  }
-
-  month_names <- c("January", "February", "March", "April", "May", "June",
-                   "July", "August", "September", "October", "November", "December")
-
-  dataframe <- dataframe %>%
-    mutate(published_date = sapply(published_date, function(date_string) {
-      if (is.na(date_string) || date_string == "") return(NA)
-
-      tryCatch({
-        # rm commas
-        cleaned_date <- gsub(",", "", date_string)
-
-        # rm all words not in the month list
-        cleaned_date <- gsub(paste0("\\b(?!(", paste(month_names, collapse = "|"), ")\\b)\\w+"), "", cleaned_date, perl = TRUE)
-
-        return(cleaned_date)
-      }, error = function(e) {
-        return(NA)
-      })
-    }))
-
-  return(dataframe)
-}
-
 #' Store and Append Articles for Any News Site
 #'
 #' This function creates the CSV if it doesn't exist and appends new articles to it,

@@ -30,8 +30,9 @@ View(results)
 results2 <- ss_clean_author(results)
 View(results2) # WARNING: JANK AF
 
-results3 <- ss_clean_date(results2)
-View(results3)
+results3 <- ss_clean_dates(results2)
+View(results3) # I give up
+
 
 # store rows in author csvs in news site folder
 ss_store_articles(
