@@ -22,8 +22,6 @@ ex_function <- function(params1) {
 # get_url_list done
 # store scraped data done
 
-# TODO fix verbose
-
 # step 1: get urls for a year
 sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 
@@ -54,8 +52,7 @@ ss_store_articles(
 )
 
 # pull 100 random articles
-# TODO function not tested yet
-
+# TODO ss_pull_random_articles function not tested yet
 
 # step 4: sentiment analysis
 

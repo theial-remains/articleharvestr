@@ -4,7 +4,7 @@
 \alias{ss_clean_author}
 \title{Clean Author Names in Dataframe}
 \usage{
-ss_clean_author(dataframe, words_to_remove = c("By"))
+ss_clean_author(dataframe, words_to_remove = c("By", "Byline"))
 }
 \arguments{
 \item{dataframe}{A dataframe containing an "author" column.}
@@ -18,4 +18,6 @@ The same dataframe with a cleaned "author" column.
 Removes specified words (case-insensitive) from author names and trims whitespace.
 Splits words if they are incorrectly combined (e.g., "VeraSenior" → "Vera Senior").
 Keeps only the first two words of the author's name.
+Converts all names to lowercase for consistency.
+Removes spaces before the first word.
 }

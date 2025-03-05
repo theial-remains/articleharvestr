@@ -25,10 +25,10 @@ ss_clean_author <- function(dataframe, words_to_remove = c("By", "Byline")) {
   )
 
   dataframe$author <- gsub("([a-z])([A-Z])", "\\1 \\2", dataframe$author, perl = TRUE) # split joined words
-  dataframe$author <- gsub("[^a-zA-Z\s]", " ", dataframe$author, perl = TRUE) # replace non-letter characters with space
-  dataframe$author <- gsub("\s+", " ", dataframe$author, perl = TRUE) # rm extra spaces
+  dataframe$author <- gsub("[^a-zA-Z\\s]", " ", dataframe$author, perl = TRUE) # replace non-letter characters with space
+  dataframe$author <- gsub("\\s+", " ", dataframe$author, perl = TRUE) # rm extra spaces
   dataframe$author <- tolower(dataframe$author) # convert to lowercase
-  dataframe$author <- gsub("^\s+|\s+$", "", dataframe$author) # trim leading and trailing spaces
+  dataframe$author <- gsub("^\\s+|\\s+$", "", dataframe$author) # trim leading and trailing spaces
 
   dataframe$author <- sapply(dataframe$author, function(name) {
     if (!is.na(name) && name != "") {

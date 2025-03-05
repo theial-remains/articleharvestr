@@ -21,7 +21,7 @@ gu_extract_sitemap_links <- function(sitemap_url) {
     return(list(links = character(0), format = NA))
   }
 
-  raw_content <- content(response, as = "text")
+  raw_content <- content(response, as = "text", encoding = "UTF-8")
   content_type <- headers(response)$`content-type`
 
   content_xml <- tryCatch(read_xml(raw_content), error = function(e) NULL)
