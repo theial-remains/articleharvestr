@@ -10,7 +10,7 @@
 #' @param words_to_remove A character vector of words/phrases to remove from author names (case-insensitive).
 #' @return The same dataframe with a cleaned "author" column.
 #' @export
-ss_clean_author <- function(dataframe, words_to_remove = c("By", "Byline")) {
+ss_clean_author <- function(dataframe, words_to_remove = c("By")) {
   if (!"author" %in% names(dataframe)) {
     stop("Error: Dataframe must contain an 'author' column.")
   }
@@ -29,55 +29,44 @@ ss_clean_author <- function(dataframe, words_to_remove = c("By", "Byline")) {
   dataframe$author <- gsub("\\s+", " ", dataframe$author, perl = TRUE) # rm extra spaces
   dataframe$author <- tolower(dataframe$author) # convert to lowercase
   dataframe$author <- gsub("^\\s+|\\s+$", "", dataframe$author) # trim leading and trailing spaces
-
-  dataframe$author <- sapply(dataframe$author, function(name) {
-    if (!is.na(name) && name != "") {
-      words <- unlist(strsplit(name, "\\s+"))
-      paste(head(words, 2), collapse = " ")
-    } else {
-      NA
-    }
-  }, USE.NAMES = FALSE)
-
   dataframe$author <- trimws(dataframe$author)
   dataframe$author <- gsub("[\u00A0\u2000-\u200B]+", " ", dataframe$author, perl = TRUE)
 
   return(dataframe)
 }
 
-#' Clean Published Dates in Dataframe
+#' Clean Published Dates by Removing Unwanted Words
 #'
-#' Extracts only the date from mixed datetime formats and converts it into "YYYY-MM-DD".
+#' Removes all words that are not month names and removes commas.
 #'
 #' @param dataframe A dataframe containing a "published_date" column.
 #' @return The same dataframe with a cleaned "published_date" column.
-#' @import lubridate
+#' @import dplyr
 #' @export
-ss_clean_date <- function(dataframe) {
+ss_clean_date_text <- function(dataframe) {
   if (!"published_date" %in% names(dataframe)) {
     stop("Error: Dataframe must contain a 'published_date' column.")
   }
 
-  dataframe$published_date <- sapply(dataframe$published_date, function(date_string) {
-    if (is.na(date_string) || date_string == "") return(NA)
+  month_names <- c("January", "February", "March", "April", "May", "June",
+                   "July", "August", "September", "October", "November", "December")
 
-    tryCatch({
-      date_only <- gsub(",?\\s*\\d{1,2}:\\d{2}\\s*(AM|PM)?\\s*[A-Z]*", "", date_string)
+  dataframe <- dataframe %>%
+    mutate(published_date = sapply(published_date, function(date_string) {
+      if (is.na(date_string) || date_string == "") return(NA)
 
-      date_only <- gsub("[^A-Za-z0-9, ]", "", date_only)
+      tryCatch({
+        # rm commas
+        cleaned_date <- gsub(",", "", date_string)
 
-      parsed_date <- suppressWarnings(parse_date_time(
-        date_only,
-        orders = c("b d, Y", "b d Y", "mdy", "dmy", "ymd", "mdY")
-      ))
+        # rm all words not in the month list
+        cleaned_date <- gsub(paste0("\\b(?!(", paste(month_names, collapse = "|"), ")\\b)\\w+"), "", cleaned_date, perl = TRUE)
 
-      if (is.na(parsed_date)) return(NA)
-
-      as.character(as.Date(parsed_date))
-    }, error = function(e) {
-      return(NA)
-    })
-  })
+        return(cleaned_date)
+      }, error = function(e) {
+        return(NA)
+      })
+    }))
 
   return(dataframe)
 }

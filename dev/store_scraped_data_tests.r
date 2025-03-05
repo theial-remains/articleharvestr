@@ -8,6 +8,8 @@ library(xml2)
 library(httr)
 library(purrr)
 
+# THIS IS ALL OLDDDDDDDDDDD
+
 # test calls courtesy of chatgpt lol
 # Check if a CSV file exists for the website
 su_check_csv("https://www.huffpost.com",

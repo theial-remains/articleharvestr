@@ -27,9 +27,8 @@ toc()
 View(results)
 
 # step 3: clean dataframe
-words_to_remove <- c("By")
-results2 <- ss_clean_author(results, words_to_remove)
-View(results2) # TODO not done
+results2 <- ss_clean_author(results)
+View(results2) # WARNING: JANK AF
 
 results3 <- ss_clean_date(results2)
 View(results3)

@@ -4,7 +4,7 @@
 \alias{ss_clean_author}
 \title{Clean Author Names in Dataframe}
 \usage{
-ss_clean_author(dataframe, words_to_remove = c("By", "Byline"))
+ss_clean_author(dataframe, words_to_remove = c("By"))
 }
 \arguments{
 \item{dataframe}{A dataframe containing an "author" column.}
