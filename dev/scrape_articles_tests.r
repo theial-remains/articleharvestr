@@ -14,6 +14,18 @@ library(stringr)
 # CNN
 article_html1 <- sa_get_html("https://www.cnn.com/politics/live-news/trump-gaza-news-02-06-25/index.html")
 
+test_title <- sa_extract_title(article_html1)
+test_title
+
+test_author <- sa_extract_author(article_html1)
+test_author
+
+test_date <- sa_extract_date(article_html1)
+test_date
+
+test_text <- sa_extract_text(article_html1)
+test_text
+
 # huffpost
 article_html2 <- sa_get_html("https://www.huffpost.com/entry/emperor-penguin-gus-returned-sea-australia_n_6740d07be4b078cce4af287e")
 

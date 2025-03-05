@@ -13,5 +13,5 @@ gu_extract_sitemap_links(sitemap_url)
 A list containing extracted URLs and a string indicating format type ("xml" or "html").
 }
 \description{
-Fetches a sitemap, detects XML or HTML format, and extracts links accordingly.
+Fetches a sitemap, detects XML or HTML format, and extracts links.
 }

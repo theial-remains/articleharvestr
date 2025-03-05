@@ -1,8 +1,6 @@
-# gets list of links from article sitemap.xml
-
 #' Extract Links from a Sitemap (Supports XML and HTML)
 #'
-#' Fetches a sitemap, detects XML or HTML format, and extracts links accordingly.
+#' Fetches a sitemap, detects XML or HTML format, and extracts links.
 #'
 #' @param sitemap_url The URL of the sitemap.
 #' @return A list containing extracted URLs and a string indicating format type ("xml" or "html").
@@ -77,10 +75,10 @@ gu_filter_links_by_date <- function(links, level, start_date, end_date) {
 
     if (level == 2) {
       parsed_dates <- suppressWarnings(as.Date(paste0(extracted_dates, "-01"),
-                                                      format = "%Y-%m-%d"))
+                                               format = "%Y-%m-%d"))
     } else if (level == 3) {
       parsed_dates <- suppressWarnings(as.Date(paste0(extracted_dates, "-01-01"),
-                                                      format = "%Y-%m-%d"))
+                                               format = "%Y-%m-%d"))
     }
 
     links <- links[!is.na(parsed_dates) & parsed_dates >= start_date & parsed_dates <= end_date]
@@ -89,9 +87,9 @@ gu_filter_links_by_date <- function(links, level, start_date, end_date) {
   return(links)
 }
 
-#' Recursively Fetch Article URLs from Sitemap with Date Filtering
+#' Recursively Fetch Article URLs from Sitemap
 #'
-#' Extracts article URLs from a sitemap, filtering at each level and processing all valid sitemaps.
+#' Fetches article URLs from a sitemap, filtering at each level and processing all valid sitemaps.
 #'
 #' @param sitemap_url The URL of the sitemap.
 #' @param levels The number of levels in the sitemap (1 = days, 2 = months, 3 = years).

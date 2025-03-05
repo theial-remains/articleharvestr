@@ -75,21 +75,25 @@ sa_get_selectors <- function(url) {
 #' @return A character string representing the author's name or NA if not found.
 #' @import rvest
 #' @export
-sa_extract_author <- function(article_html, selector, tag) {
-  if (is.null(article_html) || is.null(selector) || selector == "") return(NA)
+sa_extract_author <- function(article_html, selector = NULL, tag = NULL) {
+  if (is.null(article_html)) return(NA)
 
   # selector
-  author_node <- article_html %>% html_node(selector)
+  if (!is.null(selector) && selector != "") {
+    author_node <- article_html %>% html_node(selector)
 
-  if (!is.null(author_node)) {
-    author_text <- if (tag == "text") {
-      author_node %>% html_text(trim = TRUE)
-    } else {
-      author_node %>% html_node(tag) %>% html_text(trim = TRUE)
-    }
+    if (!is.null(author_node)) {
+      author_text <- if (!is.null(tag) && tag == "text") {
+        author_node %>% html_text(trim = TRUE)
+      } else if (!is.null(tag)) {
+        author_node %>% html_node(tag) %>% html_text(trim = TRUE)
+      } else {
+        author_node %>% html_text(trim = TRUE) # Default case
+      }
 
-    if (!is.na(author_text) && author_text != "") {
-      return(gsub("^By\\s+", "", author_text))
+      if (!is.na(author_text) && author_text != "") {
+        return(author_text)
+      }
     }
   }
 
@@ -103,7 +107,7 @@ sa_extract_author <- function(article_html, selector, tag) {
   }
 
   byline_text <- article_html %>%
-    html_nodes(xpath = "//*[contains(@class, 'byline') or contains(@id, 'byline')]") %>%
+    html_nodes(xpath = "//*[contains(@class, 'byline') or contains(@id, 'byline') or contains(@class, 'byline_name')]") %>%
     html_text(trim = TRUE) %>%
     na.omit()
 
@@ -122,21 +126,23 @@ sa_extract_author <- function(article_html, selector, tag) {
 #' @return A character string representing the published date or NA if not found.
 #' @import rvest
 #' @export
-sa_extract_date <- function(article_html, selector, tag) {
-  if (is.null(article_html) || is.null(selector) || selector == "") return(NA)
+sa_extract_date <- function(article_html, selector = NULL, tag = NULL) {
+  if (is.null(article_html)) return(NA)
 
   # selector
-  date_node <- article_html %>% html_node(selector)
+  if (!is.null(selector) && selector != "") {
+    date_node <- article_html %>% html_node(selector)
 
-  if (!is.null(date_node)) {
-    date_text <- if (tag == "text") {
-      date_node %>% html_text(trim = TRUE)
-    } else {
-      date_node %>% html_attr(tag)
-    }
+    if (!is.null(date_node)) {
+      date_text <- if (tag == "text") {
+        date_node %>% html_text(trim = TRUE)
+      } else {
+        date_node %>% html_attr(tag)
+      }
 
-    if (!is.na(date_text) && date_text != "") {
-      return(date_text)
+      if (!is.na(date_text) && date_text != "") {
+        return(date_text)
+      }
     }
   }
 
@@ -168,21 +174,23 @@ sa_extract_date <- function(article_html, selector, tag) {
 #' @return A character string representing the article title or NA if not found.
 #' @import rvest
 #' @export
-sa_extract_title <- function(article_html, selector, tag) {
+sa_extract_title <- function(article_html, selector = NULL, tag = NULL) {
   if (is.null(article_html) || is.null(selector) || selector == "") return(NA)
 
   # selector
-  title_node <- article_html %>% html_node(selector)
+  if (!is.null(selector) && selector != "") {
+    title_node <- article_html %>% html_node(selector)
 
-  if (!is.null(title_node)) {
-    title_text <- if (tag == "text") {
-      title_node %>% html_text(trim = TRUE)
-    } else {
-      title_node %>% html_node(tag) %>% html_text(trim = TRUE)
-    }
+    if (!is.null(title_node)) {
+      title_text <- if (tag == "text") {
+        title_node %>% html_text(trim = TRUE)
+      } else {
+        title_node %>% html_node(tag) %>% html_text(trim = TRUE)
+      }
 
-    if (!is.na(title_text) && title_text != "") {
-      return(title_text)
+      if (!is.na(title_text) && title_text != "") {
+        return(title_text)
+      }
     }
   }
 
@@ -215,21 +223,23 @@ sa_extract_title <- function(article_html, selector, tag) {
 #' @return A character string representing the cleaned article text or NA if not found.
 #' @import rvest
 #' @export
-sa_extract_text <- function(article_html, selector, tag) {
+sa_extract_text <- function(article_html, selector = NULL, tag = NULL) {
   if (is.null(article_html) || is.null(selector) || selector == "") return(NA)
 
   # selector
-  text_nodes <- article_html %>% html_nodes(selector)
+  if (!is.null(selector) && selector != "") {
+    text_nodes <- article_html %>% html_nodes(selector)
 
-  if (length(text_nodes) > 0) {
-    article_text <- if (tag == "text") {
-      text_nodes %>% html_text(trim = TRUE) %>% paste(collapse = " ")
-    } else {
-      text_nodes %>% html_nodes(tag) %>% html_text(trim = TRUE) %>% paste(collapse = " ")
-    }
+    if (length(text_nodes) > 0) {
+      article_text <- if (tag == "text") {
+        text_nodes %>% html_text(trim = TRUE) %>% paste(collapse = " ")
+      } else {
+        text_nodes %>% html_nodes(tag) %>% html_text(trim = TRUE) %>% paste(collapse = " ")
+      }
 
-    if (!is.na(article_text) && article_text != "") {
-      return(article_text)
+      if (!is.na(article_text) && article_text != "") {
+        return(article_text)
+      }
     }
   }
 
@@ -248,11 +258,11 @@ sa_extract_text <- function(article_html, selector, tag) {
 #' Scrape and Extract Full Article Data
 #'
 #' @param article_url A character string representing the URL of the article.
-#' @param selectors A named list of CSS/XPath selectors and tags.
+#' @param selectors A named list of CSS/XPath selectors and tags (can be NULL).
 #' @return A data frame containing the article data.
 #' @import dplyr
 #' @export
-sa_get_article_data <- function(article_url, selectors) {
+sa_get_article_data <- function(article_url, selectors = NULL) {
   article_html <- sa_get_html(article_url)
 
   if (is.null(article_html)) {
@@ -266,19 +276,29 @@ sa_get_article_data <- function(article_url, selectors) {
     ))
   }
 
+  # make sure selectors exist, otherwise default to NULL for fallback
+  title_element <- if (!is.null(selectors)) selectors$title_element else NULL
+  title_tag <- if (!is.null(selectors)) selectors$title_tag else NULL
+  author_element <- if (!is.null(selectors)) selectors$author_element else NULL
+  author_tag <- if (!is.null(selectors)) selectors$author_tag else NULL
+  date_element <- if (!is.null(selectors)) selectors$date_element else NULL
+  date_tag <- if (!is.null(selectors)) selectors$date_tag else NULL
+  text_element <- if (!is.null(selectors)) selectors$text_element else NULL
+  text_tag <- if (!is.null(selectors)) selectors$text_tag else NULL
+
   df <- data.frame(
     url = article_url,
-    published_date = sa_extract_date(article_html, selectors$date_element, selectors$date_tag),
-    author = sa_extract_author(article_html, selectors$author_element, selectors$author_tag),
-    title = sa_extract_title(article_html, selectors$title_element, selectors$title_tag),
-    text = sa_extract_text(article_html, selectors$text_element, selectors$text_tag),
+    published_date = sa_extract_date(article_html, date_element, date_tag),
+    author = sa_extract_author(article_html, author_element, author_tag),
+    title = sa_extract_title(article_html, title_element, title_tag),
+    text = sa_extract_text(article_html, text_element, text_tag),
     stringsAsFactors = FALSE
   )
 
   return(df)
 }
 
-#' Scrape Multiple Articles Efficiently
+#' Scrape Multiple Articles
 #'
 #' @param article_urls A character vector containing multiple article URLs.
 #' @return A data frame where each row represents an article.
@@ -290,19 +310,25 @@ sa_scrape_articles <- function(article_urls) {
     stop("No URLs provided.")
   }
 
-  domains <- unique(stringr::str_extract(article_urls, "(?<=://)([^/]+)"))
-  domains <- gsub("^www\\.", "", domains)
+  domains <- unique(gsub("^www\\.", "", stringr::str_extract(article_urls, "(?<=://)([^/]+)")))
 
   domain_selectors <- setNames(
-    map(domains, function(domain) sa_get_selectors(domain) %||% NULL),
+    map(domains, function(domain) {
+      selectors <- sa_get_selectors(paste0("https://", domain))
+      return(selectors)
+    }),
     domains
   )
 
+  # process articles
   articles_df <- map_dfr(article_urls, function(url) {
     message("Scraping: ", url)
-    domain <- stringr::str_extract(url, "(?<=://)([^/]+)")
+
+    # get domain from URL
+    domain <- gsub("^www\\.", "", stringr::str_extract(url, "(?<=://)([^/]+)"))
     selectors <- domain_selectors[[domain]]
 
+    # use NULL selectors if none are found
     sa_get_article_data(url, selectors)
   })
 

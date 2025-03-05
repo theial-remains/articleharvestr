@@ -4,7 +4,7 @@
 \alias{sa_extract_title}
 \title{Extract Article Title}
 \usage{
-sa_extract_title(article_html, selector, tag)
+sa_extract_title(article_html, selector = NULL, tag = NULL)
 }
 \arguments{
 \item{article_html}{An rvest HTML document object.}

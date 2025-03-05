@@ -8,6 +8,6 @@
 #' @param article_text The text of the articles to analyze
 #' @return A data frame of sentiment scores
 run_sentiment_analysis <- function(article_text) {
-  # Placeholder: Function to run sentiment analysis
+  # Functions to run sentiment analysis
   # TODO: Implement sentiment analysis logic
 }
