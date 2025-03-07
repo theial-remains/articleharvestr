@@ -19,8 +19,8 @@ sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,
-                                          start_date = "2024-12-01",
-                                          end_date = "2024-12-01")
+                                          start_date = "2020-01-01",
+                                          end_date = "2020-02-01")
 
 # step 2: scrape articles and return a dataframe
 tic()
@@ -35,17 +35,21 @@ results2 <- ss_clean_author(results, words_to_change = words_to_change)
 View(results2)
 
 results3 <- ss_clean_date(results2)
-View(results3 %>% select(published_date, guessed_format, cleaned_date))
+colnames(results3)
 
 # store rows in author csvs in news site folder
+# TODO update for dev and package mode
 ss_store_articles(
   article_data = results3,
-  news_site = "huffpost",
-  folder_path = "inst/extdata/article_data/"
+  news_site = "huffpost"
 )
 
 # pull 100 random articles
-# TODO ss_pull_random_articles function not tested yet
+test_articles <- ss_pull_random_articles(
+  start_date = "2020-01-01",
+  end_date = "2024-02-01",
+  news_site = "huffpost"
+)
 
 # step 4: sentiment analysis
 
