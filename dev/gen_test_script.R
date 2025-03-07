@@ -21,31 +21,30 @@ sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 tic()
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,
-                                          start_date = "2024-01-01",
-                                          end_date = "2025-01-01")
+                                          start_date = "2016-01-01",
+                                          end_date = "2016-01-01")
 toc()
-
-article_urls2 <- sample(article_urls, 100)
 
 # step 2: scrape articles and return a dataframe
 tic()
-results <- sa_scrape_articles(article_urls2)
+results <- sa_scrape_articles(article_urls)
 toc()
 
 # step 3: clean dataframe
 words_to_change <- c("and" = ",")
 results2 <- ss_clean_author(results, words_to_change = words_to_change)
 
-results3 <- ss_clean_date(results2)
-sum(is.na(results3$published_date))
+results3 <- ss_clean_date(results2) %>%
+  na.omit()
 View(results3)
 
 # store articles
 # TODO update for dev and package mode
 ss_store_articles(
   article_data = results3,
-  news_site = "huffpost"
-) # TODO add an option to override
+  news_site = "huffpost",
+  overwrite = FALSE
+)
 
 # pull random articles
 test_articles <- ss_pull_random_articles(
@@ -63,4 +62,4 @@ View(test_articles)
 
 
 
-# step 5: sentiment analysis data storage
+# step 5: sentiment analysis data storage seperately

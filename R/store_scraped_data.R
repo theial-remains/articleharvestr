@@ -45,7 +45,7 @@ ss_clean_date <- function(dataframe) {
     return(as.character(parsed_date))
   })
 
-  dataframe$published_date <- as.Date(dataframe$published_date)
+  dataframe$published_date <- as.character(dataframe$published_date)
 
   dataframe <- dataframe %>%
     select(url, published_date, author, title, text)
@@ -101,58 +101,64 @@ ss_clean_author <- function(dataframe,
 #' Store and Append Articles for Any News Site
 #'
 #' This function creates the CSV if it doesn't exist and appends new articles to it,
-#' ensuring no duplicate URLs are added.
+#' ensuring no duplicate URLs are added. If `overwrite = TRUE`, it replaces articles
+#' with matching URLs instead of adding duplicates.
 #'
 #' @param article_data A data frame with columns: url, title, author, published_date, text.
 #' @param news_site The name of the news site (e.g., "huffpost").
 #' @param folder_path Directory for storing CSV files.
+#' @param overwrite TRUE or FALSE, option to overwrite existing articles with the same URL.
 #' @return The full path of the updated CSV.
 #' @import dplyr
 #' @export
 ss_store_articles <- function(article_data,
                               news_site,
-                              folder_path = "inst/extdata/article_data/") {
+                              folder_path = "inst/extdata/article_data/",
+                              overwrite = FALSE) {
   if (!dir.exists(folder_path)) {
     dir.create(folder_path, recursive = TRUE)
   }
 
   required_columns <- c("url", "title", "author", "published_date", "text")
   if (!all(required_columns %in% names(article_data))) {
-    stop("Input data frame must contain: ",
-    paste(required_columns, collapse = ", "))
+    stop("Input data frame must contain: ", paste(required_columns, collapse = ", "))
   }
 
   file_path <- file.path(folder_path, paste0(news_site, ".csv"))
 
-  existing_data <- NULL
-
-  # check if the CSV file exists
   if (file.exists(file_path)) {
     existing_data <- read.csv(file_path, stringsAsFactors = FALSE)
 
-    # if existing data is empty, write all articles
+    # if CSV exists but is empty, write all new articles
     if (nrow(existing_data) == 0) {
       combined_data <- article_data
       message("Existing CSV was empty. Writing all articles.")
     } else {
-      # if there is data, only append new articles
-      new_articles <- subset(article_data, !url %in% existing_data$url)
+      if (overwrite) {
+        # rm old versions of articles that exist in new data
+        existing_data <- existing_data[!(existing_data$url %in% article_data$url), ]
+        message("Overwrite is TRUE. Replacing articles with matching URLs.")
+      }
 
-      if (nrow(new_articles) == 0) {
+      # add new articles
+      new_articles <- subset(article_data, !article_data$url %in% existing_data$url)
+
+      if (nrow(new_articles) == 0 && !overwrite) {
         message("No new articles to add.")
         return(file_path)
       }
 
-      combined_data <- rbind(existing_data, new_articles)
+      combined_data <- rbind(existing_data, article_data)
     }
   } else {
-    # if no file exists, store all articles in a new file
+    # if no file exists, make one
     combined_data <- article_data
     message("No existing CSV found. Creating CSV. Writing all articles.")
   }
 
   write.csv(combined_data, file_path, row.names = FALSE)
-  message(nrow(combined_data) - nrow(existing_data), " new articles added.")
+  message(nrow(combined_data) - ifelse(exists("existing_data") && !is.null(existing_data), nrow(existing_data), 0),
+          " articles added or updated.")
 
   return(file_path)
 }
