@@ -6,6 +6,7 @@ devtools::load_all()
 devtools::document()
 
 library(tictoc)
+library(stringr)
 
 # done for huffpost:
 # scrape_articles done
@@ -18,7 +19,7 @@ sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,
                                           start_date = "2024-12-01",
-                                          end_date = "2024-12-03")
+                                          end_date = "2024-12-01")
 
 # step 2: scrape articles and return a dataframe
 tic()
@@ -27,11 +28,21 @@ toc()
 View(results)
 
 # step 3: clean dataframe
-results2 <- ss_clean_author(results)
-View(results2) # WARNING: JANK AF
-
-results3 <- ss_clean_dates(results2)
-View(results3) # I give up
+words_to_remove <- c("trends",
+                     "associate",
+                     "senior",
+                     "reporter",
+                     "huff",
+                     "post",
+                     "trends",
+                     "editor",
+                     "shopping",
+                     "for",
+                     "on",
+                     "at",
+                     "assignment")
+results2 <- ss_clean_dates(results)
+View(results2)
 
 
 # store rows in author csvs in news site folder

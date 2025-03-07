@@ -1,4 +1,3 @@
 website,title_element,title_tag,author_element,author_tag,date_element,date_tag,text_element,text_tag
-huffpost.com,.headline,text,.entry__byline__author,a,time,text,.entry__content p,text
+huffpost.com,.headline,text,.entry__byline__author a,data-vars-item-name,time,text,.entry__content p,text
 nytimes.com,h1,text,.css-1baulvz,span,"meta[name=""article:published_time""]",content,.css-53u6y8 p,text
-,,,,,,,,

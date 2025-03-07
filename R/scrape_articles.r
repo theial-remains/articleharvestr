@@ -85,12 +85,9 @@ sa_extract_author <- function(article_html, selector = NULL, tag = NULL) {
     if (!is.null(author_node)) {
       author_text <- if (!is.null(tag) && tag == "text") {
         author_node %>% html_text(trim = TRUE)
-      } else if (!is.null(tag)) {
-        author_node %>% html_node(tag) %>% html_text(trim = TRUE)
       } else {
-        author_node %>% html_text(trim = TRUE) # Default case
+        author_node %>% html_attr(tag)
       }
-
       if (!is.na(author_text) && author_text != "") {
         return(author_text)
       }

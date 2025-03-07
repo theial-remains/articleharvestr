@@ -27,20 +27,17 @@ test_text <- sa_extract_text(article_html1)
 test_text
 
 # huffpost
-article_html2 <- sa_get_html("https://www.huffpost.com/entry/emperor-penguin-gus-returned-sea-australia_n_6740d07be4b078cce4af287e")
+article_html2 <- sa_get_html("https://www.huffpost.com/entry/ellen-degeneres-20th-anniversary-wife-portia-de-rossi_n_674cd7fee4b09da02dde3f2c")
 
-# NBC
-article_html3 <- sa_get_html("https://www.nbcnews.com/news/us-news/anxiety-mounts-us-government-workers-face-buyout-deadline-rcna190987")
-
-# individual tests
 sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 selectors <- sa_get_selectors(sitemap_url)
-
-test_title <- sa_extract_title(article_html2, selectors$title_element, selectors$title_tag)
-test_title
+selectors
 
 test_author <- sa_extract_author(article_html2, selectors$author_element, selectors$author_tag)
 test_author
+
+test_title <- sa_extract_title(article_html2, selectors$title_element, selectors$title_tag)
+test_title
 
 test_date <- sa_extract_date(article_html2, selectors$date_element, selectors$date_tag)
 test_date
