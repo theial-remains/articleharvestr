@@ -21,8 +21,8 @@ sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 tic()
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,
-                                          start_date = "2016-01-01",
-                                          end_date = "2016-01-01")
+                                          start_date = "2024-01-01",
+                                          end_date = "2024-01-05")
 toc()
 
 # step 2: scrape articles and return a dataframe
@@ -46,15 +46,8 @@ ss_store_articles(
   overwrite = FALSE
 )
 
-# pull random articles
-test_articles <- ss_pull_random_articles(
-  start_date = "2021-01-01",
-  end_date = "2021-01-03",
-  news_site = "huffpost",
-  num_articles = 10)
-View(test_articles)
-
 # step 4: sentiment analysis
+
 
 # sentiment, random error of sentiment, by author, date, both
 # visualize sentiment over time
