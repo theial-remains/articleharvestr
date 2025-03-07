@@ -22,7 +22,7 @@ ss_clean_date <- function(dataframe) {
     }
 
     # rm time zones
-    clean_date_string <- gsub("( EST| PST| CST| UTC| GMT| Z)$", "", date_string)
+    clean_date_string <- gsub("( EST| EDT| PDT| CDT| PST| CST| UTC| GMT| Z)$", "", date_string)
 
     # guess formats
     possible_formats <- guess_formats(clean_date_string, orders = c(
