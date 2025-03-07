@@ -7,6 +7,7 @@ devtools::document()
 
 library(tictoc)
 library(stringr)
+library(lubridate)
 
 # done for huffpost:
 # scrape_articles done
@@ -28,22 +29,13 @@ toc()
 View(results)
 
 # step 3: clean dataframe
-words_to_remove <- c("trends",
-                     "associate",
-                     "senior",
-                     "reporter",
-                     "huff",
-                     "post",
-                     "trends",
-                     "editor",
-                     "shopping",
-                     "for",
-                     "on",
-                     "at",
-                     "assignment")
-results2 <- ss_clean_dates(results)
+words_to_change <- c("and" = ",")
+
+results2 <- ss_clean_author(results, words_to_change = words_to_change)
 View(results2)
 
+results3 <- ss_clean_date(results2)
+View(results3 %>% select(published_date, guessed_format, cleaned_date))
 
 # store rows in author csvs in news site folder
 ss_store_articles(

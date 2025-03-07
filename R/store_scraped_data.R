@@ -1,36 +1,91 @@
+#' Clean Published Dates in Dataframe
+#'
+#' Detects the format of each date and converts it to "YYYY-MM-DD".
+#'
+#' @param dataframe A dataframe containing a "published_date" column.
+#' @return The same dataframe with additional columns: "guessed_format" and "cleaned_date".
+#' @import lubridate
+#' @export
+ss_clean_date <- function(dataframe) {
+  if (!"published_date" %in% names(dataframe)) {
+    stop("Error: Dataframe must contain a 'published_date' column.")
+  }
+
+  dataframe$published_date <- as.character(dataframe$published_date)
+
+  results <- t(sapply(dataframe$published_date, function(date_string) {
+    if (is.na(date_string) || date_string == "") return(c(NA, NA))
+
+    # rm time zones
+    clean_date_string <- gsub("( EST| PST| CST| UTC| GMT| Z)$", "", date_string)
+
+    # guess possible formats
+    possible_formats <- guess_formats(clean_date_string, orders = c(
+      "ymd", "mdy", "dmy", "Ymd HMS", "mdy HMS", "dmy HMS",
+      "Y-m-d H:M:S", "b d Y", "b d, Y H:M p", "b d, Y"
+    ))
+
+    if (length(possible_formats) == 0) return(c("No format detected", NA))
+
+    format_string <- paste(possible_formats, collapse = "; ")
+
+    # parse the date with the first guessed format
+    parsed_date <- tryCatch({
+      as.Date(parse_date_time(clean_date_string, orders = possible_formats))
+    }, error = function(e) {
+      return(NA)
+    })
+
+    return(c(format_string, as.character(parsed_date)))
+  }))
+
+  dataframe$guessed_format <- results[, 1]
+  dataframe$cleaned_date <- results[, 2]
+
+  return(dataframe)
+}
+
 #' Clean Author Names in Dataframe
 #'
-#' Removes specified words (case-insensitive) from author names and trims whitespace.
-#' Splits words if they are incorrectly combined (e.g., "VeraSenior" → "Vera Senior").
-#' Keeps only the first two words of the author's name.
-#' Converts all names to lowercase for consistency.
-#' Removes spaces before the first word.
+#' Splits words if they are incorrectly combined (e.g., "AliceJohnson" → "Alice Johnson").
+#' Converts all names to lowercase.
+#' Uses str_replace_all to remove unwanted words and replace specific words.
 #'
 #' @param dataframe A dataframe containing an "author" column.
-#' @param words_to_remove A character vector of words/phrases to remove from author names (case-insensitive).
+#' @param words_to_remove A character vector of words to remove from author names (case-insensitive).
+#' @param words_to_change A named vector where keys are words to find and values are replacements.
 #' @return The same dataframe with a cleaned "author" column.
+#' @import stringr
 #' @export
-ss_clean_author <- function(dataframe, words_to_remove = c("By")) {
+ss_clean_author <- function(dataframe,
+                            words_to_remove = c(),
+                            words_to_change = c()) {
   if (!"author" %in% names(dataframe)) {
     stop("Error: Dataframe must contain an 'author' column.")
   }
 
   dataframe$author <- as.character(dataframe$author)
-  pattern <- paste0("\\b(", paste(words_to_remove, collapse = "|"), ")\\b\\s*", collapse = "|")
 
-  dataframe$author <- ifelse(
-    is.na(dataframe$author) | dataframe$author == "",
-    NA,
-    gsub(pattern, "", dataframe$author, ignore.case = TRUE, perl = TRUE)
-  )
+  # split joined words
+  dataframe$author <- gsub("([a-z])([A-Z])", "\\1 \\2",
+                           dataframe$author,
+                           perl = TRUE)
 
-  dataframe$author <- gsub("([a-z])([A-Z])", "\\1 \\2", dataframe$author, perl = TRUE) # split joined words
-  dataframe$author <- gsub("[^a-zA-Z\\s]", " ", dataframe$author, perl = TRUE) # replace non-letter characters with space
-  dataframe$author <- gsub("\\s+", " ", dataframe$author, perl = TRUE) # rm extra spaces
-  dataframe$author <- tolower(dataframe$author) # convert to lowercase
-  dataframe$author <- gsub("^\\s+|\\s+$", "", dataframe$author) # trim leading and trailing spaces
+  # lowercase
+  dataframe$author <- tolower(dataframe$author)
+
+  # rm and replace specified words with str_replace_all
+  if (length(words_to_remove) > 0) {
+  words_to_remove <- setNames(rep("", length(words_to_remove)), words_to_remove)
+  dataframe$author <- str_replace_all(dataframe$author, words_to_remove)
+  }
+
+  if (length(words_to_change) > 0) {
+    dataframe$author <- str_replace_all(dataframe$author, regex(names(words_to_change), ignore_case = TRUE), words_to_change)
+  }
+
+  # trim leading and trailing spaces
   dataframe$author <- trimws(dataframe$author)
-  dataframe$author <- gsub("[\u00A0\u2000-\u200B]+", " ", dataframe$author, perl = TRUE)
 
   return(dataframe)
 }
