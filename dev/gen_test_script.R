@@ -47,8 +47,6 @@ ss_store_articles(
 )
 
 # step 4: sentiment analysis
-
-
 # sentiment, random error of sentiment, by author, date, both
 # visualize sentiment over time
 

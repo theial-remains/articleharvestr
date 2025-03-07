@@ -7,7 +7,8 @@
 ss_store_articles(
   article_data,
   news_site,
-  folder_path = "inst/extdata/article_data/"
+  folder_path = "inst/extdata/article_data/",
+  overwrite = FALSE
 )
 }
 \arguments{
@@ -16,11 +17,14 @@ ss_store_articles(
 \item{news_site}{The name of the news site (e.g., "huffpost").}
 
 \item{folder_path}{Directory for storing CSV files.}
+
+\item{overwrite}{TRUE or FALSE, option to overwrite existing articles with the same URL.}
 }
 \value{
 The full path of the updated CSV.
 }
 \description{
 This function creates the CSV if it doesn't exist and appends new articles to it,
-ensuring no duplicate URLs are added.
+ensuring no duplicate URLs are added. If \code{overwrite = TRUE}, it replaces articles
+with matching URLs instead of adding duplicates.
 }

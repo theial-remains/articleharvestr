@@ -10,7 +10,7 @@ ss_clean_date(dataframe)
 \item{dataframe}{A dataframe containing a "published_date" column.}
 }
 \value{
-The same dataframe with additional columns: "guessed_format" and "cleaned_date".
+The same dataframe with "published_date" cleaned to "YYYY-MM-DD".
 }
 \description{
 Detects the format of each date and converts it to "YYYY-MM-DD".
