@@ -19,23 +19,31 @@ sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,
-                                          start_date = "2020-01-01",
-                                          end_date = "2020-02-01")
+                                          start_date = "2021-01-01",
+                                          end_date = "2021-01-01")
+# 264.06 sec elapsed for "2020-01-01" to "2020-02-01", 1mo
 
 # step 2: scrape articles and return a dataframe
 tic()
 results <- sa_scrape_articles(article_urls)
 toc()
-View(results)
+
+results_nona <- results %>%
+  filter(!(is.na(author) & is.na(published_date) & is.na(text) & is.na(title)))
+
+sum(is.na(results_nona$author))
+sum(is.na(results_nona$published_date))
+sum(is.na(results_nona$text))
+sum(is.na(results_nona$title))
+
 
 # step 3: clean dataframe
 words_to_change <- c("and" = ",")
 
 results2 <- ss_clean_author(results, words_to_change = words_to_change)
-View(results2)
 
 results3 <- ss_clean_date(results2)
-colnames(results3)
+sum(is.na(results_nona$published_date))
 
 # store rows in author csvs in news site folder
 # TODO update for dev and package mode
@@ -52,5 +60,6 @@ test_articles <- ss_pull_random_articles(
 )
 
 # step 4: sentiment analysis
+
 
 # step 5: sentiment analysis data storage

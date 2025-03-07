@@ -199,6 +199,7 @@ ss_pull_random_articles <- function(start_date,
   }
 
   filtered_data <- subset(data, published_date >= as.Date(start_date) & published_date <= as.Date(end_date))
+  filtered_data <- na.omit(filtered_data)
 
   # check if there are articles in the range
   if (nrow(filtered_data) == 0) {
