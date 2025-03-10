@@ -45,9 +45,9 @@ ss_store_articles(
 )
 
 # step 4: sentiment analysis
-# pull articles
-test_df <- ss_pull_articles(start_date = "2024-03-01",
-                            end_date = "2024-03-05",
+# pull articles if you need to
+test_df <- ss_pull_articles(start_date = "2024-01-01",
+                            end_date = "2024-01-05",
                             news_site = "huffpost")
 View(test_df)
 
@@ -57,16 +57,17 @@ sentiment_df <- as_article_sentiment(test_df)
 toc()
 View(sentiment_df)
 
-# get sentiment for author, date, or both
-# gets sentiment and sd for articles using as_article_sentiment
-# only if cols are not there or not filled
-# then uses sentimentr to get sentiment by groupings of author, date, or both
-
-
-
 # step 5: sentiment analysis data storage
 ss_store_articles(
-  article_data = sentiment_df2,
+  article_data = sentiment_df,
   news_site = "huffpost",
   overwrite = TRUE
 )
+
+
+# TODO IT NO WORK :(((
+# get sentiment for author, date, or both
+tic()
+sentiment_df_grouped <- as_sentiment_grouped(test_df, group_by = "both")
+toc()
+View(sentiment_df_grouped) # dont try to store this in the csv

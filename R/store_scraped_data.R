@@ -98,109 +98,13 @@ ss_clean_author <- function(dataframe,
   return(dataframe)
 }
 
-#' Store and Append Articles for Any News Site
-#'
-#' This function creates the CSV if it doesn't exist and appends new articles to it,
-#' ensuring no duplicate URLs are added. If `overwrite = TRUE`, it replaces articles
-#' with matching URLs instead of adding duplicates.
-#'
-#' @param article_data A data frame with columns: url, title, author, published_date, text.
-#' @param news_site The name of the news site (e.g., "huffpost").
-#' @param folder_path Directory for storing CSV files. Defaults to correct path based on mode.
-#' @param overwrite TRUE or FALSE, option to overwrite existing articles with the same URL.
-#' @return The full path of the updated CSV.
-#' @import dplyr
-#' @export
-ss_store_articles <- function(article_data,
-                              news_site,
-                              folder_path = NULL,
-                              overwrite = FALSE) {
-  if (is.null(folder_path)) {
-    # detect whether running in dev mode or installed package mode
-    dev_mode <- !nzchar(system.file(package = "articleharvestr"))
-
-    if (dev_mode) {
-      folder_path <- "inst/extdata/article_data/"
-      message("Running in development mode. Using local storage path.")
-    } else {
-      folder_path <- system.file("extdata", "article_data", package = "articleharvestr")
-      message("Running in installed package mode. Using system storage path.")
-    }
-  }
-
-  if (!dir.exists(folder_path)) {
-    dir.create(folder_path, recursive = TRUE)
-  }
-
-  required_columns <- c("url", "title", "author", "published_date", "text")
-  if (!all(required_columns %in% names(article_data))) {
-    stop("Input data frame must contain: ", paste(required_columns, collapse = ", "))
-  }
-
-  # if sentiment_val and sentiment_sd columns DNE in input data, cols are NA
-  if (!"sentiment_val" %in% names(article_data)) {
-    article_data$sentiment_val <- NA
-  }
-  if (!"sentiment_sd" %in% names(article_data)) {
-    article_data$sentiment_sd <- NA
-  }
-
-  file_path <- file.path(folder_path, paste0(news_site, ".csv"))
-
-  if (file.exists(file_path)) {
-    existing_data <- read.csv(file_path, stringsAsFactors = FALSE)
-
-    # make sure sentiment_val and sentiment_sd columns exist in existing data
-    if (!"sentiment_val" %in% names(existing_data)) {
-      existing_data$sentiment_val <- NA
-    }
-    if (!"sentiment_sd" %in% names(existing_data)) {
-      existing_data$sentiment_sd <- NA
-    }
-
-    # if CSV exists but is empty, write all new articles
-    if (nrow(existing_data) == 0) {
-      combined_data <- article_data
-      message("Existing CSV was empty. Writing all articles.")
-    } else {
-      if (overwrite) {
-        existing_data <- existing_data[!(existing_data$url %in% article_data$url), ]
-        message("Overwrite is TRUE. Replacing articles with matching URLs.")
-      }
-
-      # find new articles
-      new_articles <- subset(article_data, !article_data$url %in% existing_data$url)
-
-      if (nrow(new_articles) == 0 && !overwrite) {
-        message("No new articles to add.")
-        return(file_path)
-      }
-
-      combined_data <- bind_rows(existing_data, new_articles)
-    }
-  } else {
-    combined_data <- article_data
-    message("No existing CSV found. Creating CSV. Writing all articles.")
-  }
-
-  # column order is consistent?
-  final_columns <- c("url", "title", "author", "published_date", "text", "sentiment_val", "sentiment_sd")
-  combined_data <- combined_data[, final_columns, drop = FALSE]
-
-  write.csv(combined_data, file_path, row.names = FALSE)
-  message(nrow(combined_data) - ifelse(exists("existing_data") && !is.null(existing_data), nrow(existing_data), 0),
-          " articles added or updated.")
-
-  return(file_path)
-}
-
 #' Pull Articles from a News Site
 #'
 #' Retrieves articles from a CSV for a given date range.
 #'
-#' @param start_date The start date (YYYY-MM-DD).
-#' @param end_date The end date (YYYY-MM-DD).
-#' @param ran_articles Number of random articles to sample. If NULL, returns all articles (default: NULL).
+#' @param start_date The start date in YYYY-MM-DD format.
+#' @param end_date The end date in YYYY-MM-DD format.
+#' @param ran_articles The number of random articles to sample. If NULL, returns all articles (default: NULL).
 #' @param news_site The name of the news site (e.g., "huffpost").
 #' @return A data frame containing the selected articles or an error message if conditions are not met.
 #' @import dplyr
@@ -210,8 +114,6 @@ ss_pull_articles <- function(start_date,
                              end_date,
                              ran_articles = NULL,
                              news_site) {
-
-  # dev mode path
   dev_mode <- !nzchar(system.file(package = "articleharvestr"))
   folder_path <- if (dev_mode) "inst/extdata/article_data/" else system.file("extdata", "article_data", package = "articleharvestr")
 
@@ -221,7 +123,6 @@ ss_pull_articles <- function(start_date,
     stop("Error: No article data found for ", news_site, ". Please store data first.")
   }
 
-  # read CSV
   data <- read.csv(file_path, stringsAsFactors = FALSE)
   data$published_date <- as.Date(data$published_date, format = "%m/%d/%Y")
 
@@ -229,14 +130,12 @@ ss_pull_articles <- function(start_date,
     stop("Error: The dataset is empty.")
   }
 
-  # get unique available dates
   available_dates <- sort(unique(na.omit(data$published_date)))
 
   if (length(available_dates) == 0) {
     stop("Error: No valid dates found in the dataset.")
   }
 
-  # get available date ranges
   breaks <- c(1, diff(available_dates) > 1)
   range_indices <- cumsum(breaks)
   available_ranges <- split(available_dates, range_indices)
@@ -245,7 +144,6 @@ ss_pull_articles <- function(start_date,
     return(paste(min(x), "to", max(x)))
   })
 
-  # check if requested range is in available ranges
   requested_dates <- seq(as.Date(start_date), as.Date(end_date), by = "day")
   covered_dates <- unlist(available_ranges)
 
@@ -255,31 +153,12 @@ ss_pull_articles <- function(start_date,
     stop(paste0("Error: The requested date range is outside available data. Available ranges: ", paste(formatted_ranges, collapse = ", ")))
   }
 
-  # filter data to within requested range
   filtered_data <- subset(data, published_date >= as.Date(start_date) & published_date <= as.Date(end_date))
-  filtered_data <- na.omit(filtered_data)
 
   if (nrow(filtered_data) == 0) {
     stop("Error: No articles found in the given date range.")
   }
 
-  # detect missing days in requested range
-  missing_dates <- setdiff(requested_dates, covered_dates)
-
-  if (length(missing_dates) > 0) {
-    missing_gaps <- c(1, diff(missing_dates) > 1)
-    missing_range_indices <- cumsum(missing_gaps)
-    missing_ranges <- split(missing_dates, missing_range_indices)
-
-    formatted_missing_ranges <- sapply(missing_ranges, function(x) {
-      if (length(x) == 1) return(as.character(x))
-      return(paste(min(x), "to", max(x)))
-    })
-
-    message("Warning: The following dates have missing articles: ", paste(formatted_missing_ranges, collapse = ", "))
-  }
-
-  # get random articles if ran_articles not NULL
   if (!is.null(ran_articles)) {
     if (nrow(filtered_data) < ran_articles) {
       stop(paste0("Error: Only ", nrow(filtered_data), " articles available. Requested ", ran_articles, "."))
@@ -289,3 +168,5 @@ ss_pull_articles <- function(start_date,
 
   return(filtered_data)
 }
+
+

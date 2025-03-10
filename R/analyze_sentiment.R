@@ -30,30 +30,48 @@ as_article_sentiment <- function(dataframe) {
     left_join(sentiment_results %>% select(row_id, ave_sentiment, sd), by = "row_id") %>%
     mutate(sentiment_val = ifelse(is.na(ave_sentiment), NA, ave_sentiment),
            sentiment_sd = ifelse(is.na(sd), NA, sd)) %>%
-    select(-row_id, -word_count, -ave_sentiment, -sd)
+    select(-row_id, -word_count, -ave_sentiment, -sd) %>%
+    mutate(published_date = as.character(published_date))
 
   return(dataframe)
 }
 
-
-
-
-# TODO PLACEHOLDER
-#' Perform sentiment analysis on scraped articles
+#' Perform Sentiment Analysis Grouped by Author, Date, or Both
 #'
-#' @param article_text The text of the articles to analyze
-#' @return A data frame of sentiment scores
-as_sentiment_grouped <- function(article_text) {
-  # Functions to run sentiment analysis
-  # TODO: Implement sentiment analysis logic
-}
-
-# TODO PLACEHOLDER
-#' Perform sentiment analysis on scraped articles
+#' Computes sentiment for articles if not already done, then calculates
+#' sentiment averages grouped by author, date, or both.
 #'
-#' @param article_text The text of the articles to analyze
-#' @return A data frame of sentiment scores
-run_sentiment_analysis <- function(article_text) {
-  # Functions to run sentiment analysis
-  # TODO: Implement sentiment analysis logic
+#' @param dataframe A data frame containing article text, author, and published_date.
+#' @param group_by Character: "author", "date", or "both" (default: "both").
+#' @return A data frame with sentiment scores grouped as specified.
+#' @import sentimentr
+#' @import dplyr
+#' @import lubridate
+#' @export
+as_sentiment_grouped <- function(dataframe, group_by = "both") {
+  if (!all(c("text", "author", "published_date") %in% names(dataframe))) {
+    stop("Error: Dataframe must contain 'text', 'author', and 'published_date' columns.")
+  }
+
+  if (!"sentiment_val" %in% names(dataframe) || all(is.na(dataframe$sentiment_val))) {
+    message("Computing sentiment scores for articles...")
+    dataframe <- as_article_sentiment(dataframe)
+  }
+
+  dataframe$published_date <- as.Date(dataframe$published_date)
+
+  if (group_by == "author") {
+    group_vars <- "author"
+  } else if (group_by == "date") {
+    group_vars <- "published_date"
+  } else if (group_by == "both") {
+    group_vars <- c("author", "published_date")
+  } else {
+    stop("Error: 'group_by' must be 'author', 'date', or 'both'.")
+  }
+
+  sentiment_grouped <- dataframe %>%
+    sentiment_by(get_sentences(text), list(!!!syms(group_vars)))
+
+  return(sentiment_grouped)
 }
