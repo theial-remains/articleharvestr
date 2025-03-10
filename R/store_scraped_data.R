@@ -218,31 +218,28 @@ ss_pull_articles <- function(start_date,
     stop("Error: No article data found for ", news_site, ". Please store data first.")
   }
 
-  message("📄 Reading CSV file...")
   data <- read.csv(file_path, stringsAsFactors = FALSE)
 
-  message("📅 Checking `published_date` column BEFORE conversion:")
-  print(head(data$published_date))  # See raw date format
+  # message("Checking `published_date` column BEFORE conversion:")
+  # print(head(data$published_date)) # error checking
 
-  message("📊 Checking data structure:")
-  print(str(data$published_date))  # Check if it's character, factor, or already date
+  # message("Checking data structure:")
+  # print(str(data$published_date)) # error checking
 
-  # Ensure `published_date` is correctly formatted
   if (!inherits(data$published_date, "Date")) {
-    # Try different formats in order of likelihood
     date_formats <- c("%Y-%m-%d", "%m/%d/%Y", "%d-%m-%Y")
     for (fmt in date_formats) {
       converted_dates <- as.Date(data$published_date, format = fmt)
       if (sum(!is.na(converted_dates)) > 0) {
         data$published_date <- converted_dates
-        message("✅ Successfully converted `published_date` using format: ", fmt)
+        message("Successfully converted `published_date` using format: ", fmt)
         break
       }
     }
   }
 
-  message("✅ `published_date` column after conversion:")
-  print(head(data$published_date))
+  # message("`published_date` column after conversion:")
+  # print(head(data$published_date))
 
   if (nrow(data) == 0) {
     stop("Error: The dataset is empty.")
@@ -262,7 +259,7 @@ ss_pull_articles <- function(start_date,
     return(paste(min(x), "to", max(x)))
   })
 
-  message("📊 Available date ranges: ", paste(formatted_ranges, collapse = ", "))
+  # message("Available date ranges: ", paste(formatted_ranges, collapse = ", "))
 
   requested_dates <- seq(as.Date(start_date), as.Date(end_date), by = "day")
   covered_dates <- unlist(available_ranges)
@@ -273,10 +270,10 @@ ss_pull_articles <- function(start_date,
     stop(paste0("Error: The requested date range is outside available data. Available ranges: ", paste(formatted_ranges, collapse = ", ")))
   }
 
-  message("🔎 Filtering data for requested date range...")
+  # message("Filtering data for requested date range...")
   filtered_data <- subset(data, published_date >= as.Date(start_date) & published_date <= as.Date(end_date))
 
-  message("✅ Number of rows after filtering: ", nrow(filtered_data))
+  # message("Number of rows after filtering: ", nrow(filtered_data))
 
   if (nrow(filtered_data) == 0) {
     stop("Error: No articles found in the given date range.")

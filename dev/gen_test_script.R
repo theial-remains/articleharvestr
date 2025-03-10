@@ -65,8 +65,8 @@ ss_store_articles(
 
 # pull articles with new data added
 test_df2 <- ss_pull_articles(start_date = "2024-03-01",
-                            end_date = "2024-03-05",
-                            news_site = "huffpost")
+                             end_date = "2024-03-05",
+                             news_site = "huffpost")
 View(test_df2)
 
 
