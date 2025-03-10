@@ -44,7 +44,6 @@ ss_store_articles(
   overwrite = FALSE
 )
 
-
 # step 4: sentiment analysis
 # pull articles if you need to
 test_df <- ss_pull_articles(start_date = "2024-03-01",
