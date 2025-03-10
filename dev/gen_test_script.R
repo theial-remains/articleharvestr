@@ -51,9 +51,19 @@ test_df <- ss_pull_articles(start_date = "2024-03-01",
 View(test_df)
 
 # sentiment, random error of sentiment, by author, date, both
+
+# function to get sentiment of articles on article level
+
+# function to
+
 # visualize sentiment over time
 
 
 
 
-# step 5: sentiment analysis data storage seperately
+# step 5: sentiment analysis data storage
+ss_store_articles(
+  article_data = sentiment_df2,
+  news_site = "huffpost",
+  overwrite = TRUE
+)
