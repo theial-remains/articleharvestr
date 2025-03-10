@@ -2,16 +2,16 @@
 % Please edit documentation in R/analyze_sentiment.R
 \name{as_article_sentiment}
 \alias{as_article_sentiment}
-\title{Perform sentiment analysis on scraped articles}
+\title{Perform Sentiment Analysis on Articles (Optimized & Fixed)}
 \usage{
-as_article_sentiment(article_text)
+as_article_sentiment(dataframe)
 }
 \arguments{
-\item{article_text}{The text of the articles to analyze}
+\item{dataframe}{A data frame with a "text" column containing article text.}
 }
 \value{
-A data frame of sentiment scores
+The same data frame with additional columns: "sentiment_val" and "sentiment_sd".
 }
 \description{
-Perform sentiment analysis on scraped articles
+Perform Sentiment Analysis on Articles (Optimized & Fixed)
 }

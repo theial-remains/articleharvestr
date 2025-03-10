@@ -2,16 +2,19 @@
 % Please edit documentation in R/analyze_sentiment.R
 \name{as_sentiment_grouped}
 \alias{as_sentiment_grouped}
-\title{Perform sentiment analysis on scraped articles}
+\title{Perform Sentiment Analysis Grouped by Author, Date, or Both}
 \usage{
-as_sentiment_grouped(article_text)
+as_sentiment_grouped(dataframe, group_by = "both")
 }
 \arguments{
-\item{article_text}{The text of the articles to analyze}
+\item{dataframe}{A data frame containing article text, author, and published_date.}
+
+\item{group_by}{Character: "author", "date", or "both" (default: "both").}
 }
 \value{
-A data frame of sentiment scores
+A data frame with sentiment scores grouped as specified.
 }
 \description{
-Perform sentiment analysis on scraped articles
+Computes sentiment for articles if not already done, then calculates
+sentiment averages grouped by author, date, or both.
 }

@@ -7,7 +7,7 @@
 ss_store_articles(
   article_data,
   news_site,
-  folder_path = "inst/extdata/article_data/",
+  folder_path = NULL,
   overwrite = FALSE
 )
 }
@@ -16,7 +16,7 @@ ss_store_articles(
 
 \item{news_site}{The name of the news site (e.g., "huffpost").}
 
-\item{folder_path}{Directory for storing CSV files.}
+\item{folder_path}{Directory for storing CSV files. Defaults to correct path based on mode.}
 
 \item{overwrite}{TRUE or FALSE, option to overwrite existing articles with the same URL.}
 }
