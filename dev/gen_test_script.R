@@ -44,6 +44,7 @@ ss_store_articles(
   overwrite = FALSE
 )
 
+
 # step 4: sentiment analysis
 # pull articles if you need to
 test_df <- ss_pull_articles(start_date = "2024-03-01",
@@ -52,9 +53,7 @@ test_df <- ss_pull_articles(start_date = "2024-03-01",
 View(test_df)
 
 # get sentiment of articles and sd on article level
-tic()
 sentiment_df <- as_article_sentiment(test_df)
-toc()
 View(sentiment_df)
 
 # step 5: sentiment analysis data storage
@@ -63,6 +62,13 @@ ss_store_articles(
   news_site = "huffpost",
   overwrite = TRUE
 )
+
+# pull articles with new data added
+test_df2 <- ss_pull_articles(start_date = "2024-03-01",
+                            end_date = "2024-03-05",
+                            news_site = "huffpost")
+View(test_df2)
+
 
 
 # TODO IT NO WORK :(((
