@@ -204,6 +204,7 @@ ss_store_articles <- function(article_data,
     stop("Input data frame must contain: ", paste(required_columns, collapse = ", "))
   }
 
+  # Ensure sentiment_val and sentiment_sd exist in input data
   if (!"sentiment_val" %in% names(article_data)) {
     article_data$sentiment_val <- NA
   }
@@ -216,6 +217,7 @@ ss_store_articles <- function(article_data,
   if (file.exists(file_path)) {
     existing_data <- read.csv(file_path, stringsAsFactors = FALSE)
 
+    # Ensure existing data has sentiment_val and sentiment_sd
     if (!"sentiment_val" %in% names(existing_data)) {
       existing_data$sentiment_val <- NA
     }
@@ -223,6 +225,7 @@ ss_store_articles <- function(article_data,
       existing_data$sentiment_sd <- NA
     }
 
+    # Ensure column names are consistent before merging
     all_columns <- c("url", "title", "author", "published_date", "text", "sentiment_val", "sentiment_sd")
     existing_data <- existing_data[, intersect(names(existing_data), all_columns), drop = FALSE]
     article_data <- article_data[, intersect(names(article_data), all_columns), drop = FALSE]
@@ -250,12 +253,11 @@ ss_store_articles <- function(article_data,
     message("No existing CSV found. Creating CSV. Writing all articles.")
   }
 
+  # Ensure final column order before saving
   final_columns <- c("url", "title", "author", "published_date", "text", "sentiment_val", "sentiment_sd")
   combined_data <- combined_data[, final_columns, drop = FALSE]
-  combined_data$published_date <- as.character(as.Date(combined_data$published_date))
 
   write.csv(combined_data, file_path, row.names = FALSE)
-
   message(nrow(combined_data) - ifelse(exists("existing_data") && !is.null(existing_data), nrow(existing_data), 0),
           " articles added or updated.")
 
