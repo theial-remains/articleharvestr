@@ -1,0 +1,115 @@
+---
+title: "DSI Examples"
+author: "Will Gillette"
+date: "2024-12-04"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(sentimentr)
+library(tidyverse)
+library(lubridate)
+```
+
+
+```{r}
+article_data <- read.csv('output.csv')
+```
+
+```{r}
+article_data <- article_data %>% as_tibble() %>% mutate(date2 = as_date(date))
+article_data %>% count(date2)
+```
+
+```{r}
+out_date_author <- with(
+    article_data, 
+    sentiment_by(
+        get_sentences(text), 
+        list(author, date2)
+    )
+)
+
+write.csv(out_date_author, 'date_author_sentiment.csv')
+
+out_date <- with(
+    article_data, 
+    sentiment_by(
+        get_sentences(text), 
+        list(date2)
+    )
+)
+out_date
+out_date %>% mutate(sd_avg = sd/sqrt(word_count)) 
+
+write.csv(out_date, 'date_sentiment.csv')
+
+out_author <- with(
+    article_data, 
+    sentiment_by(
+        get_sentences(text), 
+        list(author)
+    )
+)
+
+
+# filter out authors containing square bracket to exclude multiple authors
+out_author <- out_author %>% mutate(single_author = !grepl('[[]', author))
+
+write.csv(out_author, 'author_sentiment.csv')
+```
+
+
+```{r}
+article_data$id <- row(article_data)[,1]
+article_data %>%
+    filter(id %in% sample(unique(id), 3)) %>%
+    mutate(review = get_sentences(text)) %$%
+    sentiment_by(review, id) %>%
+    highlight()
+```
+
+```{r}
+plot(out_single_author)
+```
+
+
+
+```{r}
+mytext <- c(
+    'do you like it?  But I hate really bad dogs',
+    'I am the best friend.',
+    'Do you really like it?  I\'m not a fan'
+)
+
+mytext <- get_sentences(mytext)
+sentiment(mytext)
+```
+
+
+```{r}
+sentiment_by(mytext)
+```
+
+```{r}
+(out <- with(
+    presidential_debates_2012, 
+    sentiment_by(
+        get_sentences(dialogue), 
+        list(person, time)
+    )
+))
+```
+
+
+
+```{r}
+# if (!require("pacman")) install.packages("pacman")
+# pacman::p_load_current_gh("trinker/lexicon", "trinker/sentimentr")
+# if (!require("pacman")) install.packages("pacman")
+# pacman::p_load(sentimentr, dplyr, magrittr)
+```

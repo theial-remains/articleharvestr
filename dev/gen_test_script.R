@@ -9,6 +9,7 @@ library(tictoc)
 library(stringr)
 library(lubridate)
 library(sentimentr)
+library(tidyr)
 
 # done for huffpost:
 # scrape_articles done
@@ -50,14 +51,16 @@ test_df <- ss_pull_articles(start_date = "2024-03-01",
                             news_site = "huffpost")
 View(test_df)
 
-# sentiment, random error of sentiment, by author, date, both
+# get sentiment of articles and sd on article level
+tic()
+sentiment_df <- as_article_sentiment(test_df)
+toc()
+View(sentiment_df)
 
-# function to get sentiment of articles on article level
-
-# function to
-
-# visualize sentiment over time
-
+# get sentiment for author, date, or both
+# gets sentiment and sd for articles using as_article_sentiment
+# only if cols are not there or not filled
+# then uses sentimentr to get sentiment by groupings of author, date, or both
 
 
 

@@ -137,9 +137,12 @@ ss_store_articles <- function(article_data,
     stop("Input data frame must contain: ", paste(required_columns, collapse = ", "))
   }
 
-  # if sentiment_val column DNE in input data, col is NA
+  # if sentiment_val and sentiment_sd columns DNE in input data, cols are NA
   if (!"sentiment_val" %in% names(article_data)) {
     article_data$sentiment_val <- NA
+  }
+  if (!"sentiment_sd" %in% names(article_data)) {
+    article_data$sentiment_sd <- NA
   }
 
   file_path <- file.path(folder_path, paste0(news_site, ".csv"))
@@ -147,9 +150,12 @@ ss_store_articles <- function(article_data,
   if (file.exists(file_path)) {
     existing_data <- read.csv(file_path, stringsAsFactors = FALSE)
 
-    # make sure sentiment_val column exists in existing data
+    # make sure sentiment_val and sentiment_sd columns exist in existing data
     if (!"sentiment_val" %in% names(existing_data)) {
       existing_data$sentiment_val <- NA
+    }
+    if (!"sentiment_sd" %in% names(existing_data)) {
+      existing_data$sentiment_sd <- NA
     }
 
     # if CSV exists but is empty, write all new articles
@@ -178,7 +184,7 @@ ss_store_articles <- function(article_data,
   }
 
   # column order is consistent?
-  final_columns <- c("url", "title", "author", "published_date", "text", "sentiment_val")
+  final_columns <- c("url", "title", "author", "published_date", "text", "sentiment_val", "sentiment_sd")
   combined_data <- combined_data[, final_columns, drop = FALSE]
 
   write.csv(combined_data, file_path, row.names = FALSE)
