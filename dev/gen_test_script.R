@@ -13,7 +13,7 @@ library(sentimentr)
 # done for huffpost:
 # scrape_articles done
 # get_url_list done
-# store scraped data done
+# store_scraped_data done
 
 # step 1: get urls for a year
 sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
@@ -21,14 +21,12 @@ sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 tic()
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,
-                                          start_date = "2024-01-01",
-                                          end_date = "2024-01-05")
+                                          start_date = "2024-03-01",
+                                          end_date = "2024-03-05")
 toc()
 
 # step 2: scrape articles and return a dataframe
-tic()
-results <- sa_scrape_articles(article_urls)
-toc()
+results <- sa_scrape_articles(article_urls, verbose = TRUE)
 
 # step 3: clean dataframe
 words_to_change <- c("and" = ",")
@@ -39,7 +37,6 @@ results3 <- ss_clean_date(results2) %>%
 View(results3)
 
 # store articles
-# TODO update for dev and package mode
 ss_store_articles(
   article_data = results3,
   news_site = "huffpost",
@@ -47,6 +44,12 @@ ss_store_articles(
 )
 
 # step 4: sentiment analysis
+# pull articles
+test_df <- ss_pull_articles(start_date = "2024-03-01",
+                            end_date = "2024-03-05",
+                            news_site = "huffpost")
+View(test_df)
+
 # sentiment, random error of sentiment, by author, date, both
 # visualize sentiment over time
 

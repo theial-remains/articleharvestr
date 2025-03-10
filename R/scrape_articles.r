@@ -298,13 +298,22 @@ sa_get_article_data <- function(article_url, selectors = NULL) {
 #' Scrape Multiple Articles
 #'
 #' @param article_urls A character vector containing multiple article URLs.
+#' @param verbose Logical; if TRUE, prints progress updates and execution time (default: TRUE).
 #' @return A data frame where each row represents an article.
 #' @import dplyr
 #' @import purrr
+#' @import tictoc
 #' @export
-sa_scrape_articles <- function(article_urls) {
+sa_scrape_articles <- function(article_urls, verbose = TRUE) {
   if (length(article_urls) == 0) {
     stop("No URLs provided.")
+  }
+
+  total_articles <- length(article_urls)
+
+  if (verbose) {
+    message(sprintf("Starting scrape of %d articles...", total_articles))
+    tic()
   }
 
   domains <- unique(gsub("^www\\.", "", stringr::str_extract(article_urls, "(?<=://)([^/]+)")))
@@ -317,17 +326,24 @@ sa_scrape_articles <- function(article_urls) {
     domains
   )
 
-  # process articles
-  articles_df <- map_dfr(article_urls, function(url) {
-    message("Scraping: ", url)
+  articles_df <- map_dfr(seq_along(article_urls), function(i) {
+    url <- article_urls[i]
 
-    # get domain from URL
+    if (verbose) {
+      message(sprintf("Scraping article %d of %d: %s", i, total_articles, url))
+    }
+
     domain <- gsub("^www\\.", "", stringr::str_extract(url, "(?<=://)([^/]+)"))
     selectors <- domain_selectors[[domain]]
 
-    # use NULL selectors if none are found
     sa_get_article_data(url, selectors)
   })
 
+  if (verbose) {
+    elapsed_time <- toc(quiet = TRUE)
+    message(sprintf("Scraped %d articles in %.2f seconds.", total_articles, elapsed_time$toc - elapsed_time$tic))
+  }
+
   return(articles_df)
 }
+
