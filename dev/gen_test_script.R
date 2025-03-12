@@ -15,6 +15,7 @@ library(tidyr)
 # scrape_articles done
 # get_url_list done
 # store_scraped_data done
+# TODO analyze sentiment almost done
 
 # step 1: get urls for a year
 sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
@@ -22,8 +23,8 @@ sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 tic()
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,
-                                          start_date = "2024-03-01",
-                                          end_date = "2024-03-05")
+                                          start_date = "2024-11-01",
+                                          end_date = "2024-11-05")
 toc()
 
 # step 2: scrape articles and return a dataframe
@@ -46,8 +47,8 @@ ss_store_articles(
 
 # step 4: sentiment analysis
 # pull articles if you need to
-test_df <- ss_pull_articles(start_date = "2024-03-01",
-                            end_date = "2024-03-05",
+test_df <- ss_pull_articles(start_date = "2024-11-01",
+                            end_date = "2024-11-05",
                             news_site = "huffpost")
 View(test_df)
 
@@ -60,6 +61,7 @@ ss_store_articles(
   article_data = sentiment_df,
   news_site = "huffpost",
   overwrite = TRUE
+  # TODO fix needs to be true for added columns?? maybe
 )
 
 # pull articles with new data added
