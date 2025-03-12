@@ -67,31 +67,22 @@ as_sentiment_grouped <- function(dataframe, group_by = "both") {
 
   if (group_by == "author") {
     sentiment <- dataframe %>%
-      group_by(author) %>%
-      summarise(
-        mean_sentiment = mean(sentiment_val, na.rm = TRUE),
-        sd_sentiment = mean(sentiment_sd, na.rm = TRUE),
-        total_articles = n()
-      )
+      mutate(sentences = get_sentences(text)) %>%
+      with(sentiment_by(sentences, list(author)))
   } else if (group_by == "date") {
     sentiment <- dataframe %>%
-      group_by(published_date) %>%
-      summarise(
-        mean_sentiment = mean(sentiment_val, na.rm = TRUE),
-        sd_sentiment = mean(sentiment_sd, na.rm = TRUE),
-        total_articles = n()
-      )
+      mutate(sentences = get_sentences(text)) %>%
+      with(sentiment_by(sentences, list(published_date)))
   } else if (group_by == "both") {
     sentiment <- dataframe %>%
-      group_by(author, published_date) %>%
-      summarise(
-        mean_sentiment = mean(sentiment_val, na.rm = TRUE),
-        sd_sentiment = mean(sentiment_sd, na.rm = TRUE),
-        total_articles = n()
-      )
+      mutate(sentences = get_sentences(text)) %>%
+      with(sentiment_by(sentences, list(published_date, author)))
   } else {
     stop("Error: 'group_by' must be 'author', 'date', or 'both'.")
   }
 
-  return(sentiment)
+  sentiment2 <- sentiment %>%
+    mutate(sd_avg = sd / sqrt(word_count))
+
+  return(sentiment2)
 }

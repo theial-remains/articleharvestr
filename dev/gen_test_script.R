@@ -11,12 +11,6 @@ library(lubridate)
 library(sentimentr)
 library(tidyr)
 
-# done for huffpost:
-# scrape_articles done
-# get_url_list done
-# store_scraped_data done
-# TODO analyze sentiment almost done
-
 # step 1: get urls for a year
 sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 
@@ -31,7 +25,7 @@ toc()
 results <- sa_scrape_articles(article_urls, verbose = TRUE)
 
 # step 3: clean dataframe
-words_to_change <- c("and" = ",")
+words_to_change <- c(" and" = ",")
 results2 <- ss_clean_author(results, words_to_change = words_to_change)
 
 results3 <- ss_clean_date(results2) %>%
@@ -42,7 +36,7 @@ View(results3)
 ss_store_articles(
   article_data = results3,
   news_site = "huffpost",
-  overwrite = FALSE
+  overwrite = TRUE
 )
 
 # step 4: sentiment analysis
@@ -61,7 +55,7 @@ ss_store_articles(
   article_data = sentiment_df,
   news_site = "huffpost",
   overwrite = TRUE
-  # TODO fix needs to be true for added columns?? maybe
+  # TODO fix overwrite needing to be true for added sentiment columns?? maybe
 )
 
 # pull articles with new data added
@@ -70,13 +64,11 @@ test_df2 <- ss_pull_articles(start_date = "2024-03-01",
                              news_site = "huffpost")
 View(test_df2)
 
-
-
 # get sentiment for author, date, or both
 # df without sentiment cols
-sentiment_df_grouped <- as_sentiment_grouped(test_df, group_by = "both")
-View(sentiment_df_grouped) # dont try to store this in the csv
+grouped_df <- as_sentiment_grouped(test_df, group_by = "both")
+View(grouped_df) # dont try to store this in the csv
 
 # df with sentiment cols
-sentiment_df_grouped <- as_sentiment_grouped(test_df2, group_by = "both")
-View(sentiment_df_grouped) # dont try to store this in the csv
+grouped_df2 <- as_sentiment_grouped(test_df2, group_by = "both")
+View(grouped_df2) # dont try to store this in the csv
