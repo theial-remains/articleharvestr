@@ -72,9 +72,11 @@ View(test_df2)
 
 
 
-# TODO IT NO WORK :(((
 # get sentiment for author, date, or both
-tic()
+# df without sentiment cols
 sentiment_df_grouped <- as_sentiment_grouped(test_df, group_by = "both")
-toc()
+View(sentiment_df_grouped) # dont try to store this in the csv
+
+# df with sentiment cols
+sentiment_df_grouped <- as_sentiment_grouped(test_df2, group_by = "both")
 View(sentiment_df_grouped) # dont try to store this in the csv
