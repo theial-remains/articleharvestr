@@ -19,5 +19,5 @@ The same dataframe with a cleaned "author" column.
 \description{
 Splits words if they are incorrectly combined (e.g., "AliceJohnson" → "Alice Johnson").
 Converts all names to lowercase.
-Uses str_replace_all to remove unwanted words and replace specific words.
+Removes unwanted words and replaces specific words while ensuring whole-word matching.
 }
