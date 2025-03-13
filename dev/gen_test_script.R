@@ -71,4 +71,4 @@ View(grouped_df) # dont try to store this in the csv
 
 # df with sentiment cols
 grouped_df2 <- as_sentiment_grouped(test_df2, group_by = "both")
-View(grouped_df2) # dont try to store this in the csv
+View(grouped_df2) # dont try to store this either
