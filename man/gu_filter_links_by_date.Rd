@@ -9,7 +9,7 @@ gu_filter_links_by_date(links, level, start_date, end_date)
 \arguments{
 \item{links}{A character vector of sitemap links.}
 
-\item{level}{The depth of the sitemap (0 = articles, 1 = days, 2 = months, 3 = years).}
+\item{level}{The depth of the sitemap (1 = days, 2 = months, 3 = years).}
 
 \item{start_date}{The start date for filtering (YYYY-MM-DD).}
 

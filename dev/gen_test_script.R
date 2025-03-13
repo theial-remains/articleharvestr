@@ -25,12 +25,25 @@ toc()
 results <- sa_scrape_articles(article_urls, verbose = TRUE)
 
 # step 3: clean dataframe
-words_to_change <- c(" and" = ",")
+words_to_change <- c(" and" = ",") # TODO code should automatically do full word removal only
 results2 <- ss_clean_author(results, words_to_change = words_to_change)
 
 results3 <- ss_clean_date(results2) %>%
   na.omit()
 View(results3)
+
+
+test_df2 <- ss_pull_articles(start_date = "2024-03-01",
+                             end_date = "2024-03-05",
+                             news_site = "huffpost")
+
+head(test_df2)
+# df with sentiment cols
+grouped_df2 <- as_sentiment_grouped(test_df2, group_by = "both")
+head(grouped_df2) # dont try to store this either
+
+
+
 
 # store articles
 ss_store_articles(

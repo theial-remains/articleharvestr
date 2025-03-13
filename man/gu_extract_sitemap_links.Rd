@@ -10,7 +10,7 @@ gu_extract_sitemap_links(sitemap_url)
 \item{sitemap_url}{The URL of the sitemap.}
 }
 \value{
-A list containing extracted URLs and a string indicating format type ("xml" or "html").
+A list containing extracted URLs and a string indicating format type ("html" or "xml").
 }
 \description{
 Fetches a sitemap, detects XML or HTML format, and extracts links.

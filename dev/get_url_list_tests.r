@@ -10,23 +10,39 @@ library(httr2)
 library(purrr)
 library(stringr)
 
-sitemap_url <- "https://www.cnbc.com/site-map/"
 
+# CNBC
+# lv 3
+sitemap_url <- "https://www.cnbc.com/site-map/"
 extracted_data <- gu_extract_sitemap_links(sitemap_url)
 all_links <- extracted_data$links
-all_links
+tail(all_links, 50)
 
 start_date <- "2023-01-01"
 end_date <- "2023-01-03"
+levels <- 3
 
-filtered_links <- gu_filter_links_by_date(all_links, 3, start_date, end_date)
+filtered_links <- gu_filter_links_by_date(all_links, levels, start_date, end_date)
 head(filtered_links)
 
-date_pattern <- "/(19[5-9][0-9]|20[0-9][0-9])/?$"
+# lv 2
+sitemap_url <- "https://www.cnbc.com/site-map/articles/2023"
+extracted_data <- gu_extract_sitemap_links(sitemap_url)
+all_links <- extracted_data$links
+tail(all_links, 50)
 
-extracted_dates <- str_extract(all_links, date_pattern)
+start_date <- "2023-01-01"
+end_date <- "2023-01-03"
+levels <- 2
 
-print(raw_year_links)
+filtered_links <- gu_filter_links_by_date(all_links, levels, start_date, end_date)
+head(filtered_links)
+
+pattern <- "(january|february|march|april|may|june|july|august|september|october|november|december|\\d{4}-\\d{2})"
+matching_links <- all_links[str_detect(all_links, regex(pattern, ignore_case = TRUE))]
+matching_links
+
+
 
 
 # huffpost
@@ -42,7 +58,6 @@ levels <- 1
 
 filtered_links <- gu_filter_links_by_date(all_links, levels, start_date, end_date)
 filtered_links
-
 
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,

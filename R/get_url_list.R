@@ -34,12 +34,14 @@ gu_extract_sitemap_links <- function(sitemap_url) {
   return(list(links = character(0), format = NA))
 }
 
+library(stringr)
+
 #' Filter Links by Date
 #'
 #' Filters sitemap links based on the level and date range.
 #'
 #' @param links A character vector of sitemap links.
-#' @param level The depth of the sitemap (0 = articles, 1 = days, 2 = months, 3 = years).
+#' @param level The depth of the sitemap (1 = days, 2 = months, 3 = years).
 #' @param start_date The start date for filtering (YYYY-MM-DD).
 #' @param end_date The end date for filtering (YYYY-MM-DD).
 #' @return A character vector of filtered links.
@@ -49,29 +51,40 @@ gu_filter_links_by_date <- function(links, level, start_date, end_date) {
   start_date <- as.Date(start_date)
   end_date <- as.Date(end_date)
 
+  # regex patterns for filtering links directly
   date_pattern <- switch(as.character(level),
-                         "3" = "\\d{4}",              # yearly
-                         "2" = "\\d{4}-\\d{2}",       # monthly
-                         "1" = "\\d{4}-\\d{2}-\\d{2}",# daily
-                         NULL)  # articles don't need filtering
+    "1" = "(/\\d{1,2}/?$|\\d{4}-\\d{2}-\\d{2})",  # level 1 (days)
+    "2" = "(january|february|march|april|may|june|july|august|september|october|november|december|\\d{4}-\\d{2})",  # level 2 (months)
+    "3" = "/(19[5-9][0-9]|20[0-9][0-9])/?$",  # level 3 (years)
+    NULL
+  )
 
-  if (!is.null(date_pattern)) {
-    extracted_dates <- str_extract(links, date_pattern)
-    parsed_dates <- suppressWarnings(as.Date(extracted_dates,
-                                             format = "%Y-%m-%d"))
-
-    if (level == 2) {
-      parsed_dates <- suppressWarnings(as.Date(paste0(extracted_dates, "-01"),
-                                               format = "%Y-%m-%d"))
-    } else if (level == 3) {
-      parsed_dates <- suppressWarnings(as.Date(paste0(extracted_dates, "-01-01"),
-                                               format = "%Y-%m-%d"))
-    }
-
-    links <- links[!is.na(parsed_dates) & parsed_dates >= start_date & parsed_dates <= end_date]
+  if (is.null(date_pattern)) {
+    stop("Invalid level. Must be 1 (days), 2 (months), or 3 (years).")
   }
 
-  return(links)
+  matching_links <- links[str_detect(links, regex(date_pattern, ignore_case = TRUE))]
+  parsed_dates <- NA
+
+  # TODO: instead of this bullshit, have it:
+  # level 1:
+    #
+  if (level == 1) {
+    parsed_dates <- suppressWarnings(as.Date(str_extract(matching_links, "\\d{4}-\\d{2}-\\d{2}"), format = "%Y-%m-%d"))
+  } else if (level == 2) {
+    extracted_months <- str_extract(matching_links, "\\d{4}-\\d{2}")
+    parsed_dates <- suppressWarnings(as.Date(paste0(extracted_months, "-01"), format = "%Y-%m-%d"))
+  } else if (level == 3) {
+    extracted_years <- str_extract(matching_links, "\\d{4}")
+    parsed_dates <- suppressWarnings(as.Date(paste0(extracted_years, "-01-01"), format = "%Y-%m-%d"))
+  }
+
+  filtered_links <- matching_links[!is.na(parsed_dates) & parsed_dates >= start_date & parsed_dates <= end_date]
+
+  filtered_links <- ifelse(str_starts(filtered_links, "https?://"),
+                           filtered_links,
+                           paste0("https:", filtered_links))
+  return(filtered_links)
 }
 
 #' Recursively Fetch Article URLs from Sitemap
