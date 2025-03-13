@@ -1,8 +1,22 @@
 Package: articleharvestr
 Title: A Package for Scraping and Storing News Articles
 Version: 0.1.0
-Authors@R: person("Your Name", "youremail@example.com", role = c("aut", "cre"))
-Description: An R package that finds, scrapes, stores, and analyzes news articles.
+Authors@R: c(
+    person(
+        "Thea", "Nagasuru", 
+        email = "preethinagasuru@gmail.com", 
+        role = c("aut", "cre")
+    ),
+    person(
+        "Eugene", "Thompson", 
+        email = "eugeneyshthom@gmail.com", 
+        role = "ctb"
+    )
+)
+
+
+
+Description: An R package that finds, scrapes, stores, and analyzes the sentiment of news articles.
 Depends: R (>= 3.5.0)
 License: MIT
 Encoding: UTF-8
@@ -15,7 +29,8 @@ Imports:
     purrr,
     lubridate,
     parallel,
-    polite
+    polite,
+    sentimentr,
+    tidyr
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
-
+RoxygenNote: 7.3.2
