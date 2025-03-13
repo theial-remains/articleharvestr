@@ -3,26 +3,23 @@
 #' Fetches a sitemap, detects XML or HTML format, and extracts links.
 #'
 #' @param sitemap_url The URL of the sitemap.
-#' @return A list containing extracted URLs and a string indicating format type ("xml" or "html").
-#' @import httr
+#' @return A list containing extracted URLs and a string indicating format type ("html" or "xml").
 #' @import xml2
 #' @import rvest
 #' @export
 gu_extract_sitemap_links <- function(sitemap_url) {
-  response <- tryCatch(GET(sitemap_url), error = function(e) {
-    message("Error fetching URL: ", e)
-    return(NULL)
-  })
+  content_html <- tryCatch(read_html(sitemap_url), error = function(e) NULL)
 
-  if (is.null(response) || http_status(response)$category != "Success") {
-    message("Failed to retrieve the URL content: ", sitemap_url)
-    return(list(links = character(0), format = NA))
+  if (!is.null(content_html)) {
+    links <- content_html %>% html_nodes("a[href]") %>% html_attr("href")
+
+    if (length(links) > 0) {
+      return(list(links = unique(links), format = "html"))
+    }
   }
 
-  raw_content <- content(response, as = "text", encoding = "UTF-8")
-  content_type <- headers(response)$`content-type`
-
-  content_xml <- tryCatch(read_xml(raw_content), error = function(e) NULL)
+  # fallback: try parsing as XML
+  content_xml <- tryCatch(read_xml(sitemap_url), error = function(e) NULL)
 
   if (!is.null(content_xml)) {
     no_ns <- xml_ns_strip(content_xml)
@@ -30,16 +27,6 @@ gu_extract_sitemap_links <- function(sitemap_url) {
 
     if (length(links) > 0) {
       return(list(links = links, format = "xml"))
-    }
-  }
-
-  content_html <- tryCatch(read_html(raw_content), error = function(e) NULL)
-
-  if (!is.null(content_html)) {
-    links <- content_html %>% html_nodes("a[href]") %>% html_attr("href")
-
-    if (length(links) > 0) {
-      return(list(links = unique(links), format = "html"))
     }
   }
 
