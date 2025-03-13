@@ -5,20 +5,14 @@ setwd("C:/Users/Preet/OneDrive - Ursinus College/paid_labor/articleharvestr")
 devtools::load_all()
 devtools::document()
 
-library(tictoc)
-library(stringr)
-library(lubridate)
-library(sentimentr)
-library(tidyr)
-
 # step 1: get urls for a year
 sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 
 tic()
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,
-                                          start_date = "2024-11-01",
-                                          end_date = "2024-11-05")
+                                          start_date = "2024-03-01",
+                                          end_date = "2024-03-05")
 toc()
 
 # step 2: scrape articles and return a dataframe
@@ -32,19 +26,6 @@ results3 <- ss_clean_date(results2) %>%
   na.omit()
 View(results3)
 
-
-test_df2 <- ss_pull_articles(start_date = "2024-03-01",
-                             end_date = "2024-03-05",
-                             news_site = "huffpost")
-
-head(test_df2)
-# df with sentiment cols
-grouped_df2 <- as_sentiment_grouped(test_df2, group_by = "both")
-head(grouped_df2) # dont try to store this either
-
-
-
-
 # store articles
 ss_store_articles(
   article_data = results3,
@@ -54,8 +35,8 @@ ss_store_articles(
 
 # step 4: sentiment analysis
 # pull articles if you need to
-test_df <- ss_pull_articles(start_date = "2024-11-01",
-                            end_date = "2024-11-05",
+test_df <- ss_pull_articles(start_date = "2024-03-01",
+                            end_date = "2024-03-05",
                             news_site = "huffpost")
 View(test_df)
 
@@ -78,10 +59,6 @@ test_df2 <- ss_pull_articles(start_date = "2024-03-01",
 View(test_df2)
 
 # get sentiment for author, date, or both
-# df without sentiment cols
-grouped_df <- as_sentiment_grouped(test_df, group_by = "both")
-View(grouped_df) # dont try to store this in the csv
-
 # df with sentiment cols
 grouped_df2 <- as_sentiment_grouped(test_df2, group_by = "both")
 View(grouped_df2) # dont try to store this either
