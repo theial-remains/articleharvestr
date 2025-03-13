@@ -57,7 +57,7 @@ ss_clean_date <- function(dataframe) {
 #'
 #' Splits words if they are incorrectly combined (e.g., "AliceJohnson" → "Alice Johnson").
 #' Converts all names to lowercase.
-#' Uses str_replace_all to remove unwanted words and replace specific words.
+#' Removes unwanted words and replaces specific words while ensuring whole-word matching.
 #'
 #' @param dataframe A dataframe containing an "author" column.
 #' @param words_to_remove A character vector of words to remove from author names (case-insensitive).
@@ -79,21 +79,22 @@ ss_clean_author <- function(dataframe,
                            dataframe$author,
                            perl = TRUE)
 
-  # lowercase
   dataframe$author <- tolower(dataframe$author)
 
-  # rm and replace specified words with str_replace_all
+  # rm specified words, whole word match only
   if (length(words_to_remove) > 0) {
-  words_to_remove <- setNames(rep("", length(words_to_remove)), words_to_remove)
-  dataframe$author <- str_replace_all(dataframe$author, words_to_remove)
+    pattern_remove <- paste0("\\b(", paste(words_to_remove, collapse = "|"), ")\\b")
+    dataframe$author <- str_replace_all(dataframe$author, regex(pattern_remove, ignore_case = TRUE), "")
   }
 
+  # repl specified words, whole word match only
   if (length(words_to_change) > 0) {
-    dataframe$author <- str_replace_all(dataframe$author, regex(names(words_to_change), ignore_case = TRUE), words_to_change)
+    pattern_replace <- paste0("\\b(", paste(names(words_to_change), collapse = "|"), ")\\b")
+    dataframe$author <- str_replace_all(dataframe$author, regex(pattern_replace, ignore_case = TRUE), function(x) words_to_change[tolower(x)])
   }
 
-  # trim leading and trailing spaces
-  dataframe$author <- trimws(dataframe$author)
+  # rm extra spaces
+  dataframe$author <- str_squish(dataframe$author)
 
   return(dataframe)
 }
