@@ -2,18 +2,18 @@
 % Please edit documentation in R/get_url_list.R
 \name{gu_remove_duplicates}
 \alias{gu_remove_duplicates}
-\title{Remove Duplicate URLs Based on Existing CSV}
+\title{Remove Duplicate URLs Based on Existing CSV for a News Site}
 \usage{
-gu_remove_duplicates(new_urls, csv_path = "data/articles.csv")
+gu_remove_duplicates(new_urls, sitemap = NULL)
 }
 \arguments{
 \item{new_urls}{A character vector of newly scraped article URLs.}
 
-\item{csv_path}{The file path to the existing articles CSV.}
+\item{sitemap}{(Optional) The sitemap URL used to infer the news site.}
 }
 \value{
 A character vector of URLs that are not already in the CSV.
 }
 \description{
-Loads the article CSV and removes any URLs from the new set that already exist in the CSV.
+Loads the site-specific CSV and removes any URLs from the new set that already exist in the CSV.
 }

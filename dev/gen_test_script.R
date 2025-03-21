@@ -11,9 +11,10 @@ sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 tic()
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,
-                                          start_date = "2024-04-01",
-                                          end_date = "2024-04-05")
+                                          start_date = "2024-05-03",
+                                          end_date = "2024-05-06")
 toc()
+View(article_urls)
 length(article_urls)
 
 article_urls2 <- gu_remove_duplicates(article_urls)
@@ -34,8 +35,22 @@ View(results3)
 ss_store_articles(
   article_data = results3,
   news_site = "huffpost",
-  overwrite = TRUE
+  overwrite = FALSE
 )
+
+# TODO function to get urls should store in a tibble
+
+# TODO make a function that finds urls that dont have sentiment values yet
+# by date and news site
+# and downloads them
+
+# TODO break up huffpost csv-
+# one file with all urls, date, ect. and sentiment values but not text
+# files by month with all data including text
+
+# TODO make function to store just urls in overall file
+
+
 
 # step 4: sentiment analysis
 # pull articles if you need to
