@@ -7,15 +7,15 @@
 ss_store_articles(article_data, news_site, overwrite = FALSE)
 }
 \arguments{
-\item{article_data}{A data frame with at least url, published_date, author, title, and text columns.}
+\item{article_data}{A data frame with at least url and published_date columns.}
 
 \item{news_site}{The name of the news site (e.g., "huffpost").}
 
-\item{overwrite}{If TRUE, allows replacing existing article data. Default is FALSE.}
+\item{overwrite}{If TRUE, allows replacing all fields for matching URLs. If FALSE, only updates missing fields.}
 }
 \value{
 NULL (invisible)
 }
 \description{
-This function uses a composed decorator chain to store articles in the new JSON architecture.
+This function stores metadata in index.json and full data in monthly jsons if text is present.
 }

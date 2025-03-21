@@ -2,7 +2,7 @@
 % Please edit documentation in R/store_scraped_data.R
 \name{ss_pull_articles}
 \alias{ss_pull_articles}
-\title{Pull articles from json files}
+\title{Pull articles from json files or index metadata}
 \usage{
 ss_pull_articles(
   start_date,
@@ -10,7 +10,8 @@ ss_pull_articles(
   news_site,
   ran_articles = NULL,
   needs_text = NULL,
-  needs_sentiment = NULL
+  needs_sentiment = NULL,
+  from_index = FALSE
 )
 }
 \arguments{
@@ -25,10 +26,12 @@ ss_pull_articles(
 \item{needs_text}{If TRUE/FALSE, filter for presence/absence of article text (default: NULL = return all)}
 
 \item{needs_sentiment}{If TRUE/FALSE, filter for presence/absence of sentiment values (default: NULL = return all)}
+
+\item{from_index}{If TRUE, loads from index.json instead of monthly files (default: FALSE)}
 }
 \value{
-A tibble of article data from the matching months
+A tibble of article data
 }
 \description{
-Retrieves article data for a given site and date range from the new JSON structure.
+Retrieves article metadata and/or full data for a given site and date range.
 }

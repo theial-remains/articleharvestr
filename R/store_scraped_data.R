@@ -101,38 +101,48 @@ ss_clean_author <- function(dataframe,
 
 #' Store articles using decorator pipeline
 #'
-#' This function uses a composed decorator chain to store articles in the new JSON architecture.
+#' This function stores metadata in index.json and full data in monthly jsons if text is present.
 #'
-#' @param article_data A data frame with at least url, published_date, author, title, and text columns.
+#' @param article_data A data frame with at least url and published_date columns.
 #' @param news_site The name of the news site (e.g., "huffpost").
-#' @param overwrite If TRUE, allows replacing existing article data. Default is FALSE.
+#' @param overwrite If TRUE, allows replacing all fields for matching URLs. If FALSE, only updates missing fields.
 #' @return NULL (invisible)
 #' @export
 ss_store_articles <- function(article_data, news_site, overwrite = FALSE) {
-  # ensure required columns exist
-  required_cols <- c("url", "published_date", "author", "title", "text")
-  if (!all(required_cols %in% names(article_data))) {
-    stop("article_data must contain: ", paste(required_cols, collapse = ", "))
+  if (!"url" %in% names(article_data) || !"published_date" %in% names(article_data)) {
+    stop("article_data must contain at least 'url' and 'published_date'")
   }
 
-  # convert published_date to character for storage
   article_data$published_date <- as.character(article_data$published_date)
 
-  # build and execute storage pipeline
-  composed <- compose_storage(
+  # always store metadata in index
+  index_pipeline <- compose_storage(
     store_base(),
-    store_monthly_json,
     store_index_json,
     store_ensure_folders
   )
+  index_pipeline(article_data, news_site, overwrite)
 
-  composed(article_data, news_site, overwrite)
+  # only store full article if text is present
+  if ("text" %in% names(article_data)) {
+    text_data <- article_data[!is.na(article_data$text) & article_data$text != "", ]
+
+    if (nrow(text_data) > 0) {
+      monthly_pipeline <- compose_storage(
+        store_base(),
+        store_monthly_json,
+        store_ensure_folders
+      )
+      monthly_pipeline(text_data, news_site, overwrite)
+    }
+  }
+
   invisible(NULL)
 }
 
-#' Pull articles from json files
+#' Pull articles from json files or index metadata
 #'
-#' Retrieves article data for a given site and date range from the new JSON structure.
+#' Retrieves article metadata and/or full data for a given site and date range.
 #'
 #' @param start_date Start date (YYYY-MM-DD)
 #' @param end_date End date (YYYY-MM-DD)
@@ -140,32 +150,42 @@ ss_store_articles <- function(article_data, news_site, overwrite = FALSE) {
 #' @param ran_articles Optional number of random articles to sample
 #' @param needs_text If TRUE/FALSE, filter for presence/absence of article text (default: NULL = return all)
 #' @param needs_sentiment If TRUE/FALSE, filter for presence/absence of sentiment values (default: NULL = return all)
-#' @return A tibble of article data from the matching months
+#' @param from_index If TRUE, loads from index.json instead of monthly files (default: FALSE)
+#' @return A tibble of article data
 #' @export
 ss_pull_articles <- function(start_date,
                              end_date,
                              news_site,
                              ran_articles = NULL,
                              needs_text = NULL,
-                             needs_sentiment = NULL) {
-  # load jsons by month
+                             needs_sentiment = NULL,
+                             from_index = FALSE) {
   folder <- file.path("inst/extdata/article_data", news_site)
-  all_months <- list.files(folder, pattern = "\\d{4}-\\d{2}\\.json$", full.names = TRUE)
 
-  # convert to Date and filter to range
-  file_dates <- as.Date(sub(".json$", "-01", basename(all_months)))
-  date_range <- as.Date(c(start_date, end_date))
-  keep_files <- all_months[file_dates >= date_range[1] & file_dates <= date_range[2]]
+  if (from_index) {
+    # load index only
+    index_path <- file.path(folder, "index.json")
+    if (!file.exists(index_path)) stop("index.json does not exist for site: ", news_site)
 
-  # read and combine
-  articles <- purrr::map_dfr(keep_files, ~ jsonlite::read_json(.x, simplifyVector = TRUE))
+    articles <- jsonlite::read_json(index_path, simplifyVector = TRUE)
+    articles <- dplyr::filter(articles,
+      as.Date(published_date) >= as.Date(start_date),
+      as.Date(published_date) <= as.Date(end_date))
 
-  # filter by date range
-  articles <- dplyr::filter(articles,
-    as.Date(published_date) >= as.Date(start_date),
-    as.Date(published_date) <= as.Date(end_date))
+  } else {
+    # load monthly full text data
+    all_months <- list.files(folder, pattern = "\\d{4}-\\d{2}\\.json$", full.names = TRUE)
+    file_dates <- as.Date(sub(".json$", "-01", basename(all_months)))
+    date_range <- as.Date(c(start_date, end_date))
+    keep_files <- all_months[file_dates >= date_range[1] & file_dates <= date_range[2]]
 
-  # optionally filter for text or sentiment presence
+    articles <- purrr::map_dfr(keep_files, ~ jsonlite::read_json(.x, simplifyVector = TRUE))
+    articles <- dplyr::filter(articles,
+      as.Date(published_date) >= as.Date(start_date),
+      as.Date(published_date) <= as.Date(end_date))
+  }
+
+  # filter by presence/absence of text
   if (!is.null(needs_text)) {
     if (needs_text) {
       articles <- dplyr::filter(articles, !is.na(text) & text != "")
@@ -174,6 +194,7 @@ ss_pull_articles <- function(start_date,
     }
   }
 
+  # filter by presence/absence of sentiment
   if (!is.null(needs_sentiment)) {
     if (needs_sentiment) {
       articles <- dplyr::filter(articles, !is.na(sentiment_val))
