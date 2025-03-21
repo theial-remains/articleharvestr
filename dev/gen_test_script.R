@@ -28,19 +28,6 @@ results3 <- ss_clean_date(results2) %>%
   na.omit()
 View(results3)
 
-
-
-# TODO: edit ss_store_articles
-# allow it to store just the url tibble in the overall json,
-# and fix overwrite needing to be true for aadding sentiment cols
-# so even when false you can add new sentiment data
-
-# TODO edit ss_pull_articles
-# allow it to find urls that:
-# 1. dont have sentiment values yet or
-# 2. dont have article data yet
-# based on a new param
-
 # store articles
 ss_store_articles(
   article_data = results3,
@@ -72,6 +59,8 @@ test_df2 <- ss_pull_articles(start_date = "2024-05-01",
                              news_site = "huffpost")
 View(test_df2)
 
+
+# extra stuff
 # get sentiment for author, date, or both
 # df with sentiment cols
 grouped_df2 <- as_sentiment_grouped(test_df2, group_by = "both")

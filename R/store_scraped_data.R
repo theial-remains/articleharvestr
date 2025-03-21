@@ -99,9 +99,7 @@ ss_clean_author <- function(dataframe,
   return(dataframe)
 }
 
-# ss_store_articles.R
-
-#' store articles using decorator pipeline
+#' Store articles using decorator pipeline
 #'
 #' This function uses a composed decorator chain to store articles in the new JSON architecture.
 #'
@@ -132,10 +130,7 @@ ss_store_articles <- function(article_data, news_site, overwrite = FALSE) {
   invisible(NULL)
 }
 
-
-# ss_pull_articles.R
-
-#' pull articles from json files
+#' Pull articles from json files
 #'
 #' Retrieves article data for a given site and date range from the new JSON structure.
 #'
@@ -143,8 +138,8 @@ ss_store_articles <- function(article_data, news_site, overwrite = FALSE) {
 #' @param end_date End date (YYYY-MM-DD)
 #' @param news_site Name of the news site (e.g., "huffpost")
 #' @param ran_articles Optional number of random articles to sample
-#' @param needs_text If TRUE, only return articles that have missing or non-missing text (default: NULL = return all)
-#' @param needs_sentiment If TRUE, only return articles that have missing or non-missing sentiment (default: NULL = return all)
+#' @param needs_text If TRUE/FALSE, filter for presence/absence of article text (default: NULL = return all)
+#' @param needs_sentiment If TRUE/FALSE, filter for presence/absence of sentiment values (default: NULL = return all)
 #' @return A tibble of article data from the matching months
 #' @export
 ss_pull_articles <- function(start_date,
