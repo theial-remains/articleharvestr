@@ -305,6 +305,18 @@ sa_get_article_data <- function(article_url, selectors = NULL) {
 #' @import tictoc
 #' @export
 sa_scrape_articles <- function(article_urls, verbose = TRUE) {
+
+  if (is.data.frame(article_urls)) {
+    if (!"url" %in% names(article_urls)) {
+      stop("Input tibble must contain a 'url' column.")
+    }
+    article_urls <- article_urls$url
+  }
+
+  if (!is.character(article_urls)) {
+    stop("article_urls must be a character vector or a tibble with a 'url' column.")
+  }
+
   if (length(article_urls) == 0) {
     stop("No URLs provided.")
   }

@@ -4,7 +4,13 @@
 \alias{gu_fetch_sitemap_articles}
 \title{Recursively Fetch Article URLs from Sitemap}
 \usage{
-gu_fetch_sitemap_articles(sitemap_url, levels, start_date, end_date)
+gu_fetch_sitemap_articles(
+  sitemap_url,
+  levels,
+  start_date,
+  end_date,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{sitemap_url}{The URL of the sitemap.}
@@ -14,9 +20,11 @@ gu_fetch_sitemap_articles(sitemap_url, levels, start_date, end_date)
 \item{start_date}{The start date for filtering (YYYY-MM-DD).}
 
 \item{end_date}{The end date for filtering (YYYY-MM-DD).}
+
+\item{verbose}{Logical; if TRUE, prints execution time (default: TRUE).}
 }
 \value{
-A character vector of article URLs.
+A tibble with a single column: url
 }
 \description{
 Fetches article URLs from a sitemap, filtering at each level and processing all valid sitemaps.

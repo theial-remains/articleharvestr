@@ -10,14 +10,12 @@ sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,
-                                          start_date = "2024-05-03",
-                                          end_date = "2024-05-06")
-length(article_urls)
-class(article_urls)
+                                          start_date = "2024-02-03",
+                                          end_date = "2024-02-06")
 View(article_urls)
 
 article_urls2 <- gu_remove_duplicates(article_urls)
-length(article_urls2)
+View(article_urls2)
 
 # step 2: scrape articles and return a dataframe
 results <- sa_scrape_articles(article_urls2, verbose = TRUE)

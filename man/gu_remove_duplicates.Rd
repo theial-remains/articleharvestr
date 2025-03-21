@@ -4,16 +4,16 @@
 \alias{gu_remove_duplicates}
 \title{Remove Duplicate URLs Based on Existing CSV for a News Site}
 \usage{
-gu_remove_duplicates(new_urls, sitemap = NULL)
+gu_remove_duplicates(url_data, sitemap = NULL)
 }
 \arguments{
-\item{new_urls}{A character vector of newly scraped article URLs.}
+\item{url_data}{A tibble with at least a 'url' column (from gu_fetch_sitemap_articles()).}
 
-\item{sitemap}{(Optional) The sitemap URL used to infer the news site.}
+\item{sitemap}{(Optional) The sitemap URL to help determine the news site.}
 }
 \value{
-A character vector of URLs that are not already in the CSV.
+A tibble of new (non-duplicate) URLs, or NULL if none remain.
 }
 \description{
-Loads the site-specific CSV and removes any URLs from the new set that already exist in the CSV.
+Loads the site-specific CSV and removes any URLs from the new tibble that already exist in the CSV.
 }

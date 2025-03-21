@@ -95,16 +95,14 @@ gu_filter_links_by_date <- function(links, level, start_date, end_date) {
 #' @param levels The number of levels in the sitemap (1 = days, 2 = months, 3 = years).
 #' @param start_date The start date for filtering (YYYY-MM-DD).
 #' @param end_date The end date for filtering (YYYY-MM-DD).
-#' @param verbose Logical; if TRUE, prints progress updates and execution time (default: TRUE).
-#' @return A character vector of article URLs.
+#' @param verbose Logical; if TRUE, prints execution time (default: TRUE).
+#' @return A tibble with a single column: url
 #' @import stringr
 #' @import tictoc
+#' @importFrom tibble tibble
 #' @export
 gu_fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date, verbose = TRUE) {
-
-  if (verbose) {
-    tic()
-  }
+  if (verbose) tic()
 
   message("Fetching sitemap: ", sitemap_url, " (Levels: ", levels, ")")
 
@@ -113,14 +111,16 @@ gu_fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date,
 
   if (length(all_links) == 0) {
     message("No links found in sitemap: ", sitemap_url)
-    return(character(0))
+    if (verbose) toc()
+    return(tibble::tibble(url = character(0)))
   }
 
   filtered_links <- gu_filter_links_by_date(all_links, levels, start_date, end_date)
 
   if (length(filtered_links) == 0) {
     message("No links remain after date filtering at level ", levels)
-    return(character(0))
+    if (verbose) toc()
+    return(tibble::tibble(url = character(0)))
   }
 
   final_links <- character(0)
@@ -135,84 +135,91 @@ gu_fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date,
     }
 
     message("Returning ", length(final_links), " articles from level 1.")
-    return(final_links)
-  }
+  } else {
+    for (link in filtered_links) {
+      extracted_data <- gu_extract_sitemap_links(link)
+      nested_links <- extracted_data$links
 
-  for (link in filtered_links) {
-    extracted_data <- gu_extract_sitemap_links(link)
-    nested_links <- extracted_data$links
+      if (length(nested_links) > 0) {
+        filtered_nested_links <- gu_filter_links_by_date(nested_links, levels - 1, start_date, end_date)
 
-    if (levels > 1 && length(nested_links) > 0) {
-      filtered_nested_links <- gu_filter_links_by_date(nested_links, levels - 1, start_date, end_date)
-
-      for (nested_link in filtered_nested_links) {
-        new_links <- gu_fetch_sitemap_articles(nested_link, levels - 1, start_date, end_date)
-        final_links <- c(final_links, new_links)
+        for (nested_link in filtered_nested_links) {
+          new_links <- gu_fetch_sitemap_articles(nested_link, levels - 1, start_date, end_date, verbose = FALSE)
+          final_links <- c(final_links, new_links$url)
+        }
       }
     }
   }
 
-  result <- tibble::tibble(url = final_links)
+  if (verbose) toc()
 
-  if (verbose) {
-    elapsed_time <- toc(quiet = TRUE)
-    message(sprintf("Scraped articles in %.2f seconds.", elapsed_time$toc - elapsed_time$tic))
-  }
-
-  return(result)
+  return(tibble::tibble(url = final_links))
 }
 
 #' Remove Duplicate URLs Based on Existing CSV for a News Site
 #'
-#' Loads the site-specific CSV and removes any URLs from the new set that already exist in the CSV.
+#' Loads the site-specific CSV and removes any URLs from the new tibble that already exist in the CSV.
 #'
-#' @param new_urls A character vector of newly scraped article URLs.
-#' @param sitemap (Optional) The sitemap URL used to infer the news site.
-#' @return A character vector of URLs that are not already in the CSV.
+#' @param url_data A tibble with at least a 'url' column (from gu_fetch_sitemap_articles()).
+#' @param sitemap (Optional) The sitemap URL to help determine the news site.
+#' @return A tibble of new (non-duplicate) URLs, or NULL if none remain.
 #' @importFrom readr read_csv
-#' @importFrom dplyr anti_join tibble
+#' @importFrom dplyr anti_join select
 #' @export
-gu_remove_duplicates <- function(new_urls, sitemap = NULL) {
-  if (length(new_urls) == 0) {
-    return(character(0))
+gu_remove_duplicates <- function(url_data, sitemap = NULL) {
+  if (!"url" %in% names(url_data)) {
+    stop("Input must be a tibble with a 'url' column.")
   }
 
-  # helper function: extract domain name from sitemap or url
+  total_input <- nrow(url_data)
+
+  if (total_input == 0) {
+    message("No URLs provided.")
+    return(NULL)
+  }
+
+  # helper: extract domain from url or sitemap
   extract_news_site <- function(x) {
     domain <- sub("https?://(www\\.)?", "", x)
     domain <- sub("/.*", "", domain)
-    domain <- sub("\\..*$", "", domain)  # take just the main domain
-    return(tolower(domain)) # I hate regex
+    domain <- sub("\\..*$", "", domain)
+    return(tolower(domain))
   }
 
-  # find news site
+  # get news site
   news_site <- if (!is.null(sitemap)) {
     extract_news_site(sitemap)
   } else {
-    extract_news_site(new_urls[1])
+    extract_news_site(url_data$url[1])
   }
 
-  # csv path
+  # load csv
   dev_mode <- !nzchar(system.file(package = "articleharvestr"))
   folder_path <- if (dev_mode) "inst/extdata/article_data/" else system.file("extdata", "article_data", package = "articleharvestr")
   csv_path <- file.path(folder_path, paste0(news_site, ".csv"))
 
-  # if no csv, return all input URLs
   if (!file.exists(csv_path)) {
-    message("No existing CSV for ", news_site, ". Returning all URLs.")
-    return(new_urls)
+    message("No existing CSV for ", news_site, ". Returning all ", total_input, " URLs.")
+    return(url_data)
   }
 
-  existing_articles <- readr::read_csv(csv_path, show_col_types = FALSE)
+  existing_data <- readr::read_csv(csv_path, show_col_types = FALSE)
 
-  if (!"url" %in% names(existing_articles)) {
-    stop("CSV for site ", news_site, " does not contain a 'url' column.")
+  if (!"url" %in% names(existing_data)) {
+    stop("CSV file for ", news_site, " must contain a 'url' column.")
   }
 
-  new_urls_df <- tibble::tibble(url = new_urls)
-  existing_urls_df <- dplyr::select(existing_articles, url)
+  # rm duplicates
+  filtered <- dplyr::anti_join(url_data, dplyr::select(existing_data, url), by = "url")
+  remaining <- nrow(filtered)
+  removed <- total_input - remaining
 
-  unique_urls_df <- dplyr::anti_join(new_urls_df, existing_urls_df, by = "url")
+  message("Removed ", removed, " duplicates. ", remaining, " new articles remain.")
 
-  return(unique_urls_df$url)
+  if (remaining == 0) {
+    message("No new articles to process.")
+    return(NULL)
+  }
+
+  return(filtered)
 }
