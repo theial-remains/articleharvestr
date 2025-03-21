@@ -2,29 +2,20 @@
 % Please edit documentation in R/store_scraped_data.R
 \name{ss_store_articles}
 \alias{ss_store_articles}
-\title{Store and Append Articles for Any News Site}
+\title{Store articles using decorator pipeline}
 \usage{
-ss_store_articles(
-  article_data,
-  news_site,
-  folder_path = NULL,
-  overwrite = FALSE
-)
+ss_store_articles(article_data, news_site, overwrite = FALSE)
 }
 \arguments{
-\item{article_data}{A data frame with columns: url, title, author, published_date, text.}
+\item{article_data}{A data frame with at least url, published_date, author, title, and text columns.}
 
 \item{news_site}{The name of the news site (e.g., "huffpost").}
 
-\item{folder_path}{Directory for storing CSV files. Defaults to correct path based on mode.}
-
-\item{overwrite}{TRUE or FALSE, option to overwrite existing articles with the same URL.}
+\item{overwrite}{If TRUE, allows replacing existing article data. Default is FALSE.}
 }
 \value{
-The full path of the updated CSV.
+NULL (invisible)
 }
 \description{
-This function creates the CSV if it doesn't exist and appends new articles to it,
-ensuring no duplicate URLs are added. If \code{overwrite = TRUE}, it replaces articles
-with matching URLs instead of adding duplicates.
+This function uses a composed decorator chain to store articles in the new JSON architecture.
 }

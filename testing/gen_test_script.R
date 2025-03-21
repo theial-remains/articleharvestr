@@ -10,12 +10,15 @@ sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,
-                                          start_date = "2024-02-03",
-                                          end_date = "2024-02-06")
+                                          start_date = "2015-01-01",
+                                          end_date = "2025-03-20")
 View(article_urls)
 
 article_urls2 <- gu_remove_duplicates(article_urls) # FIXME maybe possibly does not work
 View(article_urls2)
+
+# TODO make a function check_content for any file path (of json)
+# opens as csv
 
 # step 2: scrape articles and return a dataframe
 results <- sa_scrape_articles(article_urls2, verbose = TRUE)

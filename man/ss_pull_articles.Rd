@@ -2,22 +2,33 @@
 % Please edit documentation in R/store_scraped_data.R
 \name{ss_pull_articles}
 \alias{ss_pull_articles}
-\title{Pull Articles from a News Site}
+\title{Pull articles from json files}
 \usage{
-ss_pull_articles(start_date, end_date, ran_articles = NULL, news_site)
+ss_pull_articles(
+  start_date,
+  end_date,
+  news_site,
+  ran_articles = NULL,
+  needs_text = NULL,
+  needs_sentiment = NULL
+)
 }
 \arguments{
-\item{start_date}{The start date in YYYY-MM-DD format.}
+\item{start_date}{Start date (YYYY-MM-DD)}
 
-\item{end_date}{The end date in YYYY-MM-DD format.}
+\item{end_date}{End date (YYYY-MM-DD)}
 
-\item{ran_articles}{The number of random articles to sample. If NULL, returns all articles (default: NULL).}
+\item{news_site}{Name of the news site (e.g., "huffpost")}
 
-\item{news_site}{The name of the news site (e.g., "huffpost").}
+\item{ran_articles}{Optional number of random articles to sample}
+
+\item{needs_text}{If TRUE/FALSE, filter for presence/absence of article text (default: NULL = return all)}
+
+\item{needs_sentiment}{If TRUE/FALSE, filter for presence/absence of sentiment values (default: NULL = return all)}
 }
 \value{
-A data frame containing the selected articles or an error message if conditions are not met.
+A tibble of article data from the matching months
 }
 \description{
-Retrieves articles from a CSV for a given date range.
+Retrieves article data for a given site and date range from the new JSON structure.
 }
