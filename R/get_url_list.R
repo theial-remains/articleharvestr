@@ -96,7 +96,7 @@ gu_filter_links_by_date <- function(links, level, start_date, end_date) {
 #' @param start_date The start date for filtering (YYYY-MM-DD).
 #' @param end_date The end date for filtering (YYYY-MM-DD).
 #' @param verbose Logical; if TRUE, prints execution time (default: TRUE).
-#' @return A tibble with a single column: url
+#' @return A tibble with columns: url, published_date
 #' @import stringr
 #' @import tictoc
 #' @importFrom tibble tibble
@@ -112,7 +112,7 @@ gu_fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date,
   if (length(all_links) == 0) {
     message("No links found in sitemap: ", sitemap_url)
     if (verbose) toc()
-    return(tibble::tibble(url = character(0)))
+    return(tibble::tibble(url = character(0), published_date = as.Date(character(0))))
   }
 
   filtered_links <- gu_filter_links_by_date(all_links, levels, start_date, end_date)
@@ -120,10 +120,10 @@ gu_fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date,
   if (length(filtered_links) == 0) {
     message("No links remain after date filtering at level ", levels)
     if (verbose) toc()
-    return(tibble::tibble(url = character(0)))
+    return(tibble::tibble(url = character(0), published_date = as.Date(character(0))))
   }
 
-  final_links <- character(0)
+  results <- list()
 
   if (levels == 1) {
     message("Extracting article links from final sitemap level...")
@@ -131,95 +131,135 @@ gu_fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date,
     for (link in filtered_links) {
       extracted_data <- gu_extract_sitemap_links(link)
       nested_links <- extracted_data$links
-      final_links <- c(final_links, nested_links)
-    }
 
-    message("Returning ", length(final_links), " articles from level 1.")
-  } else {
-    for (link in filtered_links) {
-      extracted_data <- gu_extract_sitemap_links(link)
-      nested_links <- extracted_data$links
+      # get published_date from the day level sitemap url
+      date_guess <- str_extract(link, "\\d{4}-\\d{2}-\\d{2}")
+      if (!is.na(date_guess)) {
+        published_date <- as.Date(date_guess)
+      } else {
+        published_date <- NA
+      }
 
       if (length(nested_links) > 0) {
-        filtered_nested_links <- gu_filter_links_by_date(nested_links, levels - 1, start_date, end_date)
+        article_df <- tibble::tibble(
+          url = nested_links,
+          published_date = published_date
+        )
+        results[[length(results) + 1]] <- article_df
+      }
+    }
 
-        for (nested_link in filtered_nested_links) {
-          new_links <- gu_fetch_sitemap_articles(nested_link, levels - 1, start_date, end_date, verbose = FALSE)
-          final_links <- c(final_links, new_links$url)
-        }
+    final_result <- dplyr::bind_rows(results)
+    message("Returning ", nrow(final_result), " articles from level 1.")
+
+    if (verbose) {
+      elapsed_time <- toc(quiet = TRUE)
+      message(sprintf("Scraped in %.2f seconds.", elapsed_time$toc - elapsed_time$tic))
+    }
+
+    return(final_result)
+  }
+
+  for (link in filtered_links) {
+    extracted_data <- gu_extract_sitemap_links(link)
+    nested_links <- extracted_data$links
+
+    if (length(nested_links) > 0) {
+      filtered_nested_links <- gu_filter_links_by_date(nested_links, levels - 1, start_date, end_date)
+
+      for (nested_link in filtered_nested_links) {
+        nested_df <- gu_fetch_sitemap_articles(nested_link, levels - 1, start_date, end_date, verbose = FALSE)
+        results[[length(results) + 1]] <- nested_df
       }
     }
   }
 
-  if (verbose) toc()
+  final_result <- dplyr::bind_rows(results)
 
-  return(tibble::tibble(url = final_links))
+  if (verbose) {
+    elapsed_time <- toc(quiet = TRUE)
+    message(sprintf("Scraped %d articles in %.2f seconds.", nrow(final_result), elapsed_time$toc - elapsed_time$tic))
+  }
+
+  return(final_result)
 }
 
-#' Remove Duplicate URLs Based on Existing CSV for a News Site
+#' Remove Duplicate URLs Based on Existing Monthly JSONs for a News Site
 #'
-#' Loads the site-specific CSV and removes any URLs from the new tibble that already exist in the CSV.
+#' Checks the news site's monthly JSONs and removes any URLs from the input tibble
+#' that already exist in those JSON files. This ensures we only scrape new articles.
 #'
-#' @param url_data A tibble with at least a 'url' column (from gu_fetch_sitemap_articles()).
+#' @param url_data A tibble with at least 'url' and 'published_date' columns (from gu_fetch_sitemap_articles()).
 #' @param sitemap (Optional) The sitemap URL to help determine the news site.
 #' @return A tibble of new (non-duplicate) URLs, or NULL if none remain.
-#' @importFrom readr read_csv
-#' @importFrom dplyr anti_join select
 #' @export
 gu_remove_duplicates <- function(url_data, sitemap = NULL) {
-  if (!"url" %in% names(url_data)) {
-    stop("Input must be a tibble with a 'url' column.")
+  if (!all(c("url", "published_date") %in% names(url_data))) {
+    stop("Input tibble must contain 'url' and 'published_date' columns.")
   }
 
   total_input <- nrow(url_data)
-
   if (total_input == 0) {
     message("No URLs provided.")
     return(NULL)
   }
 
-  # helper: extract domain from url or sitemap
+  # --- find news site name ---
   extract_news_site <- function(x) {
     domain <- sub("https?://(www\\.)?", "", x)
     domain <- sub("/.*", "", domain)
     domain <- sub("\\..*$", "", domain)
-    return(tolower(domain))
+    tolower(domain)
   }
 
-  # get news site
   news_site <- if (!is.null(sitemap)) {
     extract_news_site(sitemap)
   } else {
     extract_news_site(url_data$url[1])
   }
 
-  # load csv
+  # --- get storage path for correct news site folder ---
   dev_mode <- !nzchar(system.file(package = "articleharvestr"))
-  folder_path <- if (dev_mode) "inst/extdata/article_data/" else system.file("extdata", "article_data", package = "articleharvestr")
-  csv_path <- file.path(folder_path, paste0(news_site, ".csv"))
+  base_path <- if (dev_mode) {
+    file.path("inst/extdata/article_data", news_site)
+  } else {
+    file.path(system.file("extdata", "article_data", package = "articleharvestr"), news_site)
+  }
 
-  if (!file.exists(csv_path)) {
-    message("No existing CSV for ", news_site, ". Returning all ", total_input, " URLs.")
+  if (!dir.exists(base_path)) {
+    message("No existing folder found for ", news_site, ". Returning all ", total_input, " URLs.")
     return(url_data)
   }
 
-  existing_data <- readr::read_csv(csv_path, show_col_types = FALSE)
+  # --- load already scraped urls from monthly jsons for correct news site folder ---
+  url_data <- dplyr::mutate(url_data, month = format(as.Date(published_date), "%Y-%m"))
+  months <- unique(url_data$month)
 
-  if (!"url" %in% names(existing_data)) {
-    stop("CSV file for ", news_site, " must contain a 'url' column.")
+  scraped_urls <- character(0)
+
+  for (m in months) {
+    json_path <- file.path(base_path, paste0(m, ".json"))
+    if (file.exists(json_path)) {
+      articles <- tryCatch(
+        jsonlite::read_json(json_path, simplifyVector = TRUE),
+        error = function(e) NULL
+      )
+      if (!is.null(articles) && "url" %in% names(articles)) {
+        scraped_urls <- c(scraped_urls, articles$url)
+      }
+    }
   }
 
-  # rm duplicates
-  filtered <- dplyr::anti_join(url_data, dplyr::select(existing_data, url), by = "url")
-  remaining <- nrow(filtered)
-  removed <- total_input - remaining
+  # --- rm duplicates ---
+  deduped <- dplyr::anti_join(url_data, tibble::tibble(url = scraped_urls), by = "url")
+  removed <- nrow(url_data) - nrow(deduped)
 
-  message("Removed ", removed, " duplicates. ", remaining, " new articles remain.")
+  message("Removed ", removed, " duplicates. ", nrow(deduped), " new articles remain.")
 
-  if (remaining == 0) {
+  if (nrow(deduped) == 0) {
     message("No new articles to process.")
     return(NULL)
   }
 
-  return(filtered)
+  return(dplyr::select(deduped, url, published_date))
 }

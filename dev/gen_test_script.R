@@ -14,7 +14,7 @@ article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           end_date = "2024-02-06")
 View(article_urls)
 
-article_urls2 <- gu_remove_duplicates(article_urls)
+article_urls2 <- gu_remove_duplicates(article_urls) # FIXME maybe possibly does not work
 View(article_urls2)
 
 # step 2: scrape articles and return a dataframe
@@ -28,25 +28,25 @@ results3 <- ss_clean_date(results2) %>%
   na.omit()
 View(results3)
 
+
+
+# TODO: edit ss_store_articles
+# allow it to store just the url tibble in the overall json,
+# and fix overwrite needing to be true for aadding sentiment cols
+# so even when false you can add new sentiment data
+
+# TODO edit ss_pull_articles
+# allow it to find urls that:
+# 1. dont have sentiment values yet or
+# 2. dont have article data yet
+# based on a new param
+
 # store articles
 ss_store_articles(
   article_data = results3,
   news_site = "huffpost",
   overwrite = FALSE
 )
-
-
-# TODO make a function that finds urls that dont have sentiment values yet
-# by date and news site
-# and downloads them
-
-# TODO break up huffpost csv-
-# one file with all urls, date, ect. and sentiment values but not text
-# files by month with all data including text
-
-# TODO make function to store just urls in overall file
-
-
 
 # step 4: sentiment analysis
 # pull articles if you need to
@@ -64,10 +64,6 @@ ss_store_articles(
   article_data = sentiment_df,
   news_site = "huffpost",
   overwrite = TRUE
-  # TODO fix overwrite needing to be true for added sentiment columns?? maybe
-  # TODO itll only be considered an overwrite if there is existing data
-  # TODO so even when false you can add new sentiment data
-  # TODO allow user to download all rows
 )
 
 # pull articles with new data added

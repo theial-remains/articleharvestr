@@ -24,7 +24,7 @@ gu_fetch_sitemap_articles(
 \item{verbose}{Logical; if TRUE, prints execution time (default: TRUE).}
 }
 \value{
-A tibble with a single column: url
+A tibble with columns: url, published_date
 }
 \description{
 Fetches article URLs from a sitemap, filtering at each level and processing all valid sitemaps.
