@@ -147,3 +147,58 @@ gu_fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date)
 
   return(final_links)
 }
+
+#' Remove Duplicate URLs Based on Existing CSV for a News Site
+#'
+#' Loads the site-specific CSV and removes any URLs from the new set that already exist in the CSV.
+#'
+#' @param new_urls A character vector of newly scraped article URLs.
+#' @param sitemap (Optional) The sitemap URL used to infer the news site.
+#' @return A character vector of URLs that are not already in the CSV.
+#' @importFrom readr read_csv
+#' @importFrom dplyr anti_join tibble
+#' @export
+gu_remove_duplicates <- function(new_urls, sitemap = NULL) {
+  if (length(new_urls) == 0) {
+    return(character(0))
+  }
+
+  # helper function: extract domain name from sitemap or url
+  extract_news_site <- function(x) {
+    domain <- sub("https?://(www\\.)?", "", x)
+    domain <- sub("/.*", "", domain)
+    domain <- sub("\\..*$", "", domain)  # take just the main domain
+    return(tolower(domain)) # I hate regex
+  }
+
+  # find news site
+  news_site <- if (!is.null(sitemap)) {
+    extract_news_site(sitemap)
+  } else {
+    extract_news_site(new_urls[1])
+  }
+
+  # csv path
+  dev_mode <- !nzchar(system.file(package = "articleharvestr"))
+  folder_path <- if (dev_mode) "inst/extdata/article_data/" else system.file("extdata", "article_data", package = "articleharvestr")
+  csv_path <- file.path(folder_path, paste0(news_site, ".csv"))
+
+  # if no csv, return all input URLs
+  if (!file.exists(csv_path)) {
+    message("No existing CSV for ", news_site, ". Returning all URLs.")
+    return(new_urls)
+  }
+
+  existing_articles <- readr::read_csv(csv_path, show_col_types = FALSE)
+
+  if (!"url" %in% names(existing_articles)) {
+    stop("CSV for site ", news_site, " does not contain a 'url' column.")
+  }
+
+  new_urls_df <- tibble::tibble(url = new_urls)
+  existing_urls_df <- dplyr::select(existing_articles, url)
+
+  unique_urls_df <- dplyr::anti_join(new_urls_df, existing_urls_df, by = "url")
+
+  return(unique_urls_df$url)
+}

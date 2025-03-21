@@ -27,7 +27,8 @@ as_article_sentiment <- function(dataframe) {
   sentiment_results <- sentiment_by(get_sentences(valid_data$text), valid_data$row_id)
 
   dataframe <- dataframe %>%
-    left_join(sentiment_results %>% select(row_id, ave_sentiment, sd), by = "row_id") %>%
+    left_join(sentiment_results %>%
+    select(row_id, ave_sentiment, sd), by = "row_id") %>%
     mutate(sentiment_val = ifelse(is.na(ave_sentiment), NA, ave_sentiment),
            sentiment_sd = ifelse(is.na(sd), NA, sd)) %>%
     select(-row_id, -word_count, -ave_sentiment, -sd) %>%

@@ -147,7 +147,7 @@ ss_store_articles <- function(article_data,
   if (file.exists(file_path)) {
     existing_data <- read.csv(file_path, stringsAsFactors = FALSE)
 
-    # Ensure existing data has sentiment_val and sentiment_sd
+    # see if existing data has sentiment_val and sentiment_sd
     if (!"sentiment_val" %in% names(existing_data)) {
       existing_data$sentiment_val <- NA
     }
