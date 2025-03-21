@@ -95,10 +95,17 @@ gu_filter_links_by_date <- function(links, level, start_date, end_date) {
 #' @param levels The number of levels in the sitemap (1 = days, 2 = months, 3 = years).
 #' @param start_date The start date for filtering (YYYY-MM-DD).
 #' @param end_date The end date for filtering (YYYY-MM-DD).
+#' @param verbose Logical; if TRUE, prints progress updates and execution time (default: TRUE).
 #' @return A character vector of article URLs.
 #' @import stringr
+#' @import tictoc
 #' @export
-gu_fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date) {
+gu_fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date, verbose = TRUE) {
+
+  if (verbose) {
+    tic()
+  }
+
   message("Fetching sitemap: ", sitemap_url, " (Levels: ", levels, ")")
 
   extracted_data <- gu_extract_sitemap_links(sitemap_url)
@@ -145,7 +152,14 @@ gu_fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date)
     }
   }
 
-  return(final_links)
+  result <- tibble::tibble(url = final_links)
+
+  if (verbose) {
+    elapsed_time <- toc(quiet = TRUE)
+    message(sprintf("Scraped articles in %.2f seconds.", elapsed_time$toc - elapsed_time$tic))
+  }
+
+  return(result)
 }
 
 #' Remove Duplicate URLs Based on Existing CSV for a News Site
@@ -201,65 +215,4 @@ gu_remove_duplicates <- function(new_urls, sitemap = NULL) {
   unique_urls_df <- dplyr::anti_join(new_urls_df, existing_urls_df, by = "url")
 
   return(unique_urls_df$url)
-}
-
-#' Recursively Fetch Article URLs from Sitemap
-#'
-#' Fetches article URLs from a sitemap, filtering at each level and processing all valid sitemaps.
-#'
-#' @param sitemap_url The URL of the sitemap.
-#' @param levels The number of levels in the sitemap (1 = days, 2 = months, 3 = years).
-#' @param start_date The start date for filtering (YYYY-MM-DD).
-#' @param end_date The end date for filtering (YYYY-MM-DD).
-#' @return A character vector of article URLs.
-#' @import stringr
-#' @export
-gu_fetch_sitemap_articles_by_date <- function(sitemap_url, levels, start_date, end_date) {
-  message("Fetching sitemap: ", sitemap_url, " (Levels: ", levels, ")")
-
-  extracted_data <- gu_extract_sitemap_links(sitemap_url)
-  all_links <- extracted_data$links
-
-  if (length(all_links) == 0) {
-    message("No links found in sitemap: ", sitemap_url)
-    return(character(0))
-  }
-
-  filtered_links <- gu_filter_links_by_date(all_links, levels, start_date, end_date)
-
-  if (length(filtered_links) == 0) {
-    message("No links remain after date filtering at level ", levels)
-    return(character(0))
-  }
-
-  final_links <- character(0)
-
-  if (levels == 1) {
-    message("Extracting article links from final sitemap level...")
-
-    for (link in filtered_links) {
-      extracted_data <- gu_extract_sitemap_links(link)
-      nested_links <- extracted_data$links
-      final_links <- c(final_links, nested_links)
-    }
-
-    message("Returning ", length(final_links), " articles from level 1.")
-    return(final_links)
-  }
-
-  for (link in filtered_links) {
-    extracted_data <- gu_extract_sitemap_links(link)
-    nested_links <- extracted_data$links
-
-    if (levels > 1 && length(nested_links) > 0) {
-      filtered_nested_links <- gu_filter_links_by_date(nested_links, levels - 1, start_date, end_date)
-
-      for (nested_link in filtered_nested_links) {
-        new_links <- gu_fetch_sitemap_articles(nested_link, levels - 1, start_date, end_date)
-        final_links <- c(final_links, new_links)
-      }
-    }
-  }
-
-  return(final_links)
 }

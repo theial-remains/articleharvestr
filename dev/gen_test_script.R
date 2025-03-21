@@ -8,14 +8,13 @@ devtools::document()
 # step 1: get urls for a year
 sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 
-tic()
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,
                                           start_date = "2024-05-03",
                                           end_date = "2024-05-06")
-toc()
-View(article_urls)
 length(article_urls)
+class(article_urls)
+View(article_urls)
 
 article_urls2 <- gu_remove_duplicates(article_urls)
 length(article_urls2)
@@ -38,7 +37,6 @@ ss_store_articles(
   overwrite = FALSE
 )
 
-# TODO function to get urls should store in a tibble
 
 # TODO make a function that finds urls that dont have sentiment values yet
 # by date and news site
