@@ -25,8 +25,10 @@ sd_store_articles(
 # pull urls (or just continue from the last step)
 test_data <- sd_pull_articles(
   start_date = "2024-01-01",
-  end_date = "2025-03-25",
-  news_site = "huffpost"
+  end_date = "2024-02-01",
+  news_site = "huffpost",
+  url = TRUE
 )
+View(test_data)
 
 scraped_data <- sa_scrape_articles(test_data)

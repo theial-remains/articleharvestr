@@ -147,82 +147,102 @@ sd_store_articles <- function(article_data, news_site, overwrite = FALSE) {
 #' @param start_date Start date (YYYY-MM-DD)
 #' @param end_date End date (YYYY-MM-DD)
 #' @param news_site News site name (e.g., "huffpost")
-#' @param scraped TRUE to get unscraped articles (no text), FALSE to get scraped (text), NULL to ignore
-#' @param needs_sentiment TRUE to get only sentimented, FALSE to get only non-sentimented, NULL to ignore
-#' @param url If TRUE, return only `url` and `published_date` columns
+#' @param scraped If TRUE/FALSE, filter by presence/absence of article text
+#' @param sentiment If TRUE/FALSE, filter by presence/absence of sentiment data
+#' @param url If TRUE, returns only url and published_date columns (ignores other filters)
 #' @return A tibble of filtered article data
 #' @export
 sd_pull_articles <- function(start_date,
                              end_date,
                              news_site,
                              scraped = NULL,
-                             needs_sentiment = NULL,
+                             sentiment = NULL,
                              url = FALSE) {
   folder <- file.path("inst/extdata/article_data", news_site)
 
-  # force logic: if needs_sentiment is set, scraped is FALSE
-  if (!is.null(needs_sentiment)) {
-    scraped <- FALSE
-  }
+  # force logic if sentiment is set
+  if (!is.null(sentiment)) scraped <- TRUE
+  if (url) scraped <- NULL; sentiment <- NULL
 
-  # load from index if scraped is TRUE (unscraped) or sentiment is being checked (which is based on index)
-  use_index <- isTRUE(scraped) || !is.null(needs_sentiment)
-
-  # load the appropriate data
-  if (use_index) {
-    index_path <- file.path(folder, "index.json")
-    if (!file.exists(index_path)) stop("index.json does not exist for site: ", news_site)
-
-    articles <- jsonlite::read_json(index_path, simplifyVector = TRUE)
-  } else {
-    month_paths <- list.files(folder, pattern = "\\d{4}-\\d{2}\\.json$", full.names = TRUE)
-    if (length(month_paths) == 0) stop("No monthly JSON files found for site: ", news_site)
-
-    articles <- purrr::map_dfr(month_paths, ~ jsonlite::read_json(.x, simplifyVector = TRUE))
-  }
-
-  # check that published_date exists
-  if (!"published_date" %in% names(articles)) {
-    stop("No `published_date` column found in data.")
-  }
-
-  # filter date
-  articles <- dplyr::filter(articles,
-    as.Date(published_date) >= as.Date(start_date),
-    as.Date(published_date) <= as.Date(end_date)
-  )
-
-  if (nrow(articles) == 0) {
-    stop("No articles found in the specified date range.")
-  }
-
-  # if scraped = TRUE, ignore sentiment filters and return only unscraped
-  if (isTRUE(scraped)) {
-    articles <- dplyr::filter(articles, is.na(text) | text == "")
-    if (nrow(articles) == 0) stop("No unscraped articles found in the given date range.")
-  }
-
-  # if scraped = FALSE and sentiment is NULL, return scraped (text exists), ignore sentiment
-  if (isFALSE(scraped) && is.null(needs_sentiment)) {
-    articles <- dplyr::filter(articles, !is.na(text) & text != "")
-    if (nrow(articles) == 0) stop("No scraped articles found in the given date range.")
-  }
-
-  # if sentiment filtering is requested
-  if (!is.null(needs_sentiment)) {
-    if (needs_sentiment) {
-      articles <- dplyr::filter(articles, !is.na(sentiment_val))
-      if (nrow(articles) == 0) stop("No articles with sentiment found in the given date range.")
+  # helper to load json files idk why I did this
+  safe_read <- function(path) {
+    if (file.exists(path)) {
+      jsonlite::read_json(path, simplifyVector = TRUE)
     } else {
-      articles <- dplyr::filter(articles, is.na(sentiment_val))
-      if (nrow(articles) == 0) stop("No articles without sentiment found in the given date range.")
+      tibble::tibble()
     }
   }
 
-  # if url = TRUE, return only url and published_date
-  if (isTRUE(url)) {
-    articles <- dplyr::select(articles, url, published_date)
+  index_path <- file.path(folder, "index.json")
+  index_data <- safe_read(index_path)
+  index_data$source <- "index"
+
+  # load monthly jsons
+  all_months <- list.files(folder, pattern = "\\d{4}-\\d{2}\\.json$", full.names = TRUE)
+  monthly_data <- purrr::map_dfr(all_months, ~ {
+    df <- safe_read(.x)
+    if (nrow(df) > 0) df$source <- "monthly"
+    df
+  })
+
+  # filter by date range
+  all_data <- dplyr::bind_rows(index_data, monthly_data)
+  all_data$published_date <- as.Date(all_data$published_date)
+
+  all_data <- dplyr::filter(all_data,
+    published_date >= as.Date(start_date) &
+    published_date <= as.Date(end_date)
+  )
+
+  if (nrow(all_data) == 0) {
+    stop("No articles found in the given date range.")
   }
 
-  return(articles)
+  # url only mode logic
+  # skip filters, return url and published_date
+  if (url) {
+    message("Returning URLs only from index and monthly JSONs.")
+    result <- dplyr::distinct(all_data, url, published_date)
+    message(nrow(result), " article URLs found.")
+    return(result)
+  }
+
+  # more logic
+  if (!is.null(scraped)) {
+    if (scraped) {
+      all_data <- dplyr::filter(all_data, !is.na(text) & text != "")
+    } else {
+      all_data <- dplyr::filter(all_data, is.na(text) | text == "")
+    }
+
+    if (nrow(all_data) == 0) {
+      stop("No articles match the 'scraped = ", scraped, "' condition in this date range.")
+    }
+  }
+
+  if (!is.null(sentiment)) {
+    if (sentiment) {
+      all_data <- dplyr::filter(all_data, !is.na(sentiment_val))
+    } else {
+      all_data <- dplyr::filter(all_data, is.na(sentiment_val))
+    }
+
+    if (nrow(all_data) == 0) {
+      stop("No articles match the 'sentiment = ", sentiment, "' condition in this date range.")
+    }
+  }
+
+  # reporting messages n stuff
+  # TODO add a verbose param
+  total <- nrow(all_data)
+  num_scraped <- sum(!is.na(all_data$text) & all_data$text != "")
+  num_sentimented <- sum(!is.na(all_data$sentiment_val))
+  num_url_only <- total - num_scraped
+
+  message("Returned ", total, " articles:")
+  message("Returning", num_url_only, " URL-only (not scraped)")
+  message("Returning", num_scraped, " scraped with text")
+  message("Returning", num_sentimented, " with sentiment data")
+
+  return(all_data)
 }
