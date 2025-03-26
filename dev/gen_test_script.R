@@ -12,21 +12,21 @@ article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,
                                           start_date = "2024-01-01",
                                           end_date = "2025-03-25")
-View(article_urls)
 
 article_urls2 <- gu_remove_duplicates(article_urls)
 
 # store article urls
-ss_store_articles(
+sd_store_articles(
   article_data = article_urls2,
   news_site = "huffpost",
   overwrite = FALSE
 )
 
 # pull urls (or just continue from the last step)
-test_data <- ss_pull_articles(
+test_data <- sd_pull_articles(
   start_date = "2024-01-01",
   end_date = "2025-03-25",
-  news_site = "huffpost",
-  url = TRUE
+  news_site = "huffpost"
 )
+
+scraped_data <- sa_scrape_articles(test_data)

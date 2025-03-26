@@ -6,7 +6,7 @@
 #' @return The same dataframe with "published_date" cleaned to "YYYY-MM-DD".
 #' @import lubridate
 #' @export
-ss_clean_date <- function(dataframe) {
+sd_clean_date <- function(dataframe) {
   if (!"published_date" %in% names(dataframe)) {
     stop("Error: Dataframe must contain a 'published_date' column.")
   }
@@ -65,7 +65,7 @@ ss_clean_date <- function(dataframe) {
 #' @return The same dataframe with a cleaned "author" column.
 #' @import stringr
 #' @export
-ss_clean_author <- function(dataframe,
+sd_clean_author <- function(dataframe,
                             words_to_remove = c(),
                             words_to_change = c()) {
   if (!"author" %in% names(dataframe)) {
@@ -108,7 +108,7 @@ ss_clean_author <- function(dataframe,
 #' @param overwrite If TRUE, allows replacing all fields for matching URLs. If FALSE, only updates missing fields.
 #' @return NULL (invisible)
 #' @export
-ss_store_articles <- function(article_data, news_site, overwrite = FALSE) {
+sd_store_articles <- function(article_data, news_site, overwrite = FALSE) {
   if (!"url" %in% names(article_data) || !"published_date" %in% names(article_data)) {
     stop("article_data must contain at least 'url' and 'published_date'")
   }
@@ -152,7 +152,7 @@ ss_store_articles <- function(article_data, news_site, overwrite = FALSE) {
 #' @param url If TRUE, return only `url` and `published_date` columns
 #' @return A tibble of filtered article data
 #' @export
-ss_pull_articles <- function(start_date,
+sd_pull_articles <- function(start_date,
                              end_date,
                              news_site,
                              scraped = NULL,
