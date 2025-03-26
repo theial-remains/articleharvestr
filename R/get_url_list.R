@@ -184,12 +184,12 @@ gu_fetch_sitemap_articles <- function(sitemap_url, levels, start_date, end_date,
   return(final_result)
 }
 
-#' Remove Duplicate URLs Based on Existing Monthly JSONs for a News Site
+#' Remove Duplicate URLs Based on Existing JSONs for a News Site
 #'
-#' Checks the news site's monthly JSONs and removes any URLs from the input tibble
-#' that already exist in those JSON files. This ensures we only scrape new articles.
+#' Checks index.json or monthly JSONs depending on input data type, and removes
+#' any URLs that already exist in stored files.
 #'
-#' @param url_data A tibble with at least 'url' and 'published_date' columns (from gu_fetch_sitemap_articles()).
+#' @param url_data A tibble with at least 'url' and 'published_date'.
 #' @param sitemap (Optional) The sitemap URL to help determine the news site.
 #' @return A tibble of new (non-duplicate) URLs, or NULL if none remain.
 #' @export
@@ -204,7 +204,6 @@ gu_remove_duplicates <- function(url_data, sitemap = NULL) {
     return(NULL)
   }
 
-  # --- find news site name ---
   extract_news_site <- function(x) {
     domain <- sub("https?://(www\\.)?", "", x)
     domain <- sub("/.*", "", domain)
@@ -218,7 +217,6 @@ gu_remove_duplicates <- function(url_data, sitemap = NULL) {
     extract_news_site(url_data$url[1])
   }
 
-  # --- get storage path for correct news site folder ---
   dev_mode <- !nzchar(system.file(package = "articleharvestr"))
   base_path <- if (dev_mode) {
     file.path("inst/extdata/article_data", news_site)
@@ -231,29 +229,72 @@ gu_remove_duplicates <- function(url_data, sitemap = NULL) {
     return(url_data)
   }
 
-  # --- load already scraped urls from monthly jsons for correct news site folder ---
-  url_data <- dplyr::mutate(url_data, month = format(as.Date(published_date), "%Y-%m"))
-  months <- unique(url_data$month)
+  has_text <- "text" %in% names(url_data)
+  has_sentiment <- "sentiment_val" %in% names(url_data)
 
-  scraped_urls <- character(0)
-
-  for (m in months) {
-    json_path <- file.path(base_path, paste0(m, ".json"))
-    if (file.exists(json_path)) {
-      articles <- tryCatch(
-        jsonlite::read_json(json_path, simplifyVector = TRUE),
-        error = function(e) NULL
-      )
-      if (!is.null(articles) && "url" %in% names(articles)) {
-        scraped_urls <- c(scraped_urls, articles$url)
-      }
+  # ----------- Case 1: Only url and published_date → check index.json ------------
+  if (!has_text && !has_sentiment) {
+    index_path <- file.path(base_path, "index.json")
+    if (!file.exists(index_path)) {
+      message("No index.json found for ", news_site, ". Returning all URLs.")
+      return(url_data)
     }
+
+    existing <- jsonlite::read_json(index_path, simplifyVector = TRUE)
+    if (!"url" %in% names(existing)) {
+      stop("index.json does not contain 'url' column.")
+    }
+
+    deduped <- dplyr::anti_join(url_data, dplyr::select(existing, url), by = "url")
   }
 
-  # --- rm duplicates ---
-  deduped <- dplyr::anti_join(url_data, tibble::tibble(url = scraped_urls), by = "url")
-  removed <- nrow(url_data) - nrow(deduped)
+  # ----------- Case 2: Input has text (scraped) → check monthly JSONs ------------
+  if (has_text && !has_sentiment) {
+    url_data <- dplyr::mutate(url_data, month = format(as.Date(published_date), "%Y-%m"))
+    months <- unique(url_data$month)
 
+    scraped_urls <- character(0)
+
+    for (m in months) {
+      json_path <- file.path(base_path, paste0(m, ".json"))
+      if (file.exists(json_path)) {
+        articles <- tryCatch(
+          jsonlite::read_json(json_path, simplifyVector = TRUE),
+          error = function(e) NULL
+        )
+        if (!is.null(articles) && "url" %in% names(articles) && "text" %in% names(articles)) {
+          scraped_urls <- c(scraped_urls, articles$url[!is.na(articles$text) & articles$text != ""])
+        }
+      }
+    }
+
+    deduped <- dplyr::anti_join(url_data, tibble::tibble(url = scraped_urls), by = "url")
+  }
+
+  # ----------- Case 3: Input has sentiment → remove if already sentimented -------
+  if (has_sentiment) {
+    url_data <- dplyr::mutate(url_data, month = format(as.Date(published_date), "%Y-%m"))
+    months <- unique(url_data$month)
+
+    sentimented_urls <- character(0)
+
+    for (m in months) {
+      json_path <- file.path(base_path, paste0(m, ".json"))
+      if (file.exists(json_path)) {
+        articles <- tryCatch(
+          jsonlite::read_json(json_path, simplifyVector = TRUE),
+          error = function(e) NULL
+        )
+        if (!is.null(articles) && "url" %in% names(articles) && "sentiment_val" %in% names(articles)) {
+          sentimented_urls <- c(sentimented_urls, articles$url[!is.na(articles$sentiment_val)])
+        }
+      }
+    }
+
+    deduped <- dplyr::anti_join(url_data, tibble::tibble(url = sentimented_urls), by = "url")
+  }
+
+  removed <- nrow(url_data) - nrow(deduped)
   message("Removed ", removed, " duplicates. ", nrow(deduped), " new articles remain.")
 
   if (nrow(deduped) == 0) {
