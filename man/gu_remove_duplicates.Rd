@@ -2,12 +2,12 @@
 % Please edit documentation in R/get_url_list.R
 \name{gu_remove_duplicates}
 \alias{gu_remove_duplicates}
-\title{Remove Duplicate URLs Based on Existing Monthly JSONs for a News Site}
+\title{Remove Duplicate URLs Based on Existing JSONs for a News Site}
 \usage{
 gu_remove_duplicates(url_data, sitemap = NULL)
 }
 \arguments{
-\item{url_data}{A tibble with at least 'url' and 'published_date' columns (from gu_fetch_sitemap_articles()).}
+\item{url_data}{A tibble with at least 'url' and 'published_date'.}
 
 \item{sitemap}{(Optional) The sitemap URL to help determine the news site.}
 }
@@ -15,6 +15,6 @@ gu_remove_duplicates(url_data, sitemap = NULL)
 A tibble of new (non-duplicate) URLs, or NULL if none remain.
 }
 \description{
-Checks the news site's monthly JSONs and removes any URLs from the input tibble
-that already exist in those JSON files. This ensures we only scrape new articles.
+Checks index.json or monthly JSONs depending on input data type, and removes
+any URLs that already exist in stored files.
 }
