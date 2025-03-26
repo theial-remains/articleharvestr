@@ -13,24 +13,22 @@ sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,
-                                          start_date = "2024-01-01",
-                                          end_date = "2025-03-25")
+                                          start_date = "2025-01-01",
+                                          end_date = "2025-02-01")
+View(article_urls)
 
-# all should be duplicates
-# article_urls <- gu_remove_duplicates(article_urls)
+article_urls2 <- gu_remove_duplicates(article_urls)
 
-# store article urls
-# sd_store_articles(
-#   article_data = article_urls,
-#   news_site = "huffpost",
-#   overwrite = FALSE
-# )
+sd_store_articles(
+  article_data = article_urls,
+  news_site = "huffpost",
+  overwrite = FALSE
+)
 
-# more example code, also not using this rn
 # pull urls (or just continue from the last step)
 test_data <- sd_pull_articles(
-  start_date = "2024-01-01",
-  end_date = "2024-02-01",
+  start_date = "2025-01-01",
+  end_date = "2025-02-01",
   news_site = "huffpost",
   url = TRUE
 )
@@ -70,11 +68,18 @@ sampled_urls <- sd_sample_urls(
   number = 100,
   period = "month"
 )
+View(sampled_urls)
 
 scraped_data <- sa_scrape_articles(sampled_urls)
 View(scraped_data)
 
 sentiment_data <- as_article_sentiment(scraped_data)
+View(sentiment_data)
 
 # now u can store random sample of sentiment data
 # or analyze it or make plots, whatever u want
+sd_store_articles(
+  article_data = sentiment_data,
+  news_site = "huffpost",
+  overwrite = FALSE
+)
