@@ -115,106 +115,113 @@ ss_store_articles <- function(article_data, news_site, overwrite = FALSE) {
 
   article_data$published_date <- as.character(article_data$published_date)
 
-  # always runs:
-  # creates site folder if needed
-  # adds data in index.json for that site (or not if overwrite FALSE and data not new)
-  index_pipeline <- compose_storage(
-    store_ensure_folders,
-    store_index_json,
-    store_base()
-  )
-  index_pipeline(article_data, news_site, overwrite)
-
-  # store full articles if text is present
-  # creates site folder if needed
-  # create or update monthly jsons (or not if overwrite FALSE and data not new)
-  if ("text" %in% names(article_data)) {
+  # if full text is present, store both index and monthly jsons
+  if ("text" %in% names(article_data) && any(!is.na(article_data$text) & article_data$text != "")) {
     text_data <- article_data[!is.na(article_data$text) & article_data$text != "", ]
 
-    if (nrow(text_data) > 0) {
-      monthly_pipeline <- compose_storage(
-        store_ensure_folders,
-        store_index_json,
-        store_monthly_json,
-        store_base()
-      )
-      monthly_pipeline(text_data, news_site, overwrite)
-    }
+    monthly_pipeline <- compose_storage(
+      store_ensure_folders,
+      store_index_json,
+      store_monthly_json,
+      store_base()
+    )
+    monthly_pipeline(text_data, news_site, overwrite)
+  } else {
+    # otherwise only store metadata in index.json
+    index_pipeline <- compose_storage(
+      store_ensure_folders,
+      store_index_json,
+      store_base()
+    )
+    index_pipeline(article_data, news_site, overwrite)
   }
 
+  message("Storage complete for news site: ", news_site)
   invisible(NULL)
 }
 
-#' Pull articles from json files or index metadata
+#' Pull articles from JSON files or index metadata
 #'
-#' Retrieves article metadata and/or full data for a given site and date range.
+#' Automatically selects data source (index or monthly JSONs) based on desired filters.
 #'
 #' @param start_date Start date (YYYY-MM-DD)
 #' @param end_date End date (YYYY-MM-DD)
-#' @param news_site Name of the news site (e.g., "huffpost")
-#' @param ran_articles Optional number of random articles to sample
-#' @param needs_text If TRUE/FALSE, filter for presence/absence of article text (default: NULL = return all)
-#' @param needs_sentiment If TRUE/FALSE, filter for presence/absence of sentiment values (default: NULL = return all)
-#' @param from_index If TRUE, loads from index.json instead of monthly files (default: FALSE)
-#' @return A tibble of article data
+#' @param news_site News site name (e.g., "huffpost")
+#' @param scraped TRUE to get unscraped articles (no text), FALSE to get scraped (text), NULL to ignore
+#' @param needs_sentiment TRUE to get only sentimented, FALSE to get only non-sentimented, NULL to ignore
+#' @param url If TRUE, return only `url` and `published_date` columns
+#' @return A tibble of filtered article data
 #' @export
 ss_pull_articles <- function(start_date,
                              end_date,
                              news_site,
-                             ran_articles = NULL,
-                             needs_text = NULL,
+                             scraped = NULL,
                              needs_sentiment = NULL,
-                             from_index = FALSE) {
+                             url = FALSE) {
   folder <- file.path("inst/extdata/article_data", news_site)
 
-  if (from_index) {
-    # load index only
+  # force logic: if needs_sentiment is set, scraped is FALSE
+  if (!is.null(needs_sentiment)) {
+    scraped <- FALSE
+  }
+
+  # load from index if scraped is TRUE (unscraped) or sentiment is being checked (which is based on index)
+  use_index <- isTRUE(scraped) || !is.null(needs_sentiment)
+
+  # load the appropriate data
+  if (use_index) {
     index_path <- file.path(folder, "index.json")
     if (!file.exists(index_path)) stop("index.json does not exist for site: ", news_site)
 
     articles <- jsonlite::read_json(index_path, simplifyVector = TRUE)
-    articles <- dplyr::filter(articles,
-      as.Date(published_date) >= as.Date(start_date),
-      as.Date(published_date) <= as.Date(end_date))
-
   } else {
-    # load monthly full text data
-    all_months <- list.files(folder, pattern = "\\d{4}-\\d{2}\\.json$", full.names = TRUE)
-    file_dates <- as.Date(sub(".json$", "-01", basename(all_months)))
-    date_range <- as.Date(c(start_date, end_date))
-    keep_files <- all_months[file_dates >= date_range[1] & file_dates <= date_range[2]]
+    month_paths <- list.files(folder, pattern = "\\d{4}-\\d{2}\\.json$", full.names = TRUE)
+    if (length(month_paths) == 0) stop("No monthly JSON files found for site: ", news_site)
 
-    articles <- purrr::map_dfr(keep_files, ~ jsonlite::read_json(.x, simplifyVector = TRUE))
-    articles <- dplyr::filter(articles,
-      as.Date(published_date) >= as.Date(start_date),
-      as.Date(published_date) <= as.Date(end_date))
+    articles <- purrr::map_dfr(month_paths, ~ jsonlite::read_json(.x, simplifyVector = TRUE))
   }
 
-  # filter by presence/absence of text
-  if (!is.null(needs_text)) {
-    if (needs_text) {
-      articles <- dplyr::filter(articles, !is.na(text) & text != "")
-    } else {
-      articles <- dplyr::filter(articles, is.na(text) | text == "")
-    }
+  # check that published_date exists
+  if (!"published_date" %in% names(articles)) {
+    stop("No `published_date` column found in data.")
   }
 
-  # filter by presence/absence of sentiment
+  # filter date
+  articles <- dplyr::filter(articles,
+    as.Date(published_date) >= as.Date(start_date),
+    as.Date(published_date) <= as.Date(end_date)
+  )
+
+  if (nrow(articles) == 0) {
+    stop("No articles found in the specified date range.")
+  }
+
+  # if scraped = TRUE, ignore sentiment filters and return only unscraped
+  if (isTRUE(scraped)) {
+    articles <- dplyr::filter(articles, is.na(text) | text == "")
+    if (nrow(articles) == 0) stop("No unscraped articles found in the given date range.")
+  }
+
+  # if scraped = FALSE and sentiment is NULL, return scraped (text exists), ignore sentiment
+  if (isFALSE(scraped) && is.null(needs_sentiment)) {
+    articles <- dplyr::filter(articles, !is.na(text) & text != "")
+    if (nrow(articles) == 0) stop("No scraped articles found in the given date range.")
+  }
+
+  # if sentiment filtering is requested
   if (!is.null(needs_sentiment)) {
     if (needs_sentiment) {
       articles <- dplyr::filter(articles, !is.na(sentiment_val))
+      if (nrow(articles) == 0) stop("No articles with sentiment found in the given date range.")
     } else {
       articles <- dplyr::filter(articles, is.na(sentiment_val))
+      if (nrow(articles) == 0) stop("No articles without sentiment found in the given date range.")
     }
   }
 
-  # optionally sample
-  if (!is.null(ran_articles)) {
-    if (nrow(articles) < ran_articles) {
-      warning("Requested ", ran_articles, " but only ", nrow(articles), " articles available.")
-    } else {
-      articles <- articles[sample(nrow(articles), ran_articles), ]
-    }
+  # if url = TRUE, return only url and published_date
+  if (isTRUE(url)) {
+    articles <- dplyr::select(articles, url, published_date)
   }
 
   return(articles)
