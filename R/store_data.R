@@ -246,3 +246,62 @@ sd_pull_articles <- function(start_date,
 
   return(all_data)
 }
+
+#' Sample random URLs per day/month/year from index.json
+#'
+#' @param start_date Start date (YYYY-MM-DD)
+#' @param end_date End date (YYYY-MM-DD)
+#' @param news_site Name of the news site (e.g., "huffpost")
+#' @param number Number of URLs to sample per time period
+#' @param period Time period to group by: "day", "month", or "year"
+#' @return A tibble with randomly sampled URLs and published_date
+#' @export
+sd_sample_urls <- function(start_date,
+                           end_date,
+                           news_site,
+                           number,
+                           period = c("day", "month", "year")) {
+  period <- match.arg(period)
+  folder <- file.path("inst/extdata/article_data", news_site)
+  index_path <- file.path(folder, "index.json")
+
+  if (!file.exists(index_path)) stop("index.json does not exist for site: ", news_site)
+
+  # load, filter index
+  index <- jsonlite::read_json(index_path, simplifyVector = TRUE)
+  index <- dplyr::filter(index,
+                         as.Date(published_date) >= as.Date(start_date),
+                         as.Date(published_date) <= as.Date(end_date))
+
+  if (nrow(index) == 0) stop("No URLs found in the specified date range.")
+
+  # get time unit
+  index$group <- dplyr::case_when(
+    period == "day" ~ format(as.Date(index$published_date), "%Y-%m-%d"),
+    period == "month" ~ format(as.Date(index$published_date), "%Y-%m"),
+    period == "year" ~ format(as.Date(index$published_date), "%Y")
+  )
+
+  # check that each period has enough to sample
+  group_counts <- index %>%
+    dplyr::group_by(group) %>%
+    dplyr::tally()
+
+  insufficient <- group_counts %>% dplyr::filter(n < number)
+
+  if (nrow(insufficient) > 0) {
+    stop("Not enough articles to sample ", number, " in the following ", period, "(s): ",
+         paste(insufficient$group, collapse = ", "))
+  }
+
+  # sample per time units
+  sampled <- index %>%
+    dplyr::group_by(group) %>%
+    dplyr::slice_sample(n = number) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(url, published_date)
+
+  message("Sampled ", nrow(sampled), " articles (", number, " per ", period, ").")
+
+  return(sampled)
+}
