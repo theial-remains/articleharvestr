@@ -119,9 +119,9 @@ ss_store_articles <- function(article_data, news_site, overwrite = FALSE) {
   # creates site folder if needed
   # adds data in index.json for that site (or not if overwrite FALSE and data not new)
   index_pipeline <- compose_storage(
-    store_base(),
+    store_ensure_folders,
     store_index_json,
-    store_ensure_folders
+    store_base()
   )
   index_pipeline(article_data, news_site, overwrite)
 
@@ -133,10 +133,10 @@ ss_store_articles <- function(article_data, news_site, overwrite = FALSE) {
 
     if (nrow(text_data) > 0) {
       monthly_pipeline <- compose_storage(
-        store_base(),
-        store_monthly_json,
+        store_ensure_folders,
         store_index_json,
-        store_ensure_folders
+        store_monthly_json,
+        store_base()
       )
       monthly_pipeline(text_data, news_site, overwrite)
     }

@@ -15,5 +15,5 @@ store_base <- function() {
 #' @return A composed function taking (data, news_site, overwrite)
 compose_storage <- function(...) {
   decorators <- list(...)
-  Reduce(function(f, g) g(f), decorators, right = TRUE)
+  Reduce(function(g, f) g(f), decorators, right = TRUE)
 }

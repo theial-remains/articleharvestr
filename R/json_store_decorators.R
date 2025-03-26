@@ -34,7 +34,8 @@ store_index_json <- function(next_fn) {
     minimal <- dplyr::select(data, url, published_date, sentiment_val, sentiment_sd)
 
     # remove duplicate urls just in case
-    minimal <- dplyr::distinct(minimal, url, .keep_all = TRUE)
+    keep_cols <- intersect(c("url", "published_date", "sentiment_val", "sentiment_sd"), names(data))
+    minimal <- dplyr::select(data, dplyr::all_of(keep_cols))
 
     # load existing index.json or fallback to empty tibble
     existing <- if (file.exists(path)) jsonlite::read_json(path, simplifyVector = TRUE) else tibble::tibble()
@@ -103,3 +104,4 @@ store_monthly_json <- function(next_fn) {
     next_fn(data, news_site, overwrite)
   }
 }
+
