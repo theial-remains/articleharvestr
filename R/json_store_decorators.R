@@ -23,24 +23,33 @@ store_ensure_folders <- function(next_fn) {
 }
 
 #' write minimal metadata (no text) to index.json for correct news site
-#' smart merge(?) preferring new values
+#' add sentiment_val and sentiment_sd columns if they don't exist
 store_index_json <- function(next_fn) {
   function(data, news_site, overwrite = FALSE) {
-    # define the folder and path to index.json for news site
+    # define path to index.json
     folder <- file.path("inst/extdata/article_data", news_site)
     path <- file.path(folder, "index.json")
 
-    # select only relevant metadata cols that exist in the input
-    keep_cols <- intersect(c("url", "published_date", "sentiment_val", "sentiment_sd"), names(data))
-    minimal <- dplyr::select(data, dplyr::all_of(keep_cols))
+    # add NA sentiment columns if missing
+    if (!"sentiment_val" %in% names(data)) {
+      data$sentiment_val <- NA
+    }
+    if (!"sentiment_sd" %in% names(data)) {
+      data$sentiment_sd <- NA
+    }
 
-    # remove duplicate urls just in case
+    # select relevant metadata columns
+    minimal <- dplyr::select(data, url, published_date, sentiment_val, sentiment_sd)
     minimal <- dplyr::distinct(minimal, url, .keep_all = TRUE)
 
-    # load existing index.json or fallback to empty tibble
-    existing <- if (file.exists(path)) jsonlite::read_json(path, simplifyVector = TRUE) else tibble::tibble()
+    # load existing data or use empty tibble
+    existing <- if (file.exists(path)) {
+      jsonlite::read_json(path, simplifyVector = TRUE)
+    } else {
+      tibble::tibble()
+    }
 
-    # merge new and existing metadata if any
+    # smart merge: keep most complete data per url
     if (!is.null(existing) && "url" %in% names(existing)) {
       combined <- dplyr::bind_rows(existing, minimal) %>%
         dplyr::group_by(url) %>%
@@ -49,10 +58,9 @@ store_index_json <- function(next_fn) {
       combined <- minimal
     }
 
-    # write the updated/new index.json file
+    # write index.json
     jsonlite::write_json(combined, path, pretty = TRUE, auto_unbox = TRUE)
 
-    # continue the pipeline
     next_fn(data, news_site, overwrite)
   }
 }

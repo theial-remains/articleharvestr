@@ -3,11 +3,11 @@
 \name{store_index_json}
 \alias{store_index_json}
 \title{write minimal metadata (no text) to index.json for correct news site
-smart merge(?) preferring new values}
+add sentiment_val and sentiment_sd columns if they don't exist}
 \usage{
 store_index_json(next_fn)
 }
 \description{
 write minimal metadata (no text) to index.json for correct news site
-smart merge(?) preferring new values
+add sentiment_val and sentiment_sd columns if they don't exist
 }
