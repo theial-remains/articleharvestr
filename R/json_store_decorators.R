@@ -30,12 +30,12 @@ store_index_json <- function(next_fn) {
     folder <- file.path("inst/extdata/article_data", news_site)
     path <- file.path(folder, "index.json")
 
-    # select only relevant metadata cols
-    minimal <- dplyr::select(data, url, published_date, sentiment_val, sentiment_sd)
-
-    # remove duplicate urls just in case
+    # select only relevant metadata cols that exist in the input
     keep_cols <- intersect(c("url", "published_date", "sentiment_val", "sentiment_sd"), names(data))
     minimal <- dplyr::select(data, dplyr::all_of(keep_cols))
+
+    # remove duplicate urls just in case
+    minimal <- dplyr::distinct(minimal, url, .keep_all = TRUE)
 
     # load existing index.json or fallback to empty tibble
     existing <- if (file.exists(path)) jsonlite::read_json(path, simplifyVector = TRUE) else tibble::tibble()
@@ -52,6 +52,7 @@ store_index_json <- function(next_fn) {
     # write the updated/new index.json file
     jsonlite::write_json(combined, path, pretty = TRUE, auto_unbox = TRUE)
 
+    # continue the pipeline
     next_fn(data, news_site, overwrite)
   }
 }
