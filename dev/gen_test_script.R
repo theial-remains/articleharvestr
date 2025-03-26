@@ -14,7 +14,7 @@ article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           end_date = "2018-01-05")
 View(article_urls)
 
-article_urls2 <- gu_remove_duplicates(article_urls) # FIXME maybe possibly does not work
+article_urls2 <- gu_remove_duplicates(article_urls)
 View(article_urls2)
 
 # TODO make a function check_content for any file path (of json)
@@ -40,8 +40,8 @@ ss_store_articles(
 
 # step 4: sentiment analysis
 # pull articles if you need to
-test_df <- ss_pull_articles(start_date = "2024-05-01",
-                            end_date = "2024-05-05",
+test_df <- ss_pull_articles(start_date = "2018-01-01",
+                            end_date = "2018-01-05",
                             news_site = "huffpost")
 View(test_df)
 

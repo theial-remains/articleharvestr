@@ -26,30 +26,18 @@ store_ensure_folders <- function(next_fn) {
 #' add sentiment_val and sentiment_sd columns if they don't exist
 store_index_json <- function(next_fn) {
   function(data, news_site, overwrite = FALSE) {
-    # define path to index.json
     folder <- file.path("inst/extdata/article_data", news_site)
     path <- file.path(folder, "index.json")
 
-    # add NA sentiment columns if missing
-    if (!"sentiment_val" %in% names(data)) {
-      data$sentiment_val <- NA
-    }
-    if (!"sentiment_sd" %in% names(data)) {
-      data$sentiment_sd <- NA
-    }
+    # ensure sentiment cols exist
+    if (!"sentiment_val" %in% names(data)) data$sentiment_val <- NA
+    if (!"sentiment_sd" %in% names(data)) data$sentiment_sd <- NA
 
-    # select relevant metadata columns
     minimal <- dplyr::select(data, url, published_date, sentiment_val, sentiment_sd)
     minimal <- dplyr::distinct(minimal, url, .keep_all = TRUE)
 
-    # load existing data or use empty tibble
-    existing <- if (file.exists(path)) {
-      jsonlite::read_json(path, simplifyVector = TRUE)
-    } else {
-      tibble::tibble()
-    }
+    existing <- if (file.exists(path)) jsonlite::read_json(path, simplifyVector = TRUE) else tibble::tibble()
 
-    # smart merge: keep most complete data per url
     if (!is.null(existing) && "url" %in% names(existing)) {
       combined <- dplyr::bind_rows(existing, minimal) %>%
         dplyr::group_by(url) %>%
@@ -58,8 +46,10 @@ store_index_json <- function(next_fn) {
       combined <- minimal
     }
 
-    # write index.json
     jsonlite::write_json(combined, path, pretty = TRUE, auto_unbox = TRUE)
+
+    written_n <- nrow(combined) - if (!is.null(existing)) nrow(existing) else 0
+    message("index.json: ", written_n, " new/updated rows")
 
     next_fn(data, news_site, overwrite)
   }
@@ -70,35 +60,19 @@ store_index_json <- function(next_fn) {
 store_monthly_json <- function(next_fn) {
   function(data, news_site, overwrite = FALSE) {
     folder <- file.path("inst/extdata/article_data", news_site)
-
-    # extract month from published_date col
     data$month <- format(as.Date(data$published_date), "%Y-%m")
-
-    # split the data into separate tibbles for each month
     grouped <- dplyr::group_split(data, data$month)
 
     for (group in grouped) {
-      # get the month string (all rows in each group have the same month)
       month_val <- unique(group$month)
-
-      # define json path for that month
       json_path <- file.path(folder, paste0(month_val, ".json"))
+      existing <- if (file.exists(json_path)) jsonlite::read_json(json_path, simplifyVector = TRUE) else tibble::tibble()
 
-      # load existing monthly data/fallback to empty tibble
-      existing <- if (file.exists(json_path)) {
-        jsonlite::read_json(json_path, simplifyVector = TRUE)
-      } else {
-        tibble::tibble()
-      }
-
-      # if old data exists
-      # rm duplicates if overwrite is TRUE
       if (!is.null(existing) && "url" %in% names(existing)) {
         if (overwrite) {
           existing <- dplyr::anti_join(existing, group, by = "url")
         }
 
-        # combine old and new data, preferring most complete row per url
         combined <- dplyr::bind_rows(existing, group) %>%
           dplyr::group_by(url) %>%
           dplyr::summarise(across(everything(), ~ dplyr::coalesce(last(na.omit(.x)), first(.x))), .groups = "drop")
@@ -106,8 +80,10 @@ store_monthly_json <- function(next_fn) {
         combined <- group
       }
 
-      # write the monthly json file, create or update
       jsonlite::write_json(combined, json_path, pretty = TRUE, auto_unbox = TRUE)
+
+      new_n <- nrow(combined) - if (!is.null(existing)) nrow(existing) else 0
+      message(month_val, ".json: ", new_n, " new/updated rows")
     }
 
     next_fn(data, news_site, overwrite)
