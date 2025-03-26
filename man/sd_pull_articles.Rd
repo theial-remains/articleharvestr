@@ -9,7 +9,7 @@ sd_pull_articles(
   end_date,
   news_site,
   scraped = NULL,
-  needs_sentiment = NULL,
+  sentiment = NULL,
   url = FALSE
 )
 }
@@ -20,11 +20,11 @@ sd_pull_articles(
 
 \item{news_site}{News site name (e.g., "huffpost")}
 
-\item{scraped}{TRUE to get unscraped articles (no text), FALSE to get scraped (text), NULL to ignore}
+\item{scraped}{If TRUE/FALSE, filter by presence/absence of article text}
 
-\item{needs_sentiment}{TRUE to get only sentimented, FALSE to get only non-sentimented, NULL to ignore}
+\item{sentiment}{If TRUE/FALSE, filter by presence/absence of sentiment data}
 
-\item{url}{If TRUE, return only \code{url} and \code{published_date} columns}
+\item{url}{If TRUE, returns only url and published_date columns (ignores other filters)}
 }
 \value{
 A tibble of filtered article data

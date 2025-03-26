@@ -201,7 +201,7 @@ sd_pull_articles <- function(start_date,
   # url only mode logic
   # skip filters, return url and published_date
   if (url) {
-    message("Returning URLs only from index and monthly JSONs.")
+    message("Returning URLs only from index JSON.")
     result <- dplyr::distinct(all_data, url, published_date)
     message(nrow(result), " article URLs found.")
     return(result)
