@@ -10,8 +10,8 @@ sitemap_url <- "https://www.huffpost.com/sitemaps/sitemap-v1.xml"
 
 article_urls <- gu_fetch_sitemap_articles(sitemap_url,
                                           levels = 1,
-                                          start_date = "2015-01-01",
-                                          end_date = "2025-01-05")
+                                          start_date = "2018-01-01",
+                                          end_date = "2018-01-05")
 View(article_urls)
 
 article_urls2 <- gu_remove_duplicates(article_urls) # FIXME maybe possibly does not work

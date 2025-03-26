@@ -21,12 +21,11 @@ gu_fetch_sitemap_articles(
 
 \item{end_date}{The end date for filtering (YYYY-MM-DD).}
 
-\item{verbose}{Logical; if TRUE, prints execution details and timing (default: TRUE).}
+\item{verbose}{Logical; if TRUE, prints execution time (default: TRUE).}
 }
 \value{
 A tibble with columns: url, published_date
 }
 \description{
 Fetches article URLs from a sitemap, filtering at each level and processing all valid sitemaps.
-Tracks the associated published date for each article based on the sitemap link structure.
 }

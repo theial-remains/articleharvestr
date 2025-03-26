@@ -115,7 +115,9 @@ ss_store_articles <- function(article_data, news_site, overwrite = FALSE) {
 
   article_data$published_date <- as.character(article_data$published_date)
 
-  # always store metadata in index
+  # always runs:
+  # creates site folder if needed
+  # adds data in index.json for that site (or not if overwrite FALSE and data not new)
   index_pipeline <- compose_storage(
     store_base(),
     store_index_json,
@@ -123,7 +125,9 @@ ss_store_articles <- function(article_data, news_site, overwrite = FALSE) {
   )
   index_pipeline(article_data, news_site, overwrite)
 
-  # only store full article if text is present
+  # store full articles if text is present
+  # creates site folder if needed
+  # create or update monthly jsons (or not if overwrite FALSE and data not new)
   if ("text" %in% names(article_data)) {
     text_data <- article_data[!is.na(article_data$text) & article_data$text != "", ]
 
@@ -131,6 +135,7 @@ ss_store_articles <- function(article_data, news_site, overwrite = FALSE) {
       monthly_pipeline <- compose_storage(
         store_base(),
         store_monthly_json,
+        store_index_json,
         store_ensure_folders
       )
       monthly_pipeline(text_data, news_site, overwrite)
