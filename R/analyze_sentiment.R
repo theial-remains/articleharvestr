@@ -87,3 +87,101 @@ as_sentiment_grouped <- function(dataframe, group_by = "both") {
 
   return(sentiment2)
 }
+
+#' Replace Articles with Missing or Incomplete Data
+#'
+#' Identifies articles with missing values or too few words and returns
+#' replacement URLs from the same time periods using `sd_sample_urls()`.
+#'
+#' @param dataframe A data frame with columns: url, published_date, author, text.
+#' @param news_site Name of the news site (used to find the correct index.json).
+#' @param period Time period for sampling ("day", "month", or "year").
+#' @param ran_number Number of articles that should exist per period.
+#' @param min_words Minimum number of words required in the article text.
+#'
+#' @return A tibble of replacement URLs with their associated published_date.
+#' @export
+sd_replace_bad_articles <- function(dataframe,
+                                    news_site,
+                                    period = c("day", "month", "year"),
+                                    ran_number = 100,
+                                    min_words = 5) {
+  period <- match.arg(period)
+
+  # make sure published_date is Date
+  dataframe$published_date <- as.Date(dataframe$published_date)
+
+  # create grouping key
+  dataframe$group <- dplyr::case_when(
+    period == "day" ~ format(dataframe$published_date, "%Y-%m-%d"),
+    period == "month" ~ format(dataframe$published_date, "%Y-%m"),
+    period == "year" ~ format(dataframe$published_date, "%Y")
+  )
+
+  # count expected articles per group
+  expected_counts <- dataframe %>%
+    dplyr::group_by(group) %>%
+    dplyr::tally(name = "expected")
+
+  # remove articles with missing key values or short text
+  dataframe$word_count <- stringr::str_count(dataframe$text, "\\S+")
+
+  bad_articles <- dataframe %>%
+    dplyr::filter(
+      is.na(author) | is.na(published_date) | is.na(text) | word_count < min_words
+    )
+
+  good_data <- dplyr::anti_join(dataframe, bad_articles, by = "url")
+
+  # count remaining articles per group
+  actual_counts <- good_data %>%
+    dplyr::group_by(group) %>%
+    dplyr::tally(name = "actual")
+
+  # join and find how many are missing
+  counts <- dplyr::left_join(expected_counts, actual_counts, by = "group") %>%
+    dplyr::mutate(
+      actual = tidyr::replace_na(actual, 0),
+      need = expected - actual
+    ) %>%
+    dplyr::filter(need > 0)
+
+  # report what was removed
+  message("Removed ", nrow(bad_articles), " bad articles:")
+
+  # report what periods need replacements
+  message("Need replacements in ", nrow(counts), " ", period, "(s):")
+  print(counts %>% dplyr::select(group, need))
+
+  # if nothing to replace, exit early
+  if (nrow(counts) == 0) {
+    return(tibble::tibble())
+  }
+
+  # sample replacements for each affected period
+  replacements <- purrr::map_dfr(seq_len(nrow(counts)), function(i) {
+    row <- counts[i, ]
+    group_val <- row$group
+    need_n <- row$need
+
+    if (period == "day") {
+      start_date <- end_date <- as.Date(group_val)
+    } else if (period == "month") {
+      start_date <- as.Date(paste0(group_val, "-01"))
+      end_date <- lubridate::ceiling_date(start_date, "month") - 1
+    } else if (period == "year") {
+      start_date <- as.Date(paste0(group_val, "-01-01"))
+      end_date <- as.Date(paste0(group_val, "-12-31"))
+    }
+
+    sd_sample_urls(
+      start_date = start_date,
+      end_date = end_date,
+      news_site = news_site,
+      number = need_n,
+      period = period
+    )
+  })
+
+  return(replacements)
+}

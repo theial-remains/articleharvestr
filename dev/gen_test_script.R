@@ -113,13 +113,113 @@ str(scraped_data)
 sentiment_data <- as_article_sentiment(scraped_data)
 View(sentiment_data)
 
-# now u can store random sample of sentiment data
-# or analyze it or make plots, whatever u want
+sentiment_data2 <- sentiment_data %>%
+  sd_clean_author() %>%
+  sd_clean_date()
+View(sentiment_data2)
+
 sd_store_articles(
-  article_data = sentiment_data,
+  article_data = sentiment_data2,
   news_site = "huffpost",
   overwrite = FALSE
 )
 
+# find replacement articles for those with not enough text or NA values
+sentiment_replace <- sd_replace_bad_articles(sentiment_data2,
+                                             "huffpost",
+                                             min_words = 25,
+                                             ran_number = 100,
+                                             period = "month")
+
+# scrape new articles
+sentiment_replace2 <- sa_scrape_articles(sentiment_replace)
+View(sentiment_replace2)
+
+# bind new df to old df
+library(dplyr)
+sentiment_data2 <- sentiment_data2 %>%
+  filter(
+    !is.na(author),
+    !is.na(published_date),
+    !is.na(text),
+    stringr::str_count(text, "\\S+") >= min_words
+  ) %>%
+  bind_rows(sentiment_replace2)
+View(sentiment_data2)
+
+# go back to sentiment_replace to see if any bad articles remain
+
+# sentiment data for full df without NAs or too small articles
+sentiment_data3 <- as_article_sentiment(sentiment_data2)
+View(sentiment_data3)
+
+# save sample
+saveRDS(sentiment_data3, file = "random_shit_folder/all_years_sentiment_sample.RDS")
+
+
+
 # analysis of sample
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+
+# removed rows with NA values or less than 25 words in text
 sentiment_data_sample <- readRDS("random_shit_folder/all_years_sentiment_sample.RDS")
+View(sentiment_data_sample)
+
+# distribution of overall sentiment
+ggplot(sentiment_data_sample, aes(x = sentiment_val)) +
+  geom_density(fill = "darkgreen", alpha = 0.4) +
+  labs(
+    title = "Distribution of Sentiment Scores",
+    x = "Sentiment Score",
+    y = "Density"
+  ) +
+  theme_minimal()
+
+# average sentiment by month
+monthly_sentiment <- sentiment_data_sample %>%
+  mutate(month = floor_date(as.Date(published_date), "month")) %>%
+  group_by(month) %>%
+  summarise(
+    avg_sentiment = mean(sentiment_val, na.rm = TRUE),
+    sd_sentiment = sd(sentiment_val, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+ggplot(monthly_sentiment, aes(x = month, y = avg_sentiment)) +
+  geom_line(color = "darkblue") +
+  geom_vline(xintercept = as.Date("2020-03-01"), linetype = "dashed", color = "red") +
+  geom_ribbon(aes(ymin = avg_sentiment - sd_sentiment,
+                  ymax = avg_sentiment + sd_sentiment),
+              fill = "steelblue", alpha = 0.2) +
+  labs(title = "Average Sentiment by Month",
+       x = "Month",
+       y = "Average Sentiment (AFINN)") +
+  theme_minimal()
+
+# violin plot
+sentiment_data <- sentiment_data_sample %>%
+  mutate(period = case_when(
+    as.Date(published_date) < as.Date("2020-03-01") ~ "Before COVID",
+    as.Date(published_date) >= as.Date("2020-03-01") & as.Date(published_date) < as.Date("2021-06-01") ~ "During COVID",
+    as.Date(published_date) >= as.Date("2021-06-01") ~ "After COVID"
+  ))
+
+sentiment_data$period <- factor(sentiment_data$period, levels = c("Before COVID", "During COVID", "After COVID"))
+
+ggplot(sentiment_data, aes(x = period, y = sentiment_val, fill = period)) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(width = 0.1, outlier.shape = NA, fill = "white") +
+  labs(title = "Sentiment Distribution Across COVID Periods",
+       x = "Period",
+       y = "Sentiment Score") +
+  theme_minimal()
+
+# test for difference in sentiment
+# Mann-Whitney U test (non-parametric)
+wilcox.test(
+  sentiment_val ~ period,
+  data = sentiment_data
+)
+# sentiment didnt stay low?? maybe?
