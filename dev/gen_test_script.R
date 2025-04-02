@@ -113,8 +113,6 @@ str(scraped_data)
 sentiment_data <- as_article_sentiment(scraped_data)
 View(sentiment_data)
 
-saveRDS(sentiment_data, file = "random_shit/all_years_sentiment_sample.RDS")
-
 # now u can store random sample of sentiment data
 # or analyze it or make plots, whatever u want
 sd_store_articles(
@@ -124,4 +122,4 @@ sd_store_articles(
 )
 
 # analysis of sample
-sentiment_data_sample <- readRDS("random_shit/all_years_sentiment_sample.RDS")
+sentiment_data_sample <- readRDS("random_shit_folder/all_years_sentiment_sample.RDS")
