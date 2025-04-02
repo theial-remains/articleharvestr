@@ -608,6 +608,15 @@
     "sentiment_sd": 0.2237
   },
   {
+    "url": "https://www.huffpost.com/entry/black-panthers-diverse-premiere_n_63d2c587e4b07c0c7e022065",
+    "published_date": "2018-01-30T19:59:47Z",
+    "author": "HuffPost Video",
+    "title": "“Black Panther’s” Diverse Premiere",
+    "text": "HuffPost Video",
+    "month": "2018-01",
+    "data$month": "2018-01"
+  },
+  {
     "url": "https://www.huffpost.com/entry/blizzard-northeast-bombogenesis_n_5a4dd527e4b025f99e1fe850",
     "published_date": "2018-01-04",
     "author": "gina cherelus , scott malone",
@@ -639,6 +648,15 @@
     "data$month": "2018-01",
     "sentiment_val": 0.2208,
     "sentiment_sd": 0.1815
+  },
+  {
+    "url": "https://www.huffpost.com/entry/border-agents-destroy-humanitarian-aid_n_5a620922e4b063db4d35ee9d",
+    "published_date": "2018-01-19T15:03:07Z",
+    "author": "HuffPost Video",
+    "title": "Border Agents Destroy Humanitarian Aid",
+    "text": "HuffPost Video",
+    "month": "2018-01",
+    "data$month": "2018-01"
   },
   {
     "url": "https://www.huffpost.com/entry/bouncing-around-colorado-springs-in-the-dead-of-winter_b_5a4cee9be4b0df0de8b06e89",
@@ -1929,6 +1947,15 @@
     "sentiment_sd": 0.2873
   },
   {
+    "url": "https://www.huffpost.com/entry/hattie-mcdaniels-historic-oscar-win_n_5a594029e4b0c6e02311fd87",
+    "published_date": "2018-01-12T23:07:15Z",
+    "author": "HuffPost Video",
+    "title": "Hattie McDaniel’s Historic Oscar Win",
+    "text": "HuffPost Video",
+    "month": "2018-01",
+    "data$month": "2018-01"
+  },
+  {
     "url": "https://www.huffpost.com/entry/hawaiian-airlines-flight-date-line_n_5a4a844de4b06d1621ba2314",
     "published_date": "2018-01-01",
     "author": "david moye",
@@ -2637,6 +2664,15 @@
     "data$month": "2018-01"
   },
   {
+    "url": "https://www.huffpost.com/entry/keshas-emotional-grammy-performance_n_5a6eb0fbe4b01871c86d3404",
+    "published_date": "2018-01-29T05:26:28Z",
+    "author": "HuffPost Video",
+    "title": "Kesha’s Emotional Grammy Performance",
+    "text": "HuffPost Video",
+    "month": "2018-01",
+    "data$month": "2018-01"
+  },
+  {
     "url": "https://www.huffpost.com/entry/kfc-trolls-donald-trump-mcdonalds_n_5a4df5d9e4b0b0e5a7ab045d",
     "published_date": "2018-01-04",
     "author": "lee moran",
@@ -2932,6 +2968,15 @@
     "sentiment_sd": 0.2744
   },
   {
+    "url": "https://www.huffpost.com/entry/media-and-lawmakers-react-to-trumps-shithole-comments_n_5a58ef56e4b038c84fb7ce91",
+    "published_date": "2018-01-12T17:22:29Z",
+    "author": "HuffPost Video",
+    "title": "Reactions To Trump’s 'Sh*thole' Comments",
+    "text": "HuffPost Video",
+    "month": "2018-01",
+    "data$month": "2018-01"
+  },
+  {
     "url": "https://www.huffpost.com/entry/medical-racism-black-genocide-anti-abortion-movement_n_5a3be8a1e4b06d1621b2b86a",
     "published_date": "2018-01-04",
     "author": "alanna vagianos",
@@ -3062,6 +3107,15 @@
     "sentiment_sd": 0.1269
   },
   {
+    "url": "https://www.huffpost.com/entry/mira-sorvino-to-dylan-farrow-im-so-so-sorry_n_5a57bdcae4b00a811406515d",
+    "published_date": "2018-01-11T19:39:18Z",
+    "author": "HuffPost Video",
+    "title": "Mira Sorvino Denounces Woody Allen In Heartfelt Apology To Dylan Farrow",
+    "text": "HuffPost Video",
+    "month": "2018-01",
+    "data$month": "2018-01"
+  },
+  {
     "url": "https://www.huffpost.com/entry/mitt-romney-is-not-the-answer_b_5a4ce1afe4b0df0de8b06e6f",
     "published_date": "2018-01-03",
     "author": "w. island",
@@ -3136,8 +3190,8 @@
   },
   {
     "url": "https://www.huffpost.com/entry/neo-nazi-murders_n_5a4e8b0ce4b099c36534bf10",
-    "published_date": "2018-01-04",
-    "author": "huff post video",
+    "published_date": "2018-01-04T20:08:13Z",
+    "author": "HuffPost Video",
     "title": "Tracing The Digital Roots Of A Neo-Nazi-Inspired Teen Suspected Of A Double-Homicide",
     "text": "HuffPost Video",
     "month": "2018-01",
@@ -3510,6 +3564,15 @@
     "data$month": "2018-01"
   },
   {
+    "url": "https://www.huffpost.com/entry/president-trumps-first-state-of-the-union-address_n_5a6f7edfe4b0445d14556cee",
+    "published_date": "2018-01-29T20:06:39Z",
+    "author": "HuffPost Video",
+    "title": "WATCH LIVE: President Trump's First State Of The Union Address",
+    "text": "HuffPost Video",
+    "month": "2018-01",
+    "data$month": "2018-01"
+  },
+  {
     "url": "https://www.huffpost.com/entry/quarter-world-drier-paris-climate_n_5a4ba3f5e4b0b0e5a7a8c49b",
     "published_date": "2018-01-02",
     "author": "willa frej",
@@ -3693,6 +3756,15 @@
     "data$month": "2018-01",
     "sentiment_val": 0.0603,
     "sentiment_sd": 0.3272
+  },
+  {
+    "url": "https://www.huffpost.com/entry/ruth-bader-ginsburg-embraces-saturday-night-live-impression_n_5a665292e4b0c56d7ec52ad7",
+    "published_date": "2018-01-22T20:31:14Z",
+    "author": "HuffPost Video",
+    "title": "RBG Loves Her 'SNL' Portrayal So Much She Wants To Mimic This Part Of It Herself",
+    "text": "HuffPost Video",
+    "month": "2018-01",
+    "data$month": "2018-01"
   },
   {
     "url": "https://www.huffpost.com/entry/ryan-reynolds-which-chris-is-hottest_n_5a4ba642e4b0b0e5a7a8c7ce",
