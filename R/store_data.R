@@ -1,56 +1,62 @@
-#' Clean Published Dates in Dataframe
+#' Clean Published Dates in Dataframe or List
 #'
-#' Detects the format of each date and converts it to "YYYY-MM-DD".
+#' Detects and standardizes the format of each date to "YYYY-MM-DD".
 #'
-#' @param dataframe A dataframe containing a "published_date" column.
-#' @return The same dataframe with "published_date" cleaned to "YYYY-MM-DD".
+#' @param data A dataframe or a list with at least a 'published_date' field.
+#' @return The same structure with 'published_date' cleaned.
 #' @import lubridate
 #' @export
-sd_clean_date <- function(dataframe) {
-  if (!"published_date" %in% names(dataframe)) {
-    stop("Error: Dataframe must contain a 'published_date' column.")
+sd_clean_date <- function(data) {
+  # handle lists and data frames
+  is_df <- is.data.frame(data)
+  is_list <- is.list(data) && !is_df
+
+  if (!(is_df || is_list)) {
+    stop("Input must be a dataframe or a named list with 'published_date'.")
   }
 
-  dataframe$published_date <- as.character(dataframe$published_date)
+  if (!"published_date" %in% names(data)) {
+    stop("Input must contain 'published_date'.")
+  }
 
-  dataframe$published_date <- sapply(dataframe$published_date, function(date_string) {
+  # make sure date column is character
+  data$published_date <- as.character(data$published_date)
+
+  clean_dates <- sapply(data$published_date, function(date_string) {
     if (is.na(date_string) || date_string == "") return(NA)
 
-    # do ISO 8601 manually because I cannot be bothered
     if (grepl("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z", date_string)) {
       return(as.character(as.Date(ymd_hms(date_string))))
     }
 
-    # rm time zones
-    clean_date_string <- gsub("( EST| EDT| PDT| CDT| PST| CST| UTC| GMT| Z)$", "", date_string)
+    # remove common timezone suffixes
+    clean_string <- gsub("( EST| EDT| PDT| CDT| PST| CST| UTC| GMT| Z)$", "", date_string)
 
-    # guess formats
-    possible_formats <- guess_formats(clean_date_string, orders = c(
+    possible_formats <- guess_formats(clean_string, orders = c(
       "ymd", "mdy", "dmy",
       "Ymd HMS", "mdy HMS", "dmy HMS",
       "Y-m-d H:M:S", "b d Y", "b d, Y H:M p", "b d, Y",
       "b d, Y H:M p", "b d, Y H:M", "b d, Y H:M:S p"
     ))
 
-    if (length(possible_formats) == 0) return(clean_date_string)
+    if (length(possible_formats) == 0) return(clean_string)
 
-    # use the first guessed format for date
-    parsed_date <- tryCatch({
-      as.Date(parse_date_time2(clean_date_string,
-                               orders = possible_formats[1]))
-    }, error = function(e) {
-      return(NA)
-    })
+    parsed <- tryCatch({
+      as.Date(parse_date_time2(clean_string, orders = possible_formats[1]))
+    }, error = function(e) NA)
 
-    return(as.character(parsed_date))
+    return(as.character(parsed))
   })
 
-  dataframe$published_date <- as.character(dataframe$published_date)
+  data$published_date <- as.character(clean_dates)
 
-  dataframe <- dataframe %>%
-    select(url, published_date, author, title, text)
+  # for data frames: keep the same columns
+  if (is_df) {
+    return(data)
+  }
 
-  return(dataframe)
+  # for lists: return updated list
+  return(data)
 }
 
 #' Clean Author Names in Dataframe
