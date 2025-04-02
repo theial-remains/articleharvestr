@@ -85,34 +85,31 @@ sd_store_articles(
 # hopefully works now
 sampled_urls <- sd_sample_urls(
   start_date = "2024-01-01", # random aah date range,
-  end_date = "2024-01-31", # TODO would cause issues if it was like 2023-03-01
-  # aka need to idiot proof this
-  # its me im the idiot
+  end_date = "2024-12-31",
   news_site = "huffpost",
   number = 100,
   period = "month"
 )
 View(sampled_urls)
 
-check <- sd_pull_articles(start_date = "2024-01-01",
-                          end_date = "2024-01-31",
-                          news_site = "huffpost",
-                          url = TRUE)
-View(check)
+# check <- sd_pull_articles(start_date = "2024-01-01",
+#                           end_date = "2024-01-31",
+#                           news_site = "huffpost",
+#                           url = TRUE)
+# View(check)
 
 # sampled_urls2 <- gu_remove_duplicates(article_urls)
 
 scraped_data_2024 <- sa_scrape_articles(sampled_urls)
-View(scraped_data)
+View(scraped_data_2024)
 
-sentiment_data <- as_article_sentiment(scraped_data)
-View(sentiment_data)
+sentiment_data_2024 <- as_article_sentiment(scraped_data_2024)
+View(sentiment_data_2024)
 
 # now u can store random sample of sentiment data
 # or analyze it or make plots, whatever u want
 sd_store_articles(
-  article_data = sentiment_data,
+  article_data = sentiment_data_2024,
   news_site = "huffpost",
   overwrite = FALSE
 )
-
