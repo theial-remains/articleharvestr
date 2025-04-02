@@ -53,11 +53,6 @@ sd_store_articles(
 ) # TODO should add tictoc to this
 
 
-# USE DIS PPL
-# take random sample of urls, scrape them, and analyze them
-# not doing random sample of scraped urls for now
-# since what articles are scraped or not is pretty random
-# ik its annoying to scrape every time but eh sorry
 
 # TODO check for misformatted dates
 library(jsonlite)
@@ -83,8 +78,11 @@ sd_store_articles(
   article_data = good_dates,
   news_site = "huffpost",
   overwrite = TRUE
-)
+) # Why so slow :(
 
+
+
+# hopefully works now
 sampled_urls <- sd_sample_urls(
   start_date = "2024-01-01", # random aah date range,
   end_date = "2024-01-31", # TODO would cause issues if it was like 2023-03-01
