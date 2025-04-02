@@ -283,10 +283,10 @@ sd_sample_urls <- function(start_date,
   # idiot proof start and end date depending on period
   if (period == "month") {
     start_date <- as.Date(format(start_date, "%Y-%m-01"))
-    end_date <- as.Date(format(end_date, "%Y-%m-01")) + lubridate::months(1) - 1
+    end_date <- lubridate::ceiling_date(as.Date(end_date), unit = "month") - 1
   } else if (period == "year") {
     start_date <- as.Date(format(start_date, "%Y-01-01"))
-    end_date <- as.Date(format(end_date, "%Y-12-31"))
+    end_date <- lubridate::ceiling_date(as.Date(end_date), unit = "year") - 1
   }
 
   # validate number

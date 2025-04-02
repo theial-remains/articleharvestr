@@ -2,16 +2,16 @@
 % Please edit documentation in R/store_data.R
 \name{sd_clean_date}
 \alias{sd_clean_date}
-\title{Clean Published Dates in Dataframe}
+\title{Clean Published Dates in Dataframe or List}
 \usage{
-sd_clean_date(dataframe)
+sd_clean_date(data)
 }
 \arguments{
-\item{dataframe}{A dataframe containing a "published_date" column.}
+\item{data}{A dataframe or a list with at least a 'published_date' field.}
 }
 \value{
-The same dataframe with "published_date" cleaned to "YYYY-MM-DD".
+The same structure with 'published_date' cleaned.
 }
 \description{
-Detects the format of each date and converts it to "YYYY-MM-DD".
+Detects and standardizes the format of each date to "YYYY-MM-DD".
 }

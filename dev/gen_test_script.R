@@ -81,11 +81,18 @@ sd_store_articles(
 ) # Why so slow :(
 
 
+# TODO
+# TODO
+# TODO fuckin asap
+# pretty sure new/updated rows reporting aint working correctly
+# for sd_store_articles
+# and it slow af gotta fix that
+
 
 # hopefully works now
 sampled_urls <- sd_sample_urls(
-  start_date = "2024-01-01", # random aah date range,
-  end_date = "2024-12-31",
+  start_date = "2021-01-01", # random aah date range,
+  end_date = "2021-12-01",
   news_site = "huffpost",
   number = 100,
   period = "month"
@@ -100,16 +107,16 @@ View(sampled_urls)
 
 # sampled_urls2 <- gu_remove_duplicates(article_urls)
 
-scraped_data_2024 <- sa_scrape_articles(sampled_urls)
-View(scraped_data_2024)
+scraped_data <- sa_scrape_articles(sampled_urls)
+View(scraped_data)
 
-sentiment_data_2024 <- as_article_sentiment(scraped_data_2024)
-View(sentiment_data_2024)
+sentiment_data <- as_article_sentiment(scraped_data)
+View(sentiment_data)
 
 # now u can store random sample of sentiment data
 # or analyze it or make plots, whatever u want
 sd_store_articles(
-  article_data = sentiment_data_2024,
+  article_data = sentiment_data,
   news_site = "huffpost",
   overwrite = FALSE
 )
