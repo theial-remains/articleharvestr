@@ -124,38 +124,6 @@ sd_store_articles(
   overwrite = FALSE
 )
 
-# find replacement articles for those with not enough text or NA values
-sentiment_replace <- sd_replace_bad_articles(sentiment_data2,
-                                             "huffpost",
-                                             min_words = 25,
-                                             ran_number = 100,
-                                             period = "month")
-
-# scrape new articles
-sentiment_replace2 <- sa_scrape_articles(sentiment_replace)
-View(sentiment_replace2)
-
-# bind new df to old df
-library(dplyr)
-sentiment_data2 <- sentiment_data2 %>%
-  filter(
-    !is.na(author),
-    !is.na(published_date),
-    !is.na(text),
-    stringr::str_count(text, "\\S+") >= min_words
-  ) %>%
-  bind_rows(sentiment_replace2)
-View(sentiment_data2)
-
-# go back to sentiment_replace to see if any bad articles remain
-
-# sentiment data for full df without NAs or too small articles
-sentiment_data3 <- as_article_sentiment(sentiment_data2)
-View(sentiment_data3)
-
-# save sample
-saveRDS(sentiment_data3, file = "random_shit_folder/all_years_sentiment_sample.RDS")
-
 
 
 # analysis of sample
@@ -187,18 +155,23 @@ monthly_sentiment <- sentiment_data_sample %>%
     .groups = "drop"
   )
 
+
+# TODO seperate geom_smooth for pre and post covid
 ggplot(monthly_sentiment, aes(x = month, y = avg_sentiment)) +
   geom_line(color = "darkblue") +
   geom_vline(xintercept = as.Date("2020-03-01"), linetype = "dashed", color = "red") +
   geom_ribbon(aes(ymin = avg_sentiment - sd_sentiment,
                   ymax = avg_sentiment + sd_sentiment),
               fill = "steelblue", alpha = 0.2) +
+  geom_smooth() +
+  scale_x_date(date_breaks = "3 months") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1)) +
   labs(title = "Average Sentiment by Month",
        x = "Month",
-       y = "Average Sentiment (AFINN)") +
-  theme_minimal()
+       y = "Average Sentiment (AFINN)")
 
 # violin plot
+# TODO plotly
 sentiment_data <- sentiment_data_sample %>%
   mutate(period = case_when(
     as.Date(published_date) < as.Date("2020-03-01") ~ "Before COVID",
@@ -223,3 +196,7 @@ wilcox.test(
   data = sentiment_data
 )
 # sentiment didnt stay low?? maybe?
+
+# TODO by author
+unique(sentiment_data$author)
+author_sentiment <-
