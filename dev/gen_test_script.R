@@ -125,78 +125,73 @@ sd_store_articles(
 )
 
 
+sentiment_data_sample2 <- readRDS("random_shit_folder/all_years_sentiment_sample.RDS")
+
+
 
 # analysis of sample
 library(dplyr)
-library(ggplot2)
-library(lubridate)
+library(tidyr)
+library(plotly)
 
-# removed rows with NA values or less than 25 words in text
-sentiment_data_sample <- readRDS("random_shit_folder/all_years_sentiment_sample.RDS")
-View(sentiment_data_sample)
+author_counts <- sentiment_data_sample2 %>%
+  filter(!is.na(author), !is.na(sentiment_val)) %>%
+  group_by(author, period) %>%
+  tally(name = "n_articles")
 
-# distribution of overall sentiment
-ggplot(sentiment_data_sample, aes(x = sentiment_val)) +
-  geom_density(fill = "darkgreen", alpha = 0.4) +
-  labs(
-    title = "Distribution of Sentiment Scores",
-    x = "Sentiment Score",
-    y = "Density"
-  ) +
-  theme_minimal()
+complete_authors <- author_counts %>%
+  filter(n_articles >= 10) %>%
+  count(author) %>%
+  filter(n == 3) %>%
+  pull(author)
 
-# average sentiment by month
-monthly_sentiment <- sentiment_data_sample %>%
-  mutate(month = floor_date(as.Date(published_date), "month")) %>%
-  group_by(month) %>%
-  summarise(
-    avg_sentiment = mean(sentiment_val, na.rm = TRUE),
-    sd_sentiment = sd(sentiment_val, na.rm = TRUE),
-    .groups = "drop"
+author_period_avg <- sentiment_data_sample2 %>%
+  filter(author %in% complete_authors) %>%
+  group_by(author, period) %>%
+  summarise(mean_sentiment = mean(sentiment_val, na.rm = TRUE), .groups = "drop") %>%
+  mutate(period = factor(period, levels = c("Before COVID", "During COVID", "After COVID")))
+
+p <- plot_ly(type = 'violin')
+
+for (p_label in levels(author_period_avg$period)) {
+  p <- add_trace(p,
+    data = filter(author_period_avg, period == p_label),
+    y = ~mean_sentiment,
+    name = p_label,
+    type = 'violin',
+    box = list(visible = TRUE),
+    meanline = list(visible = TRUE),
+    points = 'all',
+    jitter = 0.3,
+    opacity = 0.5,
+    showlegend = TRUE
   )
+}
 
+# line data connecting each author
+lines_data <- author_period_avg %>%
+  tidyr::pivot_wider(names_from = period, values_from = mean_sentiment) %>%
+  na.omit()
 
-# TODO seperate geom_smooth for pre and post covid
-ggplot(monthly_sentiment, aes(x = month, y = avg_sentiment)) +
-  geom_line(color = "darkblue") +
-  geom_vline(xintercept = as.Date("2020-03-01"), linetype = "dashed", color = "red") +
-  geom_ribbon(aes(ymin = avg_sentiment - sd_sentiment,
-                  ymax = avg_sentiment + sd_sentiment),
-              fill = "steelblue", alpha = 0.2) +
-  geom_smooth() +
-  scale_x_date(date_breaks = "3 months") +
-  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1)) +
-  labs(title = "Average Sentiment by Month",
-       x = "Month",
-       y = "Average Sentiment (AFINN)")
+for (i in 1:nrow(lines_data)) {
+  p <- add_trace(p,
+    x = c("Before COVID", "During COVID", "After COVID"),
+    y = as.numeric(lines_data[i, 2:4]),
+    type = 'scatter',
+    mode = 'lines+markers',
+    name = lines_data$author[i],
+    line = list(width = 1),
+    marker = list(size = 4),
+    opacity = 0.4,
+    showlegend = FALSE
+  )
+}
 
-# violin plot
-# TODO plotly
-sentiment_data <- sentiment_data_sample %>%
-  mutate(period = case_when(
-    as.Date(published_date) < as.Date("2020-03-01") ~ "Before COVID",
-    as.Date(published_date) >= as.Date("2020-03-01") & as.Date(published_date) < as.Date("2021-06-01") ~ "During COVID",
-    as.Date(published_date) >= as.Date("2021-06-01") ~ "After COVID"
-  ))
-
-sentiment_data$period <- factor(sentiment_data$period, levels = c("Before COVID", "During COVID", "After COVID"))
-
-ggplot(sentiment_data, aes(x = period, y = sentiment_val, fill = period)) +
-  geom_violin(trim = FALSE) +
-  geom_boxplot(width = 0.1, outlier.shape = NA, fill = "white") +
-  labs(title = "Sentiment Distribution Across COVID Periods",
-       x = "Period",
-       y = "Sentiment Score") +
-  theme_minimal()
-
-# test for difference in sentiment
-# Mann-Whitney U test (non-parametric)
-wilcox.test(
-  sentiment_val ~ period,
-  data = sentiment_data
+# layout
+p <- layout(p,
+  title = paste("Average Sentiment by Author Across COVID Periods (Min", min_n_per_period, "Articles/Period)"),
+  yaxis = list(title = "Mean Sentiment"),
+  xaxis = list(title = "COVID Period")
 )
-# sentiment didnt stay low?? maybe?
 
-# TODO by author
-unique(sentiment_data$author)
-author_sentiment <-
+p

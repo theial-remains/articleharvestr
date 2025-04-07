@@ -4,6 +4,7 @@
 #' @return The same data frame with additional columns: "sentiment_val" and "sentiment_sd".
 #' @import sentimentr
 #' @import dplyr
+#' @import tidyr
 #' @export
 as_article_sentiment <- function(dataframe) {
   if (!"text" %in% names(dataframe)) {
@@ -34,7 +35,7 @@ as_article_sentiment <- function(dataframe) {
     select(-row_id, -word_count, -ave_sentiment, -sd) %>%
     mutate(published_date = as.character(published_date))
 
-  return(dataframe)
+  return(tibble(dataframe))
 }
 
 #' Perform Sentiment Analysis Grouped by Author, Date, or Both

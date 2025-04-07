@@ -157,6 +157,7 @@ sd_store_articles <- function(article_data, news_site, overwrite = FALSE) {
 #' @param sentiment If TRUE/FALSE, filter by presence/absence of sentiment data
 #' @param url If TRUE, returns only url and published_date columns (ignores other filters)
 #' @return A tibble of filtered article data
+#' @import tidyr
 #' @export
 sd_pull_articles <- function(start_date,
                              end_date,
@@ -250,7 +251,7 @@ sd_pull_articles <- function(start_date,
   message("Returning", num_scraped, " scraped with text")
   message("Returning", num_sentimented, " with sentiment data")
 
-  return(all_data)
+  return(tidyr::tibble(all_data))
 }
 
 #' Sample random URLs per day/month/year from index.json
@@ -261,6 +262,7 @@ sd_pull_articles <- function(start_date,
 #' @param number Number of URLs to sample per time period
 #' @param period Time period to group by: "day", "month", or "year"
 #' @return A tibble with randomly sampled URLs and published_date
+#' @import tidyr
 #' @export
 sd_sample_urls <- function(start_date,
                            end_date,
@@ -333,5 +335,5 @@ sd_sample_urls <- function(start_date,
     dplyr::select(url, published_date)
 
   message("Sampled ", nrow(sampled), " article URLs (", number, " per ", period, ").")
-  return(sampled)
+  return(tidyr::tibble(sampled))
 }

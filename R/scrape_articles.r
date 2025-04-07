@@ -303,6 +303,7 @@ sa_get_article_data <- function(article_url, selectors = NULL) {
 #' @import dplyr
 #' @import purrr
 #' @import tictoc
+#' @import tidyr
 #' @export
 sa_scrape_articles <- function(article_urls, verbose = TRUE) {
 
@@ -356,6 +357,6 @@ sa_scrape_articles <- function(article_urls, verbose = TRUE) {
     message(sprintf("Scraped %d articles in %.2f seconds.", total_articles, elapsed_time$toc - elapsed_time$tic))
   }
 
-  return(articles_df)
+  return(tidyr::tibble(articles_df))
 }
 
